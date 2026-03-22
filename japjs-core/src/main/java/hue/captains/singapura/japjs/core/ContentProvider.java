@@ -1,0 +1,12 @@
+package hue.captains.singapura.japjs.core;
+
+import java.util.List;
+
+/**
+ * Provide actual script content for the given module.
+ *  <br> excluding imports and exports which will be manged separately.
+ * @param <M>
+ */
+public interface ContentProvider<M extends EsModule> {
+    List<String> content();
+}
