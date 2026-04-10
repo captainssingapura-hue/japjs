@@ -19,6 +19,10 @@ public final class ImportsFor<M extends EsModule>{
         return new _Builder<>();
     }
 
+    public static <M extends EsModule> ImportsFor<M> noImports(){
+        return new ImportsFor<>(Map.of());
+    }
+
     public Map<EsModule, ModuleImports<?>> getAllImports() {
         return allImports;
     }

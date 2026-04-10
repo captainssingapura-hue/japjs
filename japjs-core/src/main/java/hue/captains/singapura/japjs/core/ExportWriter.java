@@ -1,9 +1,12 @@
 package hue.captains.singapura.japjs.core;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record ExportWriter() {
+    public static final ExportWriter INSTANCE = new ExportWriter();
     public <M extends EsModule<M>> List<String> writeExports(ExportsOf<M> exports){
-        return exports.exports().stream().map(e->"export " + e.getClass().getSimpleName() + ";").toList();
+        if(exports.exports().isEmpty()) return List.of();
+        return List.of("export {" + exports.exports().stream().map(e->e.getClass().getSimpleName()).collect(Collectors.joining(", ")) + "};");
     }
 }

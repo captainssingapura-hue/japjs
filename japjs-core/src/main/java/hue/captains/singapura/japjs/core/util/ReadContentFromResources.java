@@ -3,18 +3,28 @@ package hue.captains.singapura.japjs.core.util;
 import hue.captains.singapura.japjs.core.ContentProvider;
 import hue.captains.singapura.japjs.core.EsModule;
 
-import java.io.*;
 import java.util.List;
 
-public record ReadContentFromResources<M extends EsModule>(M module) implements ContentProvider<M> {
+public record ReadContentFromResources<M extends EsModule>(M module, String theme, ResourceReader resourceReader) implements ContentProvider<M> {
+
+    public ReadContentFromResources(M module) {
+        this(module, null, ResourceReader.INSTANCE);
+    }
+
+    public ReadContentFromResources(M module, ResourceReader resourceReader) {
+        this(module, null, resourceReader);
+    }
 
     @Override
     public List<String> content() {
-        final String path = module.getClass().getCanonicalName().replace(".", "/") + ".js";
-        try(InputStream in = module.getClass().getClassLoader().getResourceAsStream(path)){
-            return new BufferedReader(new InputStreamReader(in)).lines().toList();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load " + module, e);
+        final String basePath = "japjs/js/" + module.getClass().getCanonicalName().replace(".", "/");
+        if (theme != null) {
+            try {
+                return resourceReader.getStringsFromResource(basePath + "." + theme + ".js");
+            } catch (Exception e) {
+                // Fall back to default if themed variant not found
+            }
         }
+        return resourceReader.getStringsFromResource(basePath + ".js");
     }
 }

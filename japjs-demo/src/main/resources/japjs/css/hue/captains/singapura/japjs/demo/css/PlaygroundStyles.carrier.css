@@ -1,0 +1,229 @@
+/* Playground / Animal Platformer – Aircraft Carrier (Middle East) theme */
+
+:root {
+    color-scheme: light;
+    --shadow-color: rgba(0, 0, 0, 0.25);
+}
+
+body {
+    margin: 0;
+    font-family: "Courier New", Courier, monospace;
+    background: linear-gradient(180deg, #c8a870 0%, #dcc090 30%, #e8d8b0 60%, #3a6080 85%, #284860 100%);
+    background-attachment: fixed;
+    color: #2a2a2a;
+    min-height: 100vh;
+}
+
+#app {
+    padding: 24px 32px;
+}
+
+.pg-title {
+    font-size: 2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    color: #4a6a40;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+    margin: 0 0 4px 0;
+}
+
+.pg-hint {
+    color: #6a6050;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin: 12px 0 16px 0;
+}
+
+.pg-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.pg-controls label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #5a5040;
+}
+
+.pg-controls input[type="range"] {
+    width: 120px;
+    accent-color: #4a6a40;
+}
+
+.pg-size-display {
+    font-size: 0.85rem;
+    color: #4a6a40;
+    font-weight: 600;
+    min-width: 80px;
+}
+
+.pg-theme-switcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.pg-theme-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #5a5040;
+    margin-right: 4px;
+}
+
+.pg-theme-btn {
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid #8a8878;
+    border-radius: 4px;
+    background: rgba(220, 210, 190, 0.6);
+    color: #5a5040;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.pg-theme-btn:hover {
+    border-color: #4a6a40;
+    color: #4a6a40;
+}
+
+.pg-theme-btn-active {
+    background: #4a6a40;
+    border-color: #4a6a40;
+    color: #e8e0d0;
+    cursor: default;
+}
+
+.pg-playground {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #e8c870 0%, #ddb860 15%, #c8a850 35%, #386888 60%, #2a5570 80%, #1e4050 100%);
+    border: 2px solid #707870;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+}
+
+.pg-sky {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background:
+        /* Harsh sun */
+        radial-gradient(circle 20px at 75% 20%, rgba(255, 240, 180, 0.95) 0%, rgba(255, 220, 120, 0.3) 50%, transparent 100%),
+        radial-gradient(circle 50px at 75% 20%, rgba(255, 220, 120, 0.15) 0%, transparent 100%),
+        /* Heat haze above horizon */
+        radial-gradient(ellipse 300px 10px at 40% 78%, rgba(200, 170, 100, 0.15) 0%, transparent 100%),
+        radial-gradient(ellipse 250px 8px at 65% 80%, rgba(180, 150, 90, 0.12) 0%, transparent 100%),
+        /* Thin clouds */
+        radial-gradient(ellipse 120px 18px at 20% 18%, rgba(255, 250, 230, 0.4) 0%, transparent 100%),
+        radial-gradient(ellipse 90px 14px at 48% 14%, rgba(255, 245, 220, 0.3) 0%, transparent 100%),
+        /* Carrier silhouette */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 100' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='hull' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23505858'/%3E%3Cstop offset='1' stop-color='%23384044'/%3E%3C/linearGradient%3E%3ClinearGradient id='island' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23606868'/%3E%3Cstop offset='1' stop-color='%23485050'/%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- Flight deck and hull --%3E%3Cpath d='M80,68 L90,64 L420,64 L435,68 L435,78 L425,82 L95,82 L80,78 Z' fill='url(%23hull)'/%3E%3C!-- Deck surface --%3E%3Crect x='95' y='62' width='320' height='4' rx='1' fill='%23687070'/%3E%3C!-- Angled deck line --%3E%3Cline x1='150' y1='62' x2='300' y2='66' stroke='%23808880' stroke-width='0.8' opacity='0.6'/%3E%3C!-- Island superstructure --%3E%3Cpath d='M310,62 L310,46 L315,44 L340,44 L345,46 L345,62 Z' fill='url(%23island)'/%3E%3C!-- Bridge windows --%3E%3Crect x='316' y='48' width='22' height='4' rx='1' fill='%23889090' opacity='0.7'/%3E%3C!-- Mast --%3E%3Cline x1='327' y1='44' x2='327' y2='28' stroke='%23586060' stroke-width='1.5'/%3E%3C!-- Radar arrays --%3E%3Crect x='322' y='28' width='10' height='3' rx='1' fill='%23586060'/%3E%3Cline x1='327' y1='31' x2='327' y2='35' stroke='%23586060' stroke-width='1'/%3E%3Crect x='324' y='35' width='6' height='2' rx='0.5' fill='%23586060'/%3E%3C!-- Aft mast --%3E%3Cline x1='338' y1='44' x2='338' y2='36' stroke='%23586060' stroke-width='1'/%3E%3Crect x='335' y='36' width='6' height='2' rx='0.5' fill='%23586060'/%3E%3C!-- Bow catapults --%3E%3Cline x1='100' y1='63' x2='160' y2='63' stroke='%23808880' stroke-width='0.6' opacity='0.5'/%3E%3Cline x1='100' y1='65' x2='155' y2='65' stroke='%23808880' stroke-width='0.6' opacity='0.5'/%3E%3C!-- Aircraft on deck --%3E%3Crect x='180' y='60' width='12' height='3' rx='1' fill='%23586060' opacity='0.5'/%3E%3Crect x='200' y='60' width='12' height='3' rx='1' fill='%23586060' opacity='0.5'/%3E%3Crect x='240' y='60' width='12' height='3' rx='1' fill='%23586060' opacity='0.5'/%3E%3Crect x='270' y='60' width='12' height='3' rx='1' fill='%23586060' opacity='0.4'/%3E%3C!-- Wake --%3E%3Cpath d='M80,80 Q60,82 40,80 Q30,79 20,80' stroke='%23508898' stroke-width='0.8' fill='none' opacity='0.4'/%3E%3Cpath d='M80,82 Q55,85 30,82' stroke='%23508898' stroke-width='0.6' fill='none' opacity='0.3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left top, left top, left top, left top, left top, left top, center bottom;
+    background-size: auto, auto, auto, auto, auto, auto, 90% 85%;
+}
+
+.pg-world {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.pg-animal {
+    position: absolute;
+    transform-origin: center;
+    will-change: transform, left, top;
+    z-index: 5;
+}
+
+.pg-animal svg {
+    width: 50px;
+    height: auto;
+    filter: drop-shadow(1px 1px 2px var(--shadow-color));
+}
+
+.pg-platform {
+    position: absolute;
+    background: linear-gradient(180deg, #808888, #687078);
+    border-radius: 1px;
+    border-top: 2px solid #98a0a0;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.pg-platform-active {
+    background: linear-gradient(180deg, #90a090, #788878);
+    border-top-color: #a8b8a8;
+    box-shadow: 0 0 8px rgba(100, 140, 100, 0.4);
+}
+
+.pg-lava {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(0deg, #1a3a50, #2a5570, rgba(50, 100, 130, 0.4));
+    z-index: 2;
+}
+
+.pg-score {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4a6a40;
+    z-index: 3;
+}
+
+.pg-gameover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+}
+
+.pg-gameover h2 {
+    font-size: 2.5rem;
+    color: #cc4400;
+    text-shadow: 0 0 15px rgba(200, 60, 0, 0.5);
+    margin: 0 0 8px 0;
+}
+
+.pg-final-score {
+    font-size: 1.2rem;
+    color: #e0d8c8;
+    margin: 0 0 16px 0;
+}
+
+.pg-gameover button {
+    padding: 8px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid #4a6a40;
+    border-radius: 4px;
+    background: rgba(74, 106, 64, 0.2);
+    color: #e0d8c8;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.pg-gameover button:hover {
+    background: rgba(74, 106, 64, 0.4);
+}
