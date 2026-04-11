@@ -17,11 +17,16 @@ ES module graphs are easy to get wrong at scale: circular imports, missing expor
 | Type | Role |
 |------|------|
 | `EsModule<M>` | Declares a module's imports and exports |
+| `DomModule<M>` | EsModule that interacts with the DOM |
+| `AppModule<M>` | DomModule that serves as a single-page application entry point |
 | `Exportable._Class<M>` / `Exportable._Constant<M>` | Type-safe markers for exported items |
 | `ImportsFor<M>` | Builder-based import declaration |
-| `EsModuleWriter<M>` | Orchestrates generation: imports → content → exports |
+| `EsModuleWriter<M>` | Orchestrates generation: imports -> content -> exports |
 | `ModuleNameResolver` | Pluggable strategy for resolving import paths |
 | `ContentProvider<M>` | Pluggable strategy for loading JS content |
+| `SvgGroup<G>` / `SvgBeing<G>` | SVG asset bundles as ES modules |
+| `CssGroup<C>` / `CssClass<C>` | Type-safe CSS resource modules with class bindings |
+| `ExternalModule<M>` | Third-party JS library wrappers (CDN or global) |
 
 ## Quick Start
 
@@ -67,7 +72,7 @@ const Alice2 = new AliceClass(2);
 ### 2. Define a dependent module
 
 ```java
-public record BobModule() implements EsModule<BobModule> {
+public record BobModule() implements DomModule<BobModule> {
 
     public static final BobModule INSTANCE = new BobModule();
 
@@ -133,93 +138,150 @@ const Alice2 = new AliceClass(2);
 export { Alice1, Alice2, AliceClass };
 ```
 
-## Real-World Scenarios
+## Type-Safe CSS
 
-### Server-Side JS Generation
+japjs provides a type-safe CSS class management system that eliminates raw string-based DOM class operations. CSS resources are declared as `CssGroup` modules that export typed `CssClass` objects.
 
-A Java web application that serves dynamically generated ES modules to the browser. Your backend defines the module graph, resolves import paths based on the deployment environment (CDN prefix, versioned paths, etc.), and writes modules on-the-fly or at startup. The `ModuleNameResolver` is the key extension point — implement it to produce paths like `https://cdn.example.com/v2/modules/Alice.js` or `./assets/Alice.abc123.js`.
-
-```java
-// Resolve import paths to your CDN
-ModuleNameResolver cdnResolver = module ->
-    "https://cdn.example.com/v2/" + module.getClass().getSimpleName();
-```
-
-### Build-Time Code Generation
-
-Integrate japjs into a Maven or Gradle build step to generate a complete ES module bundle from Java-declared dependency graphs. Your Java source is the single source of truth for which modules exist, what they export, and how they depend on each other. A build plugin iterates over all `EsModule` implementations, generates the `.js` files, and places them in the output directory alongside your compiled classes or in a static resources folder.
-
-This is particularly useful when your JS modules are consumed by a downstream bundler (Vite, esbuild, Rollup) — japjs generates the individual modules with correct import/export wiring, and the bundler handles optimization.
-
-### Polyglot Monorepos
-
-In projects where a Java backend and browser-side JavaScript coexist, japjs keeps the module wiring in Java alongside the rest of your application code. Instead of maintaining a separate `package.json` dependency graph, your Java code declares the module relationships. This is valuable when:
-
-- Your JS modules are tightly coupled to backend logic (e.g., generated API clients, shared constants)
-- You want refactoring tools and compile-time checks for your module graph
-- Multiple backend services each need to produce slightly different JS module bundles
-
-### Dynamic Module Assembly
-
-Build different JS module bundles based on runtime conditions. Since module declarations are plain Java objects, you can conditionally include or exclude exports, swap implementations, or alter the dependency graph based on configuration, feature flags, or user context.
+### 1. Declare a CSS module with typed classes
 
 ```java
-// Conditionally include exports based on feature flags
-@Override
-public ExportsOf<Dashboard> exports() {
-    var exports = new ArrayList<Exportable<Dashboard>>();
-    exports.add(new CoreWidget());
-    if (featureFlags.isEnabled("beta-charts")) {
-        exports.add(new BetaChartWidget());
+public record ButtonStyles() implements CssGroup<ButtonStyles> {
+    public static final ButtonStyles INSTANCE = new ButtonStyles();
+
+    // Each record maps to a CSS class name (snake_case -> kebab-case)
+    public record btn() implements CssClass<ButtonStyles> {}
+    public record btn_primary() implements CssClass<ButtonStyles> {}
+    public record btn_disabled() implements CssClass<ButtonStyles> {}
+
+    @Override
+    public CssImportsFor<ButtonStyles> cssImports() {
+        return CssImportsFor.none(this);
     }
-    return new ExportsOf<>(this, exports);
+
+    @Override
+    public List<CssClass<ButtonStyles>> cssClasses() {
+        return List.of(new btn(), new btn_primary(), new btn_disabled());
+    }
 }
 ```
 
-### Templated JS with Type-Safe Wiring
+### 2. Import CSS classes in your DomModule
 
-Use japjs as a type-safe templating layer. The Java side enforces that if module B imports `Alice1` from module A, then module A actually exports `Alice1` — this is checked at compile time via generics. The JS files are templates that assume their imports exist; japjs guarantees the wiring is correct. This catches broken imports before any JavaScript ever runs, which is especially valuable in large codebases or when multiple teams contribute modules.
+```java
+public record MyWidget() implements DomModule<MyWidget> {
+    // ...
+    @Override
+    public ImportsFor<MyWidget> imports() {
+        return ImportsFor.<MyWidget>builder()
+            .add(new ModuleImports<>(List.of(
+                    new ButtonStyles.btn(),
+                    new ButtonStyles.btn_primary()
+            ), ButtonStyles.INSTANCE))
+            .build();
+    }
+}
+```
+
+### 3. Use the type-safe API in JavaScript
+
+The server auto-injects a `css` manager into any DomModule with CSS imports. In your JS file, use `css.*` methods instead of raw `.className` or `.classList` operations:
+
+```javascript
+function appMain(rootElement) {
+    const button = document.createElement("button");
+    css.setClass(button, btn);            // sets className to "btn"
+    css.addClass(button, btn_primary);    // adds "btn-primary"
+    css.removeClass(button, btn_primary); // removes "btn-primary"
+    css.toggleClass(button, btn_disabled, isDisabled); // conditional toggle
+    css.hasClass(button, btn_primary);    // returns boolean
+
+    // For passing to shared components that accept string class names:
+    const className = css.className(btn); // returns "btn"
+}
+```
+
+The `CssClassManager` also handles CSS file loading automatically — `CssGroup` modules are generated as header-only ES modules that load their CSS and export frozen class objects.
+
+### Naming Convention
+
+Record names use `snake_case`, which maps 1:1 to `kebab-case` CSS class names:
+
+| Java Record | CSS Class |
+|-------------|-----------|
+| `btn_primary` | `btn-primary` |
+| `pg_theme_switcher` | `pg-theme-switcher` |
+| `spin_cell` | `spin-cell` |
+
+### Theme Support
+
+CSS files support theme variants. Place theme-specific CSS alongside the default:
+
+```
+japjs/css/.../PlaygroundStyles.css           # default
+japjs/css/.../PlaygroundStyles.beach.css     # beach theme
+japjs/css/.../PlaygroundStyles.alpine.css    # alpine theme
+```
+
+Theme is selected via the `?theme=` query parameter and propagates through import URLs automatically.
+
+## SVG Groups
+
+An `SvgGroup` bundles SVG assets into a single ES module. Each SVG file becomes a template literal constant.
+
+```java
+public record Icons() implements SvgGroup<Icons> {
+
+    record search() implements SvgBeing<Icons> {}
+    record menu() implements SvgBeing<Icons> {}
+
+    public static final Icons INSTANCE = new Icons();
+
+    @Override
+    public List<SvgBeing<Icons>> svgBeings() {
+        return List.of(new search(), new menu());
+    }
+
+    @Override
+    public ExportsOf<Icons> exports() {
+        return new ExportsOf<>(this, List.copyOf(svgBeings()));
+    }
+}
+```
+
+Place SVG files at `japjs/svg/<canonical-path>/Icons/search.svg`, etc. Other modules import SVGs like any other export.
+
+## External Modules
+
+`ExternalModule` wraps third-party JS libraries (CDN or global script):
+
+```java
+public record ToneJs() implements ExternalModule<ToneJs> {
+    public static final ToneJs INSTANCE = new ToneJs();
+
+    public record Synth() implements Exportable._Class<ToneJs> {}
+    public record start() implements Exportable._Constant<ToneJs> {}
+    // ...
+}
+```
+
+The JS resource file handles the actual loading strategy (CDN import, global variable, etc.).
 
 ## Server-Side Hosting
 
 japjs includes a server module (`japjs-server`) that serves ES modules and SPA applications over HTTP, using `VertxActionHost` from `ja-http`.
 
-### JapjsActionRegistry
+### Endpoints
 
-An `ActionRegistry<RoutingContext>` that dynamically serves modules and apps:
+| Path | Response | Description |
+|------|----------|-------------|
+| `/app?class=<AppModule>` | `text/html` | Full HTML page that boots the app |
+| `/module?class=<EsModule>` | `application/javascript` | Generated ES module with imports/exports |
+| `/css?class=<CssGroup>` | `application/json` | Resolved CSS dependency chain |
+| `/css-content?class=<CssGroup>` | `text/css` | Raw CSS file content |
 
-| Path | Description |
-|------|-------------|
-| `/module?class=<canonical.class.name>` | Serves a single ES module (generated JS with imports/exports) |
-| `/app?class=<AppModule.class.name>` | Serves a full SPA — HTML scaffold + inline ES module with `appMain(rootElement)` entry point |
+Query parameters `theme` and `locale` are supported on all endpoints and propagate through import URLs for DOM-aware modules.
 
-### AppModule
-
-A specialisation of `EsModule` for single-page applications:
-
-```java
-public record WonderlandDemo() implements AppModule<WonderlandDemo> {
-    record appMain() implements AppModule._AppMain<WonderlandDemo> {}
-
-    public static final WonderlandDemo INSTANCE = new WonderlandDemo();
-
-    @Override public String title() { return "Wonderland Demo"; }
-    @Override public ImportsFor<WonderlandDemo> imports() {
-        return ImportsFor.<WonderlandDemo>builder()
-                .add(new ModuleImports<>(List.of(new BobModule.Bob()), BobModule.INSTANCE))
-                .build();
-    }
-    @Override public ExportsOf<WonderlandDemo> exports() {
-        return new ExportsOf<>(INSTANCE, List.of(new appMain()));
-    }
-}
-```
-
-The corresponding `WonderlandDemo.js` sits on the classpath and contains the `appMain(rootElement)` function. The server generates the HTML page, inlines the module, and calls `appMain` with a root DOM element.
-
-### Hosting with VertxActionHost
-
-The demo server uses `VertxActionHost` from `ja-http` to serve japjs modules over HTTP:
+### Running
 
 ```java
 var registry = new JapjsActionRegistry(new QueryParamResolver());
@@ -227,24 +289,78 @@ var host = new VertxActionHost(registry, 8080);
 host.start();
 ```
 
-Run with:
 ```bash
-mvn -pl japjs-demo exec:java \
+mvn -pl japjs-demo -am compile exec:java \
   -Dexec.mainClass="hue.captains.singapura.japjs.demo.WonderlandDemoServer"
 ```
 
-Then open:
-- `http://localhost:8080/app?class=hue.captains.singapura.japjs.demo.es.WonderlandDemo`
-- `http://localhost:8080/app?class=hue.captains.singapura.japjs.demo.es.DancingAnimals`
-- `http://localhost:8080/app?class=hue.captains.singapura.japjs.demo.es.MovingAnimal`
+### Live Reload
+
+Set `japjs.devRoot` to read resource files from the filesystem instead of the classpath:
+
+```bash
+mvn compile exec:java \
+  -Dexec.mainClass="com.example.DevServer" \
+  -Djapjs.devRoot=src/main/resources
+```
+
+Edit JS/CSS/SVG files and refresh — no restart needed. Java declaration changes still require a recompile.
+
+## Demo Applications
+
+The `japjs-demo` module includes several interactive demos:
+
+| App | URL path | Description |
+|-----|----------|-------------|
+| WonderlandDemo | `/app?class=...WonderlandDemo` | Simple intro — imports from Alice and SVG groups |
+| DancingAnimals | `/app?class=...DancingAnimals` | 5x5 grid of animals, keyboard-controlled direction flipping |
+| SpinningAnimals | `/app?class=...SpinningAnimals` | Grid animation with pause/resume controls |
+| MovingAnimal | `/app?class=...MovingAnimal` | Platformer game with physics, sound, and theme switching |
+| TurtleDemo | `/app?class=...TurtleDemo` | 3D turtle visualization with Three.js |
+
+### Themes
+
+The MovingAnimal platformer supports theme switching via URL parameter:
+
+| Theme | Description |
+|-------|-------------|
+| `light` | Default light theme |
+| `dark` | Dark mode |
+| `beach` | Tropical sand and ocean |
+| `dracula` | Dracula's castle, dark and eerie |
+| `alpine` | Alpine mountain with forest and snow peaks |
+
+Each theme has its own CSS (`PlaygroundStyles.<theme>.css`) and BGM (`PlatformerBgm.<theme>.js`).
+
+## Conformance Testing
+
+The `japjs-conformance` module provides a base class for verifying that DomModule JS files use the type-safe `css.*` API instead of raw CSS class operations.
+
+```java
+class MyCssConformanceTest extends CssConformanceTest {
+
+    @Override
+    protected List<DomModule<?>> domModules() {
+        return List.of(MyWidget.INSTANCE, MyApp.INSTANCE);
+    }
+
+    @Override
+    protected Set<Class<? extends DomModule<?>>> allowList() {
+        return Set.of(/* modules that intentionally use raw CSS */);
+    }
+}
+```
+
+The `@TestFactory` generates a dynamic test per DomModule with CSS imports, scanning for `.className =`, `.classList.add/remove/toggle/replace/contains` patterns in the JS resource files.
 
 ## Project Structure
 
 ```
 japjs/
-  japjs-core/     Core library — module interfaces, writers, resolvers
-  japjs-server/   Server module — JapjsActionRegistry, QueryParamResolver, AppModule hosting
-  japjs-demo/     Demo apps — WonderlandDemo, DancingAnimals, MovingAnimal
+  japjs-core/          Core library — module interfaces, writers, resolvers
+  japjs-server/        Server module — HTTP hosting, CssClassManager, content providers
+  japjs-conformance/   Test framework — CSS conformance base class
+  japjs-demo/          Demo apps — WonderlandDemo, DancingAnimals, MovingAnimal, etc.
 ```
 
 ### External Dependencies
