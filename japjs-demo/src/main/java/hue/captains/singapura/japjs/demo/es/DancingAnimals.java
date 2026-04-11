@@ -19,7 +19,7 @@ public record DancingAnimals() implements AppModule<DancingAnimals> {
     @Override
     public ImportsFor<DancingAnimals> imports() {
         return ImportsFor.<DancingAnimals>builder()
-                .add(new ModuleImports<>(List.of(new AnimalCell.createAnimalCell()), AnimalCell.INSTANCE))
+                .add(new ModuleImports<>(List.of(new AnimalCell.createAnimalCell(), new AnimalCell.createAnimalSelector()), AnimalCell.INSTANCE))
                 .add(new ModuleImports<>(List.of(new JumpPhysics.createJumpPhysics()), JumpPhysics.INSTANCE))
                 .add(new ModuleImports<>(List.of(
                         new SubwayStyles.subway_title(),

@@ -24,8 +24,11 @@ function appMain(rootElement) {
     const reverseBtn = document.createElement("button");
     reverseBtn.textContent = "Reverse";
 
+    var selector = createAnimalSelector();
+
     controls.appendChild(speedLabel);
     controls.appendChild(reverseBtn);
+    controls.appendChild(selector);
     rootElement.appendChild(controls);
 
     const grid = document.createElement("div");

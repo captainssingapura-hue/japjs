@@ -166,10 +166,13 @@ function appMain(rootElement) {
     css.setClass(bgmDisplay, pg_size_display);
     bgmDisplay.textContent = "40%";
 
+    var selector = createAnimalSelector();
+
     controls.appendChild(gravityLabel);
     controls.appendChild(gravityDisplay);
     controls.appendChild(bgmLabel);
     controls.appendChild(bgmDisplay);
+    controls.appendChild(selector);
     rootElement.appendChild(controls);
 
     // --- Theme switcher ---

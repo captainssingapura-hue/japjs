@@ -19,7 +19,7 @@ public record MovingAnimal() implements AppModule<MovingAnimal> {
     @Override
     public ImportsFor<MovingAnimal> imports() {
         return ImportsFor.<MovingAnimal>builder()
-                .add(new ModuleImports<>(List.of(new AnimalCell.createAnimalCell()), AnimalCell.INSTANCE))
+                .add(new ModuleImports<>(List.of(new AnimalCell.createAnimalCell(), new AnimalCell.createAnimalSelector()), AnimalCell.INSTANCE))
                 .add(new ModuleImports<>(List.of(new JumpPhysics.createJumpPhysics()), JumpPhysics.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PlatformEngine.createPlatformEngine()), PlatformEngine.INSTANCE))
                 .add(new ModuleImports<>(List.of(
