@@ -42,7 +42,7 @@ class CssGetActionTest {
         var future = action.execute(query, new EmptyParam.NoHeaders());
 
         var ex = assertThrows(ExecutionException.class, future::get);
-        assertInstanceOf(IllegalArgumentException.class, ex.getCause());
+        assertInstanceOf(ResourceNotFound.class, ex.getCause());
     }
 
     @Test
@@ -51,6 +51,6 @@ class CssGetActionTest {
         var future = action.execute(query, new EmptyParam.NoHeaders());
 
         var ex = assertThrows(ExecutionException.class, future::get);
-        assertInstanceOf(IllegalArgumentException.class, ex.getCause());
+        assertInstanceOf(ResourceNotFound.class, ex.getCause());
     }
 }

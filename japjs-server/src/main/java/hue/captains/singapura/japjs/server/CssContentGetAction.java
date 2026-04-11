@@ -43,8 +43,7 @@ public class CssContentGetAction
     @Override
     public CompletableFuture<CssContent> execute(ModuleQuery query, EmptyParam.NoHeaders headers) {
         if (query.className() == null || query.className().isBlank()) {
-            return CompletableFuture.failedFuture(
-                    new IllegalArgumentException("Missing 'class' query parameter"));
+            return CompletableFuture.failedFuture(ResourceNotFound.missingClass());
         }
         try {
             Class<?> clazz = Class.forName(query.className());
@@ -57,8 +56,7 @@ public class CssContentGetAction
             }
 
             if (!(instance instanceof CssGroup<?>)) {
-                return CompletableFuture.failedFuture(
-                        new IllegalArgumentException(query.className() + " is not a CssGroup"));
+                return CompletableFuture.failedFuture(ResourceNotFound.wrongType(query.className(), "CssGroup"));
             }
 
             String basePath = "japjs/css/" + query.className().replace(".", "/");
@@ -74,7 +72,7 @@ public class CssContentGetAction
             }
             return CompletableFuture.completedFuture(new CssContent(css));
         } catch (Exception e) {
-            return CompletableFuture.failedFuture(e);
+            return CompletableFuture.failedFuture(ResourceNotFound.forClass(query.className(), e));
         }
     }
 }

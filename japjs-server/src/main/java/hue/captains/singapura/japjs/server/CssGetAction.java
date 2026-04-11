@@ -37,8 +37,7 @@ public class CssGetAction
     @Override
     public CompletableFuture<List<CssEntry>> execute(ModuleQuery query, EmptyParam.NoHeaders headers) {
         if (query.className() == null || query.className().isBlank()) {
-            return CompletableFuture.failedFuture(
-                    new IllegalArgumentException("Missing 'class' query parameter"));
+            return CompletableFuture.failedFuture(ResourceNotFound.missingClass());
         }
         try {
             Class<?> clazz = Class.forName(query.className());
@@ -51,8 +50,7 @@ public class CssGetAction
             }
 
             if (!(instance instanceof CssGroup<?> cssGroup)) {
-                return CompletableFuture.failedFuture(
-                        new IllegalArgumentException(query.className() + " is not a CssGroup"));
+                return CompletableFuture.failedFuture(ResourceNotFound.wrongType(query.className(), "CssGroup"));
             }
 
             List<CssGroup<?>> resolved = CssGroupResolver.resolve(List.of(cssGroup));
@@ -67,7 +65,7 @@ public class CssGetAction
 
             return CompletableFuture.completedFuture(entries);
         } catch (Exception e) {
-            return CompletableFuture.failedFuture(e);
+            return CompletableFuture.failedFuture(ResourceNotFound.forClass(query.className(), e));
         }
     }
 }
