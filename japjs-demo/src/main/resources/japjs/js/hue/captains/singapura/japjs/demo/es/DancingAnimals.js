@@ -9,6 +9,9 @@ function appMain(rootElement) {
     hint.textContent = "Press \u2190 or \u2192 arrow keys to make them dance! Space to jump.";
     rootElement.appendChild(hint);
 
+    const selector = createAnimalSelector();
+    rootElement.appendChild(selector);
+
     const grid = document.createElement("div");
     css.setClass(grid, subway_grid);
     rootElement.appendChild(grid);

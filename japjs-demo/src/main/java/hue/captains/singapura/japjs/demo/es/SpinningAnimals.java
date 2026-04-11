@@ -19,7 +19,7 @@ public record SpinningAnimals() implements AppModule<SpinningAnimals> {
     @Override
     public ImportsFor<SpinningAnimals> imports() {
         return ImportsFor.<SpinningAnimals>builder()
-                .add(new ModuleImports<>(List.of(new AnimalCell.createAnimalCell()), AnimalCell.INSTANCE))
+                .add(new ModuleImports<>(List.of(new AnimalCell.createAnimalCell(), new AnimalCell.createAnimalSelector()), AnimalCell.INSTANCE))
                 .add(new ModuleImports<>(List.of(
                         new SpinningStyles.spin_title(),
                         new SpinningStyles.spin_hint(),
