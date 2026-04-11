@@ -1,12 +1,12 @@
 package hue.captains.singapura.japjs.demo.css;
 
-import hue.captains.singapura.japjs.core.CssBeing;
+import hue.captains.singapura.japjs.core.CssGroup;
 import hue.captains.singapura.japjs.core.CssClass;
 import hue.captains.singapura.japjs.core.CssImportsFor;
 
 import java.util.List;
 
-public record SpinningStyles() implements CssBeing<SpinningStyles> {
+public record SpinningStyles() implements CssGroup<SpinningStyles> {
     public static final SpinningStyles INSTANCE = new SpinningStyles();
 
     public record spin_title() implements CssClass<SpinningStyles> {}

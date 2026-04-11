@@ -75,15 +75,15 @@ public class EsModuleGetAction
             @SuppressWarnings("rawtypes")
             SvgGroup svg = (SvgGroup) module;
             contentProvider = (ContentProvider<M>) new SvgGroupContentProvider<>(svg, resourceReader);
-        } else if (module instanceof CssBeing) {
+        } else if (module instanceof CssGroup) {
             @SuppressWarnings("rawtypes")
-            CssBeing css = (CssBeing) module;
-            contentProvider = (ContentProvider<M>) new CssBeingContentProvider<>(css, theme, nameResolver);
+            CssGroup css = (CssGroup) module;
+            contentProvider = (ContentProvider<M>) new CssGroupContentProvider<>(css, theme, nameResolver);
         } else {
             contentProvider = new ReadContentFromResources<>(module, theme, resourceReader);
         }
 
-        if (module instanceof DomModule<?> dom && !dom.cssBeings().isEmpty()) {
+        if (module instanceof DomModule<?> dom && !dom.cssGroups().isEmpty()) {
             contentProvider = withCssManager(contentProvider);
         }
 

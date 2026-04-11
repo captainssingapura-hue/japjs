@@ -1,12 +1,12 @@
 package hue.captains.singapura.japjs.demo.css;
 
-import hue.captains.singapura.japjs.core.CssBeing;
+import hue.captains.singapura.japjs.core.CssGroup;
 import hue.captains.singapura.japjs.core.CssClass;
 import hue.captains.singapura.japjs.core.CssImportsFor;
 
 import java.util.List;
 
-public record PlaygroundStyles() implements CssBeing<PlaygroundStyles> {
+public record PlaygroundStyles() implements CssGroup<PlaygroundStyles> {
     public static final PlaygroundStyles INSTANCE = new PlaygroundStyles();
 
     public record pg_title() implements CssClass<PlaygroundStyles> {}

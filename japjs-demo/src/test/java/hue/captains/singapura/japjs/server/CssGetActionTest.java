@@ -36,8 +36,8 @@ class CssGetActionTest {
     }
 
     @Test
-    void execute_failsForNonCssBeing() {
-        // Alice is an EsModule, not a CssBeing
+    void execute_failsForNonCssGroup() {
+        // Alice is an EsModule, not a CssGroup
         var query = new ModuleQuery("hue.captains.singapura.japjs.demo.es.Alice");
         var future = action.execute(query, new EmptyParam.NoHeaders());
 

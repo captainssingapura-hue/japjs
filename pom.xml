@@ -11,6 +11,7 @@
     <modules>
         <module>japjs-core</module>
         <module>japjs-server</module>
+        <module>japjs-conformance</module>
         <module>japjs-demo</module>
     </modules>
 

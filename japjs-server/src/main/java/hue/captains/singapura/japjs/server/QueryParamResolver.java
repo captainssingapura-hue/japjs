@@ -1,6 +1,6 @@
 package hue.captains.singapura.japjs.server;
 
-import hue.captains.singapura.japjs.core.CssBeing;
+import hue.captains.singapura.japjs.core.CssGroup;
 import hue.captains.singapura.japjs.core.DomModule;
 import hue.captains.singapura.japjs.core.EsModule;
 import hue.captains.singapura.japjs.core.ModuleNameResolver;
@@ -21,6 +21,6 @@ public record QueryParamResolver(String actionPath) implements ModuleNameResolve
     @Override
     public PartialModulePath resolve(EsModule<?> module) {
         String base = actionPath + "?class=" + module.getClass().getCanonicalName();
-        return new PartialModulePath(base, module instanceof DomModule || module instanceof CssBeing);
+        return new PartialModulePath(base, module instanceof DomModule || module instanceof CssGroup);
     }
 }

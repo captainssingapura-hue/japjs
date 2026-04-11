@@ -1,12 +1,12 @@
 package hue.captains.singapura.japjs.demo.css;
 
-import hue.captains.singapura.japjs.core.CssBeing;
+import hue.captains.singapura.japjs.core.CssGroup;
 import hue.captains.singapura.japjs.core.CssClass;
 import hue.captains.singapura.japjs.core.CssImportsFor;
 
 import java.util.List;
 
-public record SubwayStyles() implements CssBeing<SubwayStyles> {
+public record SubwayStyles() implements CssGroup<SubwayStyles> {
     public static final SubwayStyles INSTANCE = new SubwayStyles();
 
     public record subway_title() implements CssClass<SubwayStyles> {}

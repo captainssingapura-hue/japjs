@@ -178,7 +178,7 @@ function appMain(rootElement) {
         { key: "dark", label: "Dark" },
         { key: "beach", label: "Beach" },
         { key: "dracula", label: "Dracula\u2019s Castle" },
-        { key: "carrier", label: "Aircraft Carrier" }
+        { key: "alpine", label: "Alpine Mountain" }
     ];
 
     var currentTheme = new URLSearchParams(window.location.search).get("theme") || "light";

@@ -1,7 +1,7 @@
 package hue.captains.singapura.japjs.server;
 
-import hue.captains.singapura.japjs.core.CssBeing;
-import hue.captains.singapura.japjs.core.CssBeingResolver;
+import hue.captains.singapura.japjs.core.CssGroup;
+import hue.captains.singapura.japjs.core.CssGroupResolver;
 import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.ParamMarshaller;
 import io.vertx.ext.web.RoutingContext;
@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * GET /css?class=&lt;CssBeing.canonical.class.name&gt;
- * <p>Accepts a {@link CssBeing} class name, transitively resolves its CSS
+ * GET /css?class=&lt;CssGroup.canonical.class.name&gt;
+ * <p>Accepts a {@link CssGroup} class name, transitively resolves its CSS
  * dependencies, and returns a JSON array of entries with {@code name} and
- * {@code href} for each resolved CssBeing in dependency order.</p>
+ * {@code href} for each resolved CssGroup in dependency order.</p>
  */
 public class CssGetAction
         implements GetAction<RoutingContext, ModuleQuery, EmptyParam.NoHeaders, List<CssGetAction.CssEntry>> {
@@ -50,12 +50,12 @@ public class CssGetAction
                 instance = clazz.getDeclaredConstructor().newInstance();
             }
 
-            if (!(instance instanceof CssBeing<?> cssBeing)) {
+            if (!(instance instanceof CssGroup<?> cssGroup)) {
                 return CompletableFuture.failedFuture(
-                        new IllegalArgumentException(query.className() + " is not a CssBeing"));
+                        new IllegalArgumentException(query.className() + " is not a CssGroup"));
             }
 
-            List<CssBeing<?>> resolved = CssBeingResolver.resolve(List.of(cssBeing));
+            List<CssGroup<?>> resolved = CssGroupResolver.resolve(List.of(cssGroup));
             String themeSuffix = query.theme() != null ? "&theme=" + query.theme() : "";
             List<CssEntry> entries = resolved.stream()
                     .map(css -> {

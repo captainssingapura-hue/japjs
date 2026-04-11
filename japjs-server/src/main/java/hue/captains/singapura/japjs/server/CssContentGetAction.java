@@ -1,6 +1,6 @@
 package hue.captains.singapura.japjs.server;
 
-import hue.captains.singapura.japjs.core.CssBeing;
+import hue.captains.singapura.japjs.core.CssGroup;
 import hue.captains.singapura.japjs.core.util.ResourceReader;
 import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.ParamMarshaller;
@@ -9,8 +9,8 @@ import io.vertx.ext.web.RoutingContext;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * GET /css-content?class=&lt;CssBeing.canonical.class.name&gt;
- * <p>Serves the actual CSS file content for a {@link CssBeing}.
+ * GET /css-content?class=&lt;CssGroup.canonical.class.name&gt;
+ * <p>Serves the actual CSS file content for a {@link CssGroup}.
  * Reads from {@code japjs/css/<canonical-path>.css}.</p>
  */
 public class CssContentGetAction
@@ -56,9 +56,9 @@ public class CssContentGetAction
                 instance = clazz.getDeclaredConstructor().newInstance();
             }
 
-            if (!(instance instanceof CssBeing<?>)) {
+            if (!(instance instanceof CssGroup<?>)) {
                 return CompletableFuture.failedFuture(
-                        new IllegalArgumentException(query.className() + " is not a CssBeing"));
+                        new IllegalArgumentException(query.className() + " is not a CssGroup"));
             }
 
             String basePath = "japjs/css/" + query.className().replace(".", "/");

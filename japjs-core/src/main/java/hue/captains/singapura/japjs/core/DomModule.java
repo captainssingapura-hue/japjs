@@ -14,12 +14,12 @@ public interface DomModule<M extends DomModule<M>> extends EsModule<M> {
 
     /**
      * Derives CSS dependencies from this module's imports.
-     * Any import source that is a {@link CssBeing} is treated as a CSS dependency.
+     * Any import source that is a {@link CssGroup} is treated as a CSS dependency.
      */
     @SuppressWarnings("unchecked")
-    default List<CssBeing<?>> cssBeings() {
-        return (List<CssBeing<?>>) (List<?>) imports().getAllImports().keySet().stream()
-                .filter(m -> m instanceof CssBeing<?>)
+    default List<CssGroup<?>> cssGroups() {
+        return (List<CssGroup<?>>) (List<?>) imports().getAllImports().keySet().stream()
+                .filter(m -> m instanceof CssGroup<?>)
                 .toList();
     }
 }

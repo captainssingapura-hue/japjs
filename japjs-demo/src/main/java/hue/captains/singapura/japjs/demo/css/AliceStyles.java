@@ -1,12 +1,12 @@
 package hue.captains.singapura.japjs.demo.css;
 
-import hue.captains.singapura.japjs.core.CssBeing;
+import hue.captains.singapura.japjs.core.CssGroup;
 import hue.captains.singapura.japjs.core.CssClass;
 import hue.captains.singapura.japjs.core.CssImportsFor;
 
 import java.util.List;
 
-public record AliceStyles() implements CssBeing<AliceStyles> {
+public record AliceStyles() implements CssGroup<AliceStyles> {
     public static final AliceStyles INSTANCE = new AliceStyles();
 
     @Override
