@@ -49,8 +49,7 @@ class AppHtmlGetActionTest {
         var future = action.execute(query, new EmptyParam.NoHeaders());
 
         var ex = assertThrows(ExecutionException.class, future::get);
-        assertInstanceOf(IllegalArgumentException.class, ex.getCause());
-        assertTrue(ex.getCause().getMessage().contains("not an AppModule"));
+        assertInstanceOf(ResourceNotFound.class, ex.getCause());
     }
 
     @Test
@@ -59,7 +58,7 @@ class AppHtmlGetActionTest {
         var future = action.execute(query, new EmptyParam.NoHeaders());
 
         var ex = assertThrows(ExecutionException.class, future::get);
-        assertInstanceOf(IllegalArgumentException.class, ex.getCause());
+        assertInstanceOf(ResourceNotFound.class, ex.getCause());
     }
 
     @Test

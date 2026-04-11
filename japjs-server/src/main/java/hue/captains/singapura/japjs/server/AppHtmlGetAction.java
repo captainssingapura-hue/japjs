@@ -34,8 +34,7 @@ public class AppHtmlGetAction
     @Override
     public CompletableFuture<HtmlPageContent> execute(ModuleQuery query, EmptyParam.NoHeaders headers) {
         if (query.className() == null || query.className().isBlank()) {
-            return CompletableFuture.failedFuture(
-                    new IllegalArgumentException("Missing 'class' query parameter"));
+            return CompletableFuture.failedFuture(ResourceNotFound.missingClass());
         }
         try {
             Class<?> clazz = Class.forName(query.className());
@@ -48,8 +47,7 @@ public class AppHtmlGetAction
             }
 
             if (!(instance instanceof AppModule<?> app)) {
-                return CompletableFuture.failedFuture(
-                        new IllegalArgumentException(query.className() + " is not an AppModule"));
+                return CompletableFuture.failedFuture(ResourceNotFound.wrongType(query.className(), "AppModule"));
             }
 
             String baseModuleUrl = nameResolver.resolve(app).basePath();
@@ -79,7 +77,7 @@ public class AppHtmlGetAction
 
             return CompletableFuture.completedFuture(new HtmlPageContent(html));
         } catch (Exception e) {
-            return CompletableFuture.failedFuture(e);
+            return CompletableFuture.failedFuture(ResourceNotFound.forClass(query.className(), e));
         }
     }
 }

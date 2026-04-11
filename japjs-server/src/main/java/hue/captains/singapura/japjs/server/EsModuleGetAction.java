@@ -45,15 +45,14 @@ public class EsModuleGetAction
     @Override
     public CompletableFuture<JsModuleContent> execute(ModuleQuery query, EmptyParam.NoHeaders headers) {
         if (query.className() == null || query.className().isBlank()) {
-            return CompletableFuture.failedFuture(
-                    new IllegalArgumentException("Missing 'class' query parameter"));
+            return CompletableFuture.failedFuture(ResourceNotFound.missingClass());
         }
         try {
             EsModuleWriter<?> writer = createWriter(query.className(), query.theme(), query.locale());
             String js = String.join("\n", writer.writeModule());
             return CompletableFuture.completedFuture(new JsModuleContent(js));
         } catch (Exception e) {
-            return CompletableFuture.failedFuture(e);
+            return CompletableFuture.failedFuture(ResourceNotFound.forClass(query.className(), e));
         }
     }
 
