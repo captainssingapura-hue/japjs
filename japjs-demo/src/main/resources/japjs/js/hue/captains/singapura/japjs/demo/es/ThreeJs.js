@@ -9,5 +9,11 @@ import {
     CylinderGeometry,
     Mesh,
     Group,
-    Color
+    Color,
+    ShapeGeometry,
+    ExtrudeGeometry,
+    DoubleSide,
+    BackSide,
+    Box3,
+    Vector3
 } from "https://esm.sh/three@0.170.0";

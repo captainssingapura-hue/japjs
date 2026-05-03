@@ -13,6 +13,7 @@
         <module>japjs-server</module>
         <module>japjs-conformance</module>
         <module>japjs-demo</module>
+        <module>japjs-studio</module>
     </modules>
 
     <properties>

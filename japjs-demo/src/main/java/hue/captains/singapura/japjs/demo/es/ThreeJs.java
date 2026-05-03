@@ -21,6 +21,12 @@ public record ThreeJs() implements ExternalModule<ThreeJs> {
     public record Mesh() implements Exportable._Class<ThreeJs> {}
     public record Group() implements Exportable._Class<ThreeJs> {}
     public record Color() implements Exportable._Class<ThreeJs> {}
+    public record ShapeGeometry() implements Exportable._Class<ThreeJs> {}
+    public record ExtrudeGeometry() implements Exportable._Class<ThreeJs> {}
+    public record DoubleSide() implements Exportable._Constant<ThreeJs> {}
+    public record BackSide() implements Exportable._Constant<ThreeJs> {}
+    public record Box3() implements Exportable._Class<ThreeJs> {}
+    public record Vector3() implements Exportable._Class<ThreeJs> {}
 
     @Override
     public ExportsOf<ThreeJs> exports() {
@@ -35,7 +41,13 @@ public record ThreeJs() implements ExternalModule<ThreeJs> {
                 new CylinderGeometry(),
                 new Mesh(),
                 new Group(),
-                new Color()
+                new Color(),
+                new ShapeGeometry(),
+                new ExtrudeGeometry(),
+                new DoubleSide(),
+                new BackSide(),
+                new Box3(),
+                new Vector3()
         ));
     }
 }
