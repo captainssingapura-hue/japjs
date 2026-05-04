@@ -9,6 +9,8 @@ public record DocBrowser() implements AppModule<DocBrowser> {
 
     record appMain() implements AppModule._AppMain<DocBrowser> {}
 
+    public record link() implements AppLink<DocBrowser> {}
+
     public static final DocBrowser INSTANCE = new DocBrowser();
 
     @Override
@@ -19,6 +21,10 @@ public record DocBrowser() implements AppModule<DocBrowser> {
     @Override
     public ImportsFor<DocBrowser> imports() {
         return ImportsFor.<DocBrowser>builder()
+                // Navigation targets — RFC 0001 Step 11.
+                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DocReader.link()),       DocReader.INSTANCE))
+                // CSS imports.
                 .add(new ModuleImports<>(List.of(
                         new StudioStyles.st_root(),
                         new StudioStyles.st_header(),
@@ -50,6 +56,7 @@ public record DocBrowser() implements AppModule<DocBrowser> {
                         new StudioStyles.st_badge_brochure(),
                         new StudioStyles.st_badge_rfc(),
                         new StudioStyles.st_badge_brand(),
+                        new StudioStyles.st_badge_rename(),
                         new StudioStyles.st_badge_session(),
                         new StudioStyles.st_badge_reference(),
                         new StudioStyles.st_loading(),

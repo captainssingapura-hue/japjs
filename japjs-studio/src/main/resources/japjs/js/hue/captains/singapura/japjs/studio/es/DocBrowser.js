@@ -34,7 +34,8 @@ function appMain(rootElement) {
         {path:"brochure/06-architecture-at-a-glance.md",             title:"06 — Architecture at a Glance",        summary:"Visual summary with built-vs-designed status table.",                               category:"BROCHURE",   catLabel:"Brochure"},
         {path:"rfcs/0001-app-registry-and-typed-nav.md",             title:"RFC 0001 — App Registry & Typed Nav",  summary:"Friendly-name URL contract, AppLink<L>, ProxyApp, conformance enforcement.",        category:"RFC",        catLabel:"RFCs"},
         {path:"brand/README.md",                                     title:"Brand Guide",                          summary:"Logo concept, asset inventory, palette, typography, usage rules.",                  category:"BRAND",      catLabel:"Brand"},
-        {path:"brand/RENAME-TO-HOMING.md",                           title:"Rename Dossier — japjs → Homing",       summary:"Decision context, three-layer metaphor, migration logistics.",                      category:"BRAND",      catLabel:"Brand"},
+        {path:"brand/RENAME-TO-HOMING.md",                           title:"Rename Dossier — japjs → Homing",       summary:"Decision context, three-layer metaphor, migration logistics.",                      category:"RENAME",     catLabel:"Rename"},
+        {path:"rename/EXECUTION-PLAN.md",                            title:"Rename Execution Plan",                summary:"Six-phase migration plan with verification gates and rollback strategy.",           category:"RENAME",     catLabel:"Rename"},
         {path:"SESSION-SUMMARY-2026-04-25.md",                       title:"Session Summary — 2026-04-25",         summary:"Comprehensive recap of the design session that built the brochure suite.",          category:"SESSION",    catLabel:"Session Notes"},
         {path:"ACTION-PLAN-2026-04-25.md",                           title:"Action Plan — 2026-04-25",             summary:"Phase-by-phase execution plan with decision gates and risk register.",              category:"SESSION",    catLabel:"Session Notes"},
         {path:"comparison/japjs-vs-react-vue.md",                    title:"japjs vs React / Vue",                  summary:"Honest comparison, fair assessment of strengths and gaps.",                          category:"REFERENCE",  catLabel:"Reference"},
@@ -57,13 +58,14 @@ function appMain(rootElement) {
             case "BROCHURE":   return st_badge_brochure;
             case "RFC":        return st_badge_rfc;
             case "BRAND":      return st_badge_brand;
+            case "RENAME":     return st_badge_rename;
             case "SESSION":    return st_badge_session;
             default:           return st_badge_reference;
         }
     }
 
     function readerUrl(path) {
-        return "/app?class=hue.captains.singapura.japjs.studio.es.DocReader&path=" + encodeURIComponent(path);
+        return nav.DocReader({path: path});
     }
 
     // ---- shell render ----
@@ -72,12 +74,12 @@ function appMain(rootElement) {
 
         // header
         + '<div class="' + cn(st_header) + '">'
-        + '  <a class="' + cn(st_brand) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">'
+        + '  <a class="' + cn(st_brand) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>'
         + '    <span class="' + cn(st_brand_dot) + '"></span>'
         + '    <span class="' + cn(st_brand_word) + '">japjs · studio</span>'
         + '  </a>'
         + '  <div class="' + cn(st_breadcrumbs) + '">'
-        + '    <a class="' + cn(st_crumb) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">Home</a>'
+        + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>Home</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'
         + '    <span class="' + cn(st_crumb) + '">Documents</span>'
         + '  </div>'
@@ -174,7 +176,7 @@ function appMain(rootElement) {
                   + '  <div class="' + cn(st_grid) + '">';
             for (var j = 0; j < g.items.length; j++) {
                 var doc = g.items[j];
-                html += '<a class="' + cn(st_card) + '" href="' + readerUrl(doc.path) + '">'
+                html += '<a class="' + cn(st_card) + '" ' + href.toAttr(readerUrl(doc.path)) + '>'
                       +   '<h3 class="' + cn(st_card_title) + '">' + escape(doc.title) + '</h3>'
                       +   '<p class="' + cn(st_card_summary) + '">' + escape(doc.summary) + '</p>'
                       +   '<div class="' + cn(st_card_meta) + '">'

@@ -6,10 +6,28 @@ import java.util.stream.Stream;
 
 public record EsModuleWriter<M extends EsModule<M>>(M module, ContentProvider<M> contentProvider, ModuleNameResolver nameResolver, ExportWriter exportWriter, ImportsWriterResolver importsWriterResolver) {
     public List<String> writeModule(){
+        var allImports = module.imports().getAllImports();
+        // RFC 0001 Step 06: only AppModules carry a Params type.
+        Class<?> paramsType = (module instanceof AppModule<?> app) ? app.paramsType() : Void.class;
         return Stream.of(
-                module.imports().getAllImports().entrySet().stream()
-                        .map(e->importsWriterResolver.resolve(e.getKey()).writeImports(e.getValue())),
+                // ES module imports — only for EsModule sources (Linkable sources go to nav).
+                // SingleModuleImportWriter filters out AppLink<?> members; if all members of an
+                // entry are AppLinks (the common case for nav-only imports), it returns "".
+                allImports.entrySet().stream()
+                        .filter(e -> e.getKey() instanceof EsModule<?>)
+                        .map(e -> {
+                            @SuppressWarnings({"unchecked", "rawtypes"})
+                            var writer = importsWriterResolver.resolve((EsModule) e.getKey());
+                            return writer.writeImports(e.getValue());
+                        })
+                        .filter(line -> !line.isEmpty()),
+                // RFC 0001 Step 05: typed nav const for any AppLink<?> imports.
+                new NavWriter(allImports).write().stream(),
+                // RFC 0001 Step 06: typed params const if this AppModule declares one.
+                new ParamsWriter(paramsType).write().stream(),
+                // User's JS content.
                 contentProvider.content().stream(),
+                // Export statement.
                 exportWriter.writeExports(module.exports()).stream()
         ).flatMap(Function.identity()).toList();
     }

@@ -9,6 +9,8 @@ public record SpinningAnimals() implements AppModule<SpinningAnimals> {
 
     record appMain() implements AppModule._AppMain<SpinningAnimals> {}
 
+    public record link() implements AppLink<SpinningAnimals> {}
+
     public static final SpinningAnimals INSTANCE = new SpinningAnimals();
 
     @Override

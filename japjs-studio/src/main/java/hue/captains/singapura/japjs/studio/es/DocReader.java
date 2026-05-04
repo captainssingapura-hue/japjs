@@ -9,6 +9,11 @@ public record DocReader() implements AppModule<DocReader> {
 
     record appMain() implements AppModule._AppMain<DocReader> {}
 
+    public record link() implements AppLink<DocReader> {}
+
+    /** Typed query parameter — the relative path to the markdown doc to render. */
+    public record Params(String path) {}
+
     public static final DocReader INSTANCE = new DocReader();
 
     @Override
@@ -17,9 +22,19 @@ public record DocReader() implements AppModule<DocReader> {
     }
 
     @Override
+    public Class<?> paramsType() {
+        return Params.class;
+    }
+
+    @Override
     public ImportsFor<DocReader> imports() {
         return ImportsFor.<DocReader>builder()
+                // Navigation targets — RFC 0001 Step 11.
+                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DocBrowser.link()),      DocBrowser.INSTANCE))
+                // External library.
                 .add(new ModuleImports<>(List.of(new MarkedJs.marked()), MarkedJs.INSTANCE))
+                // CSS imports.
                 .add(new ModuleImports<>(List.of(
                         new StudioStyles.st_root(),
                         new StudioStyles.st_header(),

@@ -1,7 +1,7 @@
 // =============================================================================
-// japjs demo catalogue
+// japjs demo catalogue (RFC 0001 Step 11 — migrated to typed nav + href)
 // Lists every available demo with one-click navigation.
-// Hand-edit the `demos` array below when adding a new demo to the project.
+// Each entry references its target via the generated `nav` object.
 // =============================================================================
 
 function appMain(rootElement) {
@@ -20,15 +20,13 @@ function appMain(rootElement) {
             .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
 
-    var PKG = "hue.captains.singapura.japjs.demo.es.";
-    var url = function(cls) { return "/app?class=" + PKG + cls; };
-
     // -------------------------------------------------------------------------
-    // DEMO REGISTRY — edit when adding/removing demos
+    // DEMO REGISTRY — each entry's `link` is a function that returns the URL.
     // -------------------------------------------------------------------------
     var demos = {
         featured: {
-            cls:      "PitchDeck",
+            link:     function() { return nav.PitchDeck(); },
+            simple:   "pitch-deck",
             title:    "Executive Pitch Deck",
             desc:     "A 13-slide interactive presentation of japjs's design and positioning, with keyboard navigation and ambient BGM. The deck pitches japjs by being built on japjs.",
             badge:    "PITCH",
@@ -38,72 +36,40 @@ function appMain(rootElement) {
             {
                 title: "Examples · Modules and assets",
                 items: [
-                    {
-                        cls:      "WonderlandDemo",
-                        title:    "Wonderland",
-                        desc:     "The minimal example. Imports from another EsModule and an SvgGroup; demonstrates module wiring and SVG bundling.",
-                        badge:    "BASIC",
-                        badgeCls: "basic"
-                    }
+                    { link: function() { return nav.WonderlandDemo(); },    simple: "wonderland-demo",
+                      title: "Wonderland", badge: "BASIC", badgeCls: "basic",
+                      desc: "The minimal example. Imports from another EsModule and an SvgGroup; demonstrates module wiring and SVG bundling." }
                 ]
             },
             {
                 title: "Animations · DomModule + CSS",
                 items: [
-                    {
-                        cls:      "DancingAnimals",
-                        title:    "Dancing Animals",
-                        desc:     "A 5×5 grid of animals controlled by keyboard. Demonstrates shared components (AnimalCell), CSS class bindings, and event handling.",
-                        badge:    "ANIM",
-                        badgeCls: "anim"
-                    },
-                    {
-                        cls:      "SpinningAnimals",
-                        title:    "Spinning Animals",
-                        desc:     "Animated grid with pause/resume controls. Same shared AnimalCell component composed differently.",
-                        badge:    "ANIM",
-                        badgeCls: "anim"
-                    },
-                    {
-                        cls:      "MovingAnimal",
-                        title:    "Moving Animal · Platformer",
-                        desc:     "A small platformer with physics, sound (Tone.js), and theme switching across five themes (light, dark, beach, dracula, alpine).",
-                        badge:    "ANIM",
-                        badgeCls: "anim"
-                    }
+                    { link: function() { return nav.DancingAnimals(); },    simple: "dancing-animals",
+                      title: "Dancing Animals", badge: "ANIM", badgeCls: "anim",
+                      desc: "A 5×5 grid of animals controlled by keyboard. Demonstrates shared components (AnimalCell), CSS class bindings, and event handling." },
+                    { link: function() { return nav.SpinningAnimals(); },   simple: "spinning-animals",
+                      title: "Spinning Animals", badge: "ANIM", badgeCls: "anim",
+                      desc: "Animated grid with pause/resume controls. Same shared AnimalCell component composed differently." },
+                    { link: function() { return nav.MovingAnimal(); },      simple: "moving-animal",
+                      title: "Moving Animal · Platformer", badge: "ANIM", badgeCls: "anim",
+                      desc: "A small platformer with physics, sound (Tone.js), and theme switching across five themes." }
                 ]
             },
             {
                 title: "3D and SVG · Three.js + asset bundling",
                 items: [
-                    {
-                        cls:      "TurtleDemo",
-                        title:    "3D Turtle",
-                        desc:     "A simple 3D turtle scene rendered with Three.js. Demonstrates that japjs hosts WebGL libraries cleanly via ExternalModule.",
-                        badge:    "3D",
-                        badgeCls: "3d"
-                    },
-                    {
-                        cls:      "ExtrudedTurtleDemo",
-                        title:    "Extruded Turtle",
-                        desc:     "An SVG turtle extruded into 3D geometry. Combines SvgGroup, ThreeJsSvgLoader, and SvgExtruder modules.",
-                        badge:    "3D",
-                        badgeCls: "3d"
-                    },
-                    {
-                        cls:      "DecomposedSvgDemo",
-                        title:    "Decomposed SVG",
-                        desc:     "Decomposes an SVG into its constituent paths and renders each as a separate Three.js mesh.",
-                        badge:    "3D",
-                        badgeCls: "3d"
-                    },
-                    {
-                        cls:      "ExtrudedSvgDemo",
-                        title:    "Extruded SVG",
-                        desc:     "Generic SVG extrusion with depth control. Reuses the SVG decomposition machinery on arbitrary inputs.",
-                        badge:    "3D",
-                        badgeCls: "3d"
-                    }
+                    { link: function() { return nav.TurtleDemo(); },        simple: "turtle-demo",
+                      title: "3D Turtle", badge: "3D", badgeCls: "3d",
+                      desc: "A simple 3D turtle scene rendered with Three.js. Demonstrates that japjs hosts WebGL libraries cleanly via ExternalModule." },
+                    { link: function() { return nav.ExtrudedTurtleDemo(); },simple: "extruded-turtle-demo",
+                      title: "Extruded Turtle", badge: "3D", badgeCls: "3d",
+                      desc: "An SVG turtle extruded into 3D geometry. Combines SvgGroup, ThreeJsSvgLoader, and SvgExtruder modules." },
+                    { link: function() { return nav.DecomposedSvgDemo(); }, simple: "decomposed-svg-demo",
+                      title: "Decomposed SVG", badge: "3D", badgeCls: "3d",
+                      desc: "Decomposes an SVG into its constituent paths and renders each as a separate Three.js mesh." },
+                    { link: function() { return nav.ExtrudedSvgDemo(); },   simple: "extruded-svg-demo",
+                      title: "Extruded SVG", badge: "3D", badgeCls: "3d",
+                      desc: "Generic SVG extrusion with depth control. Reuses the SVG decomposition machinery on arbitrary inputs." }
                 ]
             }
         ]
@@ -123,7 +89,7 @@ function appMain(rootElement) {
     }
 
     function renderFeatured(d) {
-        return '<a class="' + cn(cat_card, cat_card_featured) + '" href="' + url(d.cls) + '">'
+        return '<a class="' + cn(cat_card, cat_card_featured) + '" ' + href.toAttr(d.link()) + '>'
              + '  <div class="' + cn(cat_card_head) + '">'
              + '    <div>'
              + '      <h2 class="' + cn(cat_card_title) + '">' + escape(d.title) + '</h2>'
@@ -138,14 +104,14 @@ function appMain(rootElement) {
     }
 
     function renderCard(d) {
-        return '<a class="' + cn(cat_card) + '" href="' + url(d.cls) + '">'
+        return '<a class="' + cn(cat_card) + '" ' + href.toAttr(d.link()) + '>'
              + '  <div class="' + cn(cat_card_head) + '">'
              + '    <h3 class="' + cn(cat_card_title) + '">' + escape(d.title) + '</h3>'
              + '    <span class="' + cn(cat_badge) + ' ' + cn(badgeClassFor(d.badgeCls)) + '">' + escape(d.badge) + '</span>'
              + '  </div>'
              + '  <p class="' + cn(cat_card_desc) + '">' + escape(d.desc) + '</p>'
              + '  <div class="' + cn(cat_card_meta) + '">'
-             + '    <span class="' + cn(cat_mono) + '">' + escape(d.cls) + '</span>'
+             + '    <span class="' + cn(cat_mono) + '">' + escape(d.simple) + '</span>'
              + '    <span class="' + cn(cat_card_link) + '">Open →</span>'
              + '  </div>'
              + '</a>';
@@ -171,7 +137,7 @@ function appMain(rootElement) {
     html += '<div class="' + cn(cat_header) + '">'
           + '  <div class="' + cn(cat_kicker) + '">japjs · demo catalogue</div>'
           + '  <h1 class="' + cn(cat_title) + '">Demos</h1>'
-          + '  <p class="' + cn(cat_subtitle) + '">Every demo is a working japjs <span class="' + cn(cat_mono) + '">AppModule</span>. Click any card to open. The full canonical class name is shown on each card so you can paste it into a <span class="' + cn(cat_mono) + '">/app?class=…</span> URL elsewhere.</p>'
+          + '  <p class="' + cn(cat_subtitle) + '">Every demo is a working japjs <span class="' + cn(cat_mono) + '">AppModule</span>. Click any card to open. The simple-name shown on each card is the public URL identifier — paste it into a <span class="' + cn(cat_mono) + '">/app?app=…</span> URL elsewhere.</p>'
           + '</div>';
 
     // featured
@@ -189,9 +155,9 @@ function appMain(rootElement) {
 
     // footer
     html += '<div class="' + cn(cat_footer) + '">'
-          + '  All demos are AppModules under <code>' + escape(PKG.replace(/\.$/, "")) + '</code>. '
-          + 'Add a new entry to <code>DemoCatalogue.js</code> when shipping a new demo. '
-          + '<br/>Backend route: <code>/app?class=&lt;canonical&gt;</code>.'
+          + '  All demos are AppModules under <code>hue.captains.singapura.japjs.demo.es</code>. '
+          + 'Add a new entry to <code>DemoCatalogue.js</code> when shipping a new demo, and import its <code>link()</code> record into <code>DemoCatalogue.java</code>. '
+          + '<br/>Backend route: <code>/app?app=&lt;simple-name&gt;</code>.'
           + '</div>';
 
     html += '</div>';

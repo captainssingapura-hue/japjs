@@ -9,6 +9,8 @@ public record DancingAnimals() implements AppModule<DancingAnimals> {
 
     record appMain() implements AppModule._AppMain<DancingAnimals> {}
 
+    public record link() implements AppLink<DancingAnimals> {}
+
     public static final DancingAnimals INSTANCE = new DancingAnimals();
 
     @Override

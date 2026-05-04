@@ -30,31 +30,32 @@ function appMain(rootElement) {
     }
 
     function planUrl() {
-        return "/app?class=hue.captains.singapura.japjs.studio.rfc0001.Rfc0001Plan";
+        return nav.Rfc0001Plan();
     }
     function stepUrl(id) {
-        return "/app?class=hue.captains.singapura.japjs.studio.rfc0001.Rfc0001Step&id=" + encodeURIComponent(id);
+        return nav.Rfc0001Step({id: id});
     }
-    function rfcDocUrl(path, anchor) {
-        var u = "/app?class=hue.captains.singapura.japjs.studio.es.DocReader&path=" + encodeURIComponent(path);
-        if (anchor) u += "#" + encodeURIComponent(anchor);
-        return u;
+    function rfcDocUrl(path) {
+        // Note: anchor support deferred — would need a separate ProxyApp or kernel
+        // support for fragment-via-nav. For now, callers can append #anchor outside.
+        return nav.DocReader({path: path});
     }
 
-    var stepId = new URLSearchParams(window.location.search).get("id") || "";
+    // RFC 0001 Step 06+11: typed `params` const generated from Rfc0001Step.Params (Java).
+    var stepId = params.id || "";
 
     var shellHtml = ''
         + '<div class="' + cn(st_root) + '">'
 
         + '<div class="' + cn(st_header) + '">'
-        + '  <a class="' + cn(st_brand) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">'
+        + '  <a class="' + cn(st_brand) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>'
         + '    <span class="' + cn(st_brand_dot) + '"></span>'
         + '    <span class="' + cn(st_brand_word) + '">japjs · studio</span>'
         + '  </a>'
         + '  <div class="' + cn(st_breadcrumbs) + '">'
-        + '    <a class="' + cn(st_crumb) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">Home</a>'
+        + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>Home</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'
-        + '    <a class="' + cn(st_crumb) + '" href="' + planUrl() + '">RFC 0001 Plan</a>'
+        + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(planUrl()) + '>RFC 0001 Plan</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'
         + '    <span class="' + cn(st_crumb) + '">Step ' + escape(stepId) + '</span>'
         + '  </div>'
@@ -106,7 +107,7 @@ function appMain(rootElement) {
 
         var depsHtml = s.dependsOn.length
             ? s.dependsOn.map(function(d) {
-                    return '<a class="' + cn(st_dep) + '" href="' + stepUrl(d.stepId) + '" title="' + escape(d.reason) + '">Step ' + escape(d.stepId) + '</a>';
+                    return '<a class="' + cn(st_dep) + '" ' + href.toAttr(stepUrl(d.stepId)) + ' title="' + escape(d.reason) + '">Step ' + escape(d.stepId) + '</a>';
                 }).join("")
             : '<span style="color:var(--st-gray-mid);font-style:italic;font-size:13px;">(no dependencies — independent)</span>';
 
@@ -155,7 +156,7 @@ function appMain(rootElement) {
             + '<div class="' + cn(st_panel) + '">'
             + '  <div class="' + cn(st_panel_title) + '">RFC reference</div>'
             + '  <p style="margin:0;font-size:14px;">'
-            + '    <a href="' + rfcDocUrl("rfcs/0001-app-registry-and-typed-nav.md") + '" style="color:var(--st-amber-dk);text-decoration:underline;">RFC 0001</a>'
+            + '    <a ' + href.toAttr(rfcDocUrl("rfcs/0001-app-registry-and-typed-nav.md")) + ' style="color:var(--st-amber-dk);text-decoration:underline;">RFC 0001</a>'
             +      ' &nbsp;·&nbsp; sections <code>' + escape(s.rfcSection) + '</code>'
             + '  </p>'
             + '</div>'
@@ -172,11 +173,11 @@ function appMain(rootElement) {
             var nextId = String(idNum + 1).padStart(2, "0");
             html += '<div style="display:flex;justify-content:space-between;margin-top:24px;font-size:13px;">'
                   + '  <span>'
-                  +    (prevId ? '<a href="' + stepUrl(prevId) + '" style="color:var(--st-amber-dk);text-decoration:underline;">← Step ' + prevId + '</a>' : '')
+                  +    (prevId ? '<a ' + href.toAttr(stepUrl(prevId)) + ' style="color:var(--st-amber-dk);text-decoration:underline;">← Step ' + prevId + '</a>' : '')
                   + '  </span>'
-                  + '  <a href="' + planUrl() + '" style="color:var(--st-gray-mid);text-decoration:underline;">All steps</a>'
+                  + '  <a ' + href.toAttr(planUrl()) + ' style="color:var(--st-gray-mid);text-decoration:underline;">All steps</a>'
                   + '  <span>'
-                  + '    <a href="' + stepUrl(nextId) + '" style="color:var(--st-amber-dk);text-decoration:underline;">Step ' + nextId + ' →</a>'
+                  + '    <a ' + href.toAttr(stepUrl(nextId)) + ' style="color:var(--st-amber-dk);text-decoration:underline;">Step ' + nextId + ' →</a>'
                   + '  </span>'
                   + '</div>';
         }

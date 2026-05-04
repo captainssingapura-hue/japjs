@@ -17,6 +17,7 @@ public final class DocRegistry {
         BROCHURE("Brochure"),
         RFC("RFCs"),
         BRAND("Brand"),
+        RENAME("Rename"),
         SESSION("Session Notes"),
         REFERENCE("Reference");
 
@@ -83,10 +84,15 @@ public final class DocRegistry {
                     "Brand Guide",
                     "Logo concept, asset inventory, palette, typography, usage rules.",
                     Category.BRAND),
+            // Rename
             new Doc("brand/RENAME-TO-HOMING.md",
                     "Rename Dossier — japjs → Homing",
                     "Decision context, three-layer metaphor, migration logistics.",
-                    Category.BRAND),
+                    Category.RENAME),
+            new Doc("rename/EXECUTION-PLAN.md",
+                    "Rename Execution Plan",
+                    "Six-phase migration plan with verification gates and rollback strategy.",
+                    Category.RENAME),
 
             // Session
             new Doc("SESSION-SUMMARY-2026-04-25.md",

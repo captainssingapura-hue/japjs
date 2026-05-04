@@ -11,11 +11,13 @@ package hue.captains.singapura.japjs.core;
  *
  * <p>Introduced in RFC 0001.</p>
  *
- * <p><b>Sealed:</b> the {@code permits} clause currently lists {@link AppModule}
- * only. It will expand to include {@code ProxyApp} when that type lands in
- * Step 03 of the RFC implementation.</p>
+ * <p><b>Sealed:</b> the {@code permits} clause lists {@link AppModule} (the
+ * internal-app case) and {@link ProxyApp} (the typed external-URL case).
+ * Both kinds participate in the same registry and the same {@link AppLink}
+ * import mechanism; the resolver and writer differentiate at the type
+ * level when they need to.</p>
  */
-public sealed interface Linkable permits AppModule {
+public sealed interface Linkable extends Importable permits AppModule, ProxyApp {
 
     /**
      * The public URL identifier for this linkable. Used as the value of the

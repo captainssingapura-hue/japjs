@@ -2,7 +2,9 @@ package hue.captains.singapura.japjs.studio.rfc0001;
 
 import hue.captains.singapura.japjs.core.*;
 import hue.captains.singapura.japjs.studio.css.StudioStyles;
+import hue.captains.singapura.japjs.studio.es.DocReader;
 import hue.captains.singapura.japjs.studio.es.MarkedJs;
+import hue.captains.singapura.japjs.studio.es.StudioCatalogue;
 
 import java.util.List;
 
@@ -14,6 +16,11 @@ public record Rfc0001Step() implements AppModule<Rfc0001Step> {
 
     record appMain() implements AppModule._AppMain<Rfc0001Step> {}
 
+    public record link() implements AppLink<Rfc0001Step> {}
+
+    /** Typed query parameter — which step's id to render. */
+    public record Params(String id) {}
+
     public static final Rfc0001Step INSTANCE = new Rfc0001Step();
 
     @Override
@@ -22,9 +29,21 @@ public record Rfc0001Step() implements AppModule<Rfc0001Step> {
     }
 
     @Override
+    public Class<?> paramsType() {
+        return Params.class;
+    }
+
+    @Override
     public ImportsFor<Rfc0001Step> imports() {
         return ImportsFor.<Rfc0001Step>builder()
+                // Navigation targets — RFC 0001 Step 11.
+                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new Rfc0001Plan.link()),     Rfc0001Plan.INSTANCE))
+                .add(new ModuleImports<>(List.of(new Rfc0001Step.link()),     Rfc0001Step.INSTANCE))  // self-link for prev/next
+                .add(new ModuleImports<>(List.of(new DocReader.link()),       DocReader.INSTANCE))
+                // External library.
                 .add(new ModuleImports<>(List.of(new MarkedJs.marked()), MarkedJs.INSTANCE))
+                // CSS imports.
                 .add(new ModuleImports<>(List.of(
                         new StudioStyles.st_root(), new StudioStyles.st_header(),
                         new StudioStyles.st_brand(), new StudioStyles.st_brand_dot(), new StudioStyles.st_brand_word(),

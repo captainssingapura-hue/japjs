@@ -86,13 +86,37 @@ public class EsModuleGetAction
             contentProvider = withCssManager(contentProvider);
         }
 
+        // RFC 0001 Step 09: auto-inject the href manager when the module
+        // imports any AppLink — same scoping rule as CSS injection.
+        if (importsAnyAppLink(module)) {
+            contentProvider = withHrefManager(contentProvider);
+        }
+
         return new EsModuleWriter<>(module, contentProvider, nameResolver,
                 ExportWriter.INSTANCE, new SimpleImportsWriterResolver(nameResolver, theme, locale));
+    }
+
+    /** Package-private for testing — returns true iff the module has at least one AppLink import. */
+    static boolean importsAnyAppLink(EsModule<?> module) {
+        return module.imports().getAllImports().values().stream()
+                .anyMatch(mi -> mi.allImports().stream().anyMatch(e -> e instanceof AppLink<?>));
     }
 
     private <M extends EsModule<M>> ContentProvider<M> withCssManager(ContentProvider<M> delegate) {
         String managerPath = nameResolver.resolve(CssClassManager.INSTANCE).basePath();
         String importLine = "import { CssClassManagerInstance as css } from \"" + managerPath + "\";";
+        return () -> {
+            List<String> combined = new ArrayList<>();
+            combined.add(importLine);
+            combined.add("");
+            combined.addAll(delegate.content());
+            return combined;
+        };
+    }
+
+    private <M extends EsModule<M>> ContentProvider<M> withHrefManager(ContentProvider<M> delegate) {
+        String managerPath = nameResolver.resolve(HrefManager.INSTANCE).basePath();
+        String importLine = "import { HrefManagerInstance as href } from \"" + managerPath + "\";";
         return () -> {
             List<String> combined = new ArrayList<>();
             combined.add(importLine);

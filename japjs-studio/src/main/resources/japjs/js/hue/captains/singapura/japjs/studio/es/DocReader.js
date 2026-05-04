@@ -29,8 +29,8 @@ function appMain(rootElement) {
             .replace(/^-|-$/g, "");
     }
 
-    // Read the doc path from query string
-    var docPath = new URLSearchParams(window.location.search).get("path") || "";
+    // RFC 0001 Step 06+11: typed `params` const is auto-generated from DocReader.Params (Java).
+    var docPath = params.path || "";
 
     // Mirror of DocRegistry — used to display the title and category.
     // (Kept brief; the browser app has the full mirror.)
@@ -72,14 +72,14 @@ function appMain(rootElement) {
         + '<div class="' + cn(st_root) + '">'
 
         + '<div class="' + cn(st_header) + '">'
-        + '  <a class="' + cn(st_brand) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">'
+        + '  <a class="' + cn(st_brand) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>'
         + '    <span class="' + cn(st_brand_dot) + '"></span>'
         + '    <span class="' + cn(st_brand_word) + '">japjs · studio</span>'
         + '  </a>'
         + '  <div class="' + cn(st_breadcrumbs) + '">'
-        + '    <a class="' + cn(st_crumb) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">Home</a>'
+        + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>Home</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'
-        + '    <a class="' + cn(st_crumb) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.DocBrowser">Documents</a>'
+        + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.DocBrowser()) + '>Documents</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'
         + '    <span class="' + cn(st_crumb) + '">' + escape(docMeta.title) + '</span>'
         + '  </div>'
@@ -162,7 +162,7 @@ function appMain(rootElement) {
                 var levelCls = item.level === "h1" ? cn(st_toc_h1)
                               : item.level === "h2" ? cn(st_toc_h2)
                               : cn(st_toc_h3);
-                tocHtml += '<a class="' + cn(st_toc_item) + ' ' + levelCls + '" href="#' + item.slug + '" data-slug="' + item.slug + '">' + escape(item.text) + '</a>';
+                tocHtml += '<a class="' + cn(st_toc_item) + ' ' + levelCls + '" ' + href.fragment(item.slug) + ' data-slug="' + item.slug + '">' + escape(item.text) + '</a>';
             }
             tocEl.innerHTML = tocHtml;
         }

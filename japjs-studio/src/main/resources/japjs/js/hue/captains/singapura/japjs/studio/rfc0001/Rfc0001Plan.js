@@ -31,23 +31,23 @@ function appMain(rootElement) {
     }
 
     function stepUrl(id) {
-        return "/app?class=hue.captains.singapura.japjs.studio.rfc0001.Rfc0001Step&id=" + encodeURIComponent(id);
+        return nav.Rfc0001Step({id: id});
     }
 
     function rfcDocUrl(path) {
-        return "/app?class=hue.captains.singapura.japjs.studio.es.DocReader&path=" + encodeURIComponent(path);
+        return nav.DocReader({path: path});
     }
 
     var shellHtml = ''
         + '<div class="' + cn(st_root) + '">'
 
         + '<div class="' + cn(st_header) + '">'
-        + '  <a class="' + cn(st_brand) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">'
+        + '  <a class="' + cn(st_brand) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>'
         + '    <span class="' + cn(st_brand_dot) + '"></span>'
         + '    <span class="' + cn(st_brand_word) + '">japjs · studio</span>'
         + '  </a>'
         + '  <div class="' + cn(st_breadcrumbs) + '">'
-        + '    <a class="' + cn(st_crumb) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">Home</a>'
+        + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>Home</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'
         + '    <span class="' + cn(st_crumb) + '">RFC 0001 Plan</span>'
         + '  </div>'
@@ -94,7 +94,7 @@ function appMain(rootElement) {
             var taskCount = s.tasks.length;
             var doneCount = s.tasks.filter(function(t) { return t.done; }).length;
 
-            html += '<a class="' + cn(st_step_card) + '" href="' + stepUrl(s.id) + '">'
+            html += '<a class="' + cn(st_step_card) + '" ' + href.toAttr(stepUrl(s.id)) + '>'
                   + '  <div class="' + cn(st_step_head) + '">'
                   + '    <span class="' + cn(st_step_id) + '">STEP ' + escape(s.id) + '</span>'
                   + '    <h3 class="' + cn(st_step_label) + '">' + escape(s.label) + '</h3>'
@@ -115,9 +115,9 @@ function appMain(rootElement) {
         html += '<div class="' + cn(st_section) + '">'
               + '  <div class="' + cn(st_section_title) + '">References</div>'
               + '  <p style="font-size:14px;line-height:1.6;">'
-              + '    <a href="' + rfcDocUrl(data.path) + '" style="color:var(--st-amber-dk);text-decoration:underline;">Read the RFC</a>'
+              + '    <a ' + href.toAttr(rfcDocUrl(data.path)) + ' style="color:var(--st-amber-dk);text-decoration:underline;">Read the RFC</a>'
               + '    &nbsp;·&nbsp; '
-              + '    <a href="/step-data?rfc=0001" style="color:var(--st-gray-mid);text-decoration:underline;font-family:monospace;font-size:12px;">/step-data?rfc=0001</a> (raw JSON)'
+              + '    Raw JSON endpoint: <code style="font-family:monospace;font-size:12px;color:var(--st-gray-mid);">/step-data?rfc=0001</code>'
               + '  </p>'
               + '</div>';
 

@@ -2,12 +2,16 @@ package hue.captains.singapura.japjs.studio.rfc0001;
 
 import hue.captains.singapura.japjs.core.*;
 import hue.captains.singapura.japjs.studio.css.StudioStyles;
+import hue.captains.singapura.japjs.studio.es.DocReader;
+import hue.captains.singapura.japjs.studio.es.StudioCatalogue;
 
 import java.util.List;
 
 public record Rfc0001Plan() implements AppModule<Rfc0001Plan> {
 
     record appMain() implements AppModule._AppMain<Rfc0001Plan> {}
+
+    public record link() implements AppLink<Rfc0001Plan> {}
 
     public static final Rfc0001Plan INSTANCE = new Rfc0001Plan();
 
@@ -19,6 +23,11 @@ public record Rfc0001Plan() implements AppModule<Rfc0001Plan> {
     @Override
     public ImportsFor<Rfc0001Plan> imports() {
         return ImportsFor.<Rfc0001Plan>builder()
+                // Navigation targets — RFC 0001 Step 11.
+                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new Rfc0001Step.link()),     Rfc0001Step.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DocReader.link()),       DocReader.INSTANCE))
+                // CSS imports.
                 .add(new ModuleImports<>(List.of(
                         new StudioStyles.st_root(), new StudioStyles.st_header(),
                         new StudioStyles.st_brand(), new StudioStyles.st_brand_dot(), new StudioStyles.st_brand_word(),

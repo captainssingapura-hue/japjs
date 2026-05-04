@@ -1,7 +1,9 @@
 package hue.captains.singapura.japjs.studio;
 
 import hue.captains.singapura.japjs.core.ModuleNameResolver;
+import hue.captains.singapura.japjs.core.SimpleAppResolver;
 import hue.captains.singapura.japjs.server.JapjsActionRegistry;
+import hue.captains.singapura.japjs.studio.rename.RenameDataGetAction;
 import hue.captains.singapura.japjs.studio.rfc0001.StepDataGetAction;
 import hue.captains.singapura.tao.http.action.ActionRegistry;
 import hue.captains.singapura.tao.http.action.GetAction;
@@ -21,15 +23,21 @@ public class StudioActionRegistry implements ActionRegistry<RoutingContext> {
     private final JapjsActionRegistry inner;
     private final DocContentGetAction docContentAction;
     private final StepDataGetAction stepDataAction;
+    private final RenameDataGetAction renameDataAction;
 
     public StudioActionRegistry(ModuleNameResolver nameResolver) {
-        this(nameResolver, Path.of(System.getProperty("japjs.studio.docsRoot", "docs")));
+        this(nameResolver, Path.of(System.getProperty("japjs.studio.docsRoot", "docs")), null);
     }
 
     public StudioActionRegistry(ModuleNameResolver nameResolver, Path docsRoot) {
-        this.inner = new JapjsActionRegistry(nameResolver);
+        this(nameResolver, docsRoot, null);
+    }
+
+    public StudioActionRegistry(ModuleNameResolver nameResolver, Path docsRoot, SimpleAppResolver appResolver) {
+        this.inner = new JapjsActionRegistry(nameResolver, appResolver);
         this.docContentAction = new DocContentGetAction(docsRoot);
         this.stepDataAction = new StepDataGetAction();
+        this.renameDataAction = new RenameDataGetAction();
     }
 
     @Override
@@ -37,6 +45,7 @@ public class StudioActionRegistry implements ActionRegistry<RoutingContext> {
         Map<String, GetAction<RoutingContext, ?, ?, ?>> all = new HashMap<>(inner.getActions());
         all.put("/doc-content", docContentAction);
         all.put("/step-data", stepDataAction);
+        all.put("/rename-data", renameDataAction);
         return Map.copyOf(all);
     }
 

@@ -1,7 +1,5 @@
 // =============================================================================
-// japjs studio — launcher / home
-// Lists the available studio apps. Pre-RFC-0001, links use the legacy ?class=
-// URL contract; will migrate to nav.X(...) when typed nav lands.
+// japjs studio — launcher / home (RFC 0001 Step 11 — typed nav + href manager)
 // =============================================================================
 
 function appMain(rootElement) {
@@ -14,28 +12,30 @@ function appMain(rootElement) {
         return parts.join(" ");
     }
 
-    var PKG = "hue.captains.singapura.japjs.studio.es.";
-    var url = function(cls) { return "/app?class=" + PKG + cls; };
-    var rfcUrl = function(cls) { return "/app?class=hue.captains.singapura.japjs.studio.rfc0001." + cls; };
-
     var apps = [
         {
-            href:     url("DocBrowser"),
+            link:     function() { return nav.DocBrowser(); },
             label:    "Documents",
             desc:     "Browse and read every white paper, brochure, RFC, brand artifact, and design note in the project — searchable, filterable by category, with an in-page table of contents on every doc.",
             icon:     "D",
             featured: true
         },
         {
-            href:     rfcUrl("Rfc0001Plan"),
+            link:     function() { return nav.Rfc0001Plan(); },
             label:    "RFC 0001 Plan",
             desc:     "Live implementation tracker for the App Registry & Typed Navigation RFC. Every step is its own URL; progress is recorded in Java code and rendered live in the studio.",
             icon:     "R",
             featured: false
+        },
+        {
+            link:     function() { return nav.RenamePlan(); },
+            label:    "Rename Plan",
+            desc:     "Migration plan for japjs → Homing. Six phases with verification gates and rollback strategies, plus four open decisions to resolve before executing. Live tracker — edit RenameSteps.java to revise.",
+            icon:     "→",
+            featured: false
         }
-        // Future apps register themselves here as new tiles:
-        //   { href: "...", label: "Decisions", desc: "...", icon: "L" }
-        //   { href: "...", label: "Plan",      desc: "...", icon: "P" }
+        // Future apps register themselves here as new tiles, importing their link()
+        // record into StudioCatalogue.java imports().
     ];
 
     var html = ''
@@ -43,7 +43,7 @@ function appMain(rootElement) {
 
         // header
         + '<div class="' + cn(st_header) + '">'
-        + '  <a class="' + cn(st_brand) + '" href="/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue">'
+        + '  <a class="' + cn(st_brand) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>'
         + '    <span class="' + cn(st_brand_dot) + '"></span>'
         + '    <span class="' + cn(st_brand_word) + '">japjs · studio</span>'
         + '  </a>'
@@ -65,7 +65,7 @@ function appMain(rootElement) {
     for (var i = 0; i < apps.length; i++) {
         var a = apps[i];
         var pillCls = a.featured ? cn(st_app_pill, st_app_pill_dark) : cn(st_app_pill);
-        html += '<a class="' + pillCls + '" href="' + a.href + '">'
+        html += '<a class="' + pillCls + '" ' + href.toAttr(a.link()) + '>'
               +   '<div class="' + cn(st_app_pill_icon) + '">' + a.icon + '</div>'
               +   '<div>'
               +     '<div class="' + cn(st_app_pill_label) + '">' + a.label + '</div>'
@@ -79,7 +79,7 @@ function appMain(rootElement) {
 
           // footer
           + '  <div class="' + cn(st_footer) + '">'
-          + '    Studio is a sibling Maven module to <code>japjs-demo</code>, built entirely on japjs primitives. Add new tiles to <code>StudioCatalogue.js</code>; new apps register themselves as siblings under <code>...studio.es.*</code>.'
+          + '    Studio is a sibling Maven module to <code>japjs-demo</code>, built entirely on japjs primitives. Add a new tile to this file and import the target\'s <code>link()</code> record into <code>StudioCatalogue.java</code>.'
           + '  </div>'
           + '</div>'
 

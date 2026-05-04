@@ -8,6 +8,8 @@ public record ExtrudedSvgDemo() implements AppModule<ExtrudedSvgDemo> {
 
     record appMain() implements AppModule._AppMain<ExtrudedSvgDemo> {}
 
+    public record link() implements AppLink<ExtrudedSvgDemo> {}
+
     public static final ExtrudedSvgDemo INSTANCE = new ExtrudedSvgDemo();
 
     @Override

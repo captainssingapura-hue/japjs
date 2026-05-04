@@ -9,6 +9,8 @@ public record PitchDeck() implements AppModule<PitchDeck> {
 
     record appMain() implements AppModule._AppMain<PitchDeck> {}
 
+    public record link() implements AppLink<PitchDeck> {}
+
     public static final PitchDeck INSTANCE = new PitchDeck();
 
     @Override

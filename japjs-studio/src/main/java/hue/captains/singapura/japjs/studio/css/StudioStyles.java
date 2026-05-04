@@ -38,6 +38,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
     public record st_badge_brand() implements CssClass<StudioStyles> {}
     public record st_badge_session() implements CssClass<StudioStyles> {}
     public record st_badge_reference() implements CssClass<StudioStyles> {}
+    public record st_badge_rename() implements CssClass<StudioStyles> {}
     public record st_search_wrap() implements CssClass<StudioStyles> {}
     public record st_search() implements CssClass<StudioStyles> {}
     public record st_filter() implements CssClass<StudioStyles> {}
@@ -109,7 +110,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
                 new st_card_title(), new st_card_summary(), new st_card_meta(), new st_card_link(),
                 new st_badge(),
                 new st_badge_whitepaper(), new st_badge_brochure(), new st_badge_rfc(),
-                new st_badge_brand(), new st_badge_session(), new st_badge_reference(),
+                new st_badge_brand(), new st_badge_session(), new st_badge_reference(), new st_badge_rename(),
                 new st_search_wrap(), new st_search(),
                 new st_filter(), new st_filter_btn(), new st_filter_btn_active(),
                 new st_layout(), new st_sidebar(), new st_sidebar_title(),

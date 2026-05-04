@@ -8,6 +8,8 @@ public record DecomposedSvgDemo() implements AppModule<DecomposedSvgDemo> {
 
     record appMain() implements AppModule._AppMain<DecomposedSvgDemo> {}
 
+    public record link() implements AppLink<DecomposedSvgDemo> {}
+
     public static final DecomposedSvgDemo INSTANCE = new DecomposedSvgDemo();
 
     @Override

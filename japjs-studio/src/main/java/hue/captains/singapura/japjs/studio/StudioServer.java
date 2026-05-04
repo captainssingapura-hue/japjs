@@ -1,12 +1,17 @@
 package hue.captains.singapura.japjs.studio;
 
+import hue.captains.singapura.japjs.core.AppModule;
+import hue.captains.singapura.japjs.core.SimpleAppResolver;
 import hue.captains.singapura.japjs.server.QueryParamResolver;
 import hue.captains.singapura.japjs.studio.es.DocBrowser;
 import hue.captains.singapura.japjs.studio.es.DocReader;
 import hue.captains.singapura.japjs.studio.es.StudioCatalogue;
+import hue.captains.singapura.japjs.studio.rfc0001.Rfc0001Plan;
+import hue.captains.singapura.japjs.studio.rfc0001.Rfc0001Step;
 import hue.captains.singapura.tao.http.vertx.VertxActionHost;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Entry point for the japjs studio — design &amp; project management workspace.
@@ -29,8 +34,14 @@ public class StudioServer {
         Path docsRoot = Path.of(System.getProperty("japjs.studio.docsRoot", "docs"))
                             .toAbsolutePath().normalize();
 
+        // RFC 0001 Step 11: single entry app — StudioCatalogue links to DocBrowser
+        // and Rfc0001Plan; those link to DocReader and Rfc0001Step transitively.
+        var appResolver = new SimpleAppResolver(List.<AppModule<?>>of(
+                StudioCatalogue.INSTANCE
+        ));
+
         var nameResolver = new QueryParamResolver();
-        var registry     = new StudioActionRegistry(nameResolver, docsRoot);
+        var registry     = new StudioActionRegistry(nameResolver, docsRoot, appResolver);
         var host         = new VertxActionHost(registry, 8080);
 
         host.start().onSuccess(server -> {

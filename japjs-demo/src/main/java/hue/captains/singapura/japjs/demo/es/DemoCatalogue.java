@@ -9,6 +9,8 @@ public record DemoCatalogue() implements AppModule<DemoCatalogue> {
 
     record appMain() implements AppModule._AppMain<DemoCatalogue> {}
 
+    public record link() implements AppLink<DemoCatalogue> {}
+
     public static final DemoCatalogue INSTANCE = new DemoCatalogue();
 
     @Override
@@ -19,6 +21,22 @@ public record DemoCatalogue() implements AppModule<DemoCatalogue> {
     @Override
     public ImportsFor<DemoCatalogue> imports() {
         return ImportsFor.<DemoCatalogue>builder()
+                // Navigation targets — every linkable demo, brought in via the
+                // typed AppLink<?> machinery (RFC 0001 Step 11). Each link()
+                // import causes the writer to add an entry to the generated
+                // `nav` const, AND causes the resolver to register the target
+                // app transitively at server boot.
+                .add(new ModuleImports<>(List.of(new PitchDeck.link()),         PitchDeck.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WonderlandDemo.link()),    WonderlandDemo.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DancingAnimals.link()),    DancingAnimals.INSTANCE))
+                .add(new ModuleImports<>(List.of(new SpinningAnimals.link()),   SpinningAnimals.INSTANCE))
+                .add(new ModuleImports<>(List.of(new MovingAnimal.link()),      MovingAnimal.INSTANCE))
+                .add(new ModuleImports<>(List.of(new TurtleDemo.link()),        TurtleDemo.INSTANCE))
+                .add(new ModuleImports<>(List.of(new ExtrudedTurtleDemo.link()),ExtrudedTurtleDemo.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DecomposedSvgDemo.link()), DecomposedSvgDemo.INSTANCE))
+                .add(new ModuleImports<>(List.of(new ExtrudedSvgDemo.link()),   ExtrudedSvgDemo.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DemoCatalogue.link()),     DemoCatalogue.INSTANCE))
+                // CSS imports.
                 .add(new ModuleImports<>(List.of(
                         new CatalogueStyles.cat_root(),
                         new CatalogueStyles.cat_header(),

@@ -8,6 +8,8 @@ public record ExtrudedTurtleDemo() implements AppModule<ExtrudedTurtleDemo> {
 
     record appMain() implements AppModule._AppMain<ExtrudedTurtleDemo> {}
 
+    public record link() implements AppLink<ExtrudedTurtleDemo> {}
+
     public static final ExtrudedTurtleDemo INSTANCE = new ExtrudedTurtleDemo();
 
     @Override

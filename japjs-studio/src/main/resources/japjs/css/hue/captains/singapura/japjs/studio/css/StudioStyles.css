@@ -299,6 +299,7 @@ html, body {
 .st-badge-brand      { background: var(--st-ice);    color: var(--st-navy); }
 .st-badge-session    { background: var(--st-gray-vlt); color: var(--st-gray-dk); border: 1px solid var(--st-gray-lt); }
 .st-badge-reference  { background: var(--st-gray-lt); color: var(--st-navy); }
+.st-badge-rename     { background: var(--st-amber-dk); color: var(--st-ice); }
 
 /* --- doc reader layout --- */
 .st-layout {
