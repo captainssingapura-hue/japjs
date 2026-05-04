@@ -11,10 +11,20 @@ public record SingleModuleImportWriter<M extends EsModule<M>>(
     }
 
     public String writeImports(ModuleImports<M> imports) {
+        // RFC 0001 Step 11 fix: AppLink<?> entries are pure Java metadata for
+        // nav generation — they don't correspond to JS-side exports. Multiple
+        // targets all use the inner record name `link`, so emitting them as
+        // `import { link } from "..."` would produce duplicate-identifier errors
+        // in the browser. Filter them out here.
+        var emittable = imports.allImports().stream()
+                .filter(x -> !(x instanceof AppLink<?>))
+                .toList();
+        if (emittable.isEmpty()) return "";
+
         final String moduleName = resolver.resolve(imports.from())
                 .withTheme(theme).withLocale(locale).basePath();
         return "import {"
-                + imports.allImports().stream().map(x -> x.getClass().getSimpleName()).collect(Collectors.joining(", "))
+                + emittable.stream().map(x -> x.getClass().getSimpleName()).collect(Collectors.joining(", "))
                 + "} from \"" + moduleName + "\";";
     }
 }

@@ -18,7 +18,10 @@ class DemoCssConformanceTest extends CssConformanceTest {
                 MovingAnimal.INSTANCE,
                 TurtleDemo.INSTANCE,
                 WonderlandDemo.INSTANCE,
-                PlatformerBgm.INSTANCE
+                PlatformerBgm.INSTANCE,
+                PitchDeck.INSTANCE,
+                PitchDeckBgm.INSTANCE,
+                DemoCatalogue.INSTANCE
         );
     }
 

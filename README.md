@@ -224,6 +224,124 @@ japjs/css/.../PlaygroundStyles.alpine.css    # alpine theme
 
 Theme is selected via the `?theme=` query parameter and propagates through import URLs automatically.
 
+## Typed Navigation
+
+japjs provides type-safe navigation between AppModules — and to typed external destinations — through the same Java-records-as-source-of-truth pattern that drives modules, CSS, and assets. Introduced in [RFC 0001](docs/rfcs/0001-app-registry-and-typed-nav.md).
+
+### 1. Make an AppModule linkable
+
+Each AppModule that other modules want to navigate to declares an inner `link()` record:
+
+```java
+public record PitchDeck() implements AppModule<PitchDeck> {
+    public static final PitchDeck INSTANCE = new PitchDeck();
+
+    record appMain() implements AppModule._AppMain<PitchDeck> {}
+    public record link() implements AppLink<PitchDeck> {}
+    // ... title, imports, exports
+}
+```
+
+Optionally, declare typed query parameters via a `Params` record:
+
+```java
+public record ProductDetail() implements AppModule<ProductDetail> {
+    public record Params(String productId, Optional<String> tab) {}
+    public record link() implements AppLink<ProductDetail> {}
+
+    @Override public Class<?> paramsType() { return Params.class; }
+    // ...
+}
+```
+
+### 2. Import the link in any consumer
+
+```java
+@Override
+public ImportsFor<MyApp> imports() {
+    return ImportsFor.<MyApp>builder()
+        .add(new ModuleImports<>(List.of(new PitchDeck.link()),     PitchDeck.INSTANCE))
+        .add(new ModuleImports<>(List.of(new ProductDetail.link()), ProductDetail.INSTANCE))
+        // ... other imports
+        .build();
+}
+```
+
+### 3. Use `nav` and `href` in JS
+
+The writer auto-generates a `nav` object and auto-injects an `href` manager into any DomModule that imports an `AppLink<?>`:
+
+```js
+// nav.X(...) returns the URL string for X.
+// href.X(...) is the only sanctioned way to apply that URL.
+parent.innerHTML = '<a ' + href.toAttr(nav.PitchDeck()) + '>Open the deck</a>';
+
+// With params:
+parent.innerHTML = '<a ' + href.toAttr(nav.ProductDetail({productId: "P-12345", tab: "reviews"})) + '>...</a>';
+
+// Other href methods:
+href.set(elem, nav.PitchDeck());                    // set el.href
+const a = href.create(nav.PitchDeck(), {text:"Go"}); // returns <a> element
+href.openNew(nav.PitchDeck());                       // window.open in new tab
+href.navigate(nav.PitchDeck({slide: 7}));            // programmatic navigation
+href.fragment("section-2");                          // 'href="#section-2"' for same-page anchors
+```
+
+### 4. Receive typed params on the receiving side
+
+For any AppModule with a non-Void `paramsType()`, the writer generates a `params` const at the top of its compiled JS, populated from the URL with type coercion:
+
+```js
+function appMain(rootElement) {
+    if (params.productId) {
+        loadProduct(params.productId, params.tab);   // typed values, no URLSearchParams boilerplate
+    } else {
+        showProductPicker();
+    }
+}
+```
+
+### 5. External URLs via proxy apps
+
+Non-`/app` destinations (GitHub, vendor APIs, `mailto:`) are modeled as `ProxyApp` declarations with a URL template:
+
+```java
+public record GitHubProxy() implements ProxyApp<GitHubProxy> {
+    public static final GitHubProxy INSTANCE = new GitHubProxy();
+    public record Params(String repo, Optional<String> path) {}
+    public record link() implements AppLink<GitHubProxy> {}
+
+    @Override public String simpleName()  { return "github"; }
+    @Override public Class<?> paramsType() { return Params.class; }
+    @Override public String urlTemplate() { return "https://github.com/{repo}/{path?}"; }
+}
+```
+
+From JS: `href.toAttr(nav.GitHubProxy({repo: "acme/proj", path: Optional.of("README.md")}))`.
+
+Built-in proxies for common non-HTTP schemes (`Mailto`, `Tel`, `Sms`) ship in `japjs-core.proxies`.
+
+### 6. Server bootstrap — single entry point
+
+Pass one (or a few) entry apps to `SimpleAppResolver`; the resolver walks `AppLink<?>` import edges to discover every reachable AppModule and ProxyApp transitively. Adding a new linked app requires no resolver update — just import its `link()`.
+
+```java
+var resolver = new SimpleAppResolver(List.of(MyCatalogue.INSTANCE));
+var registry = new JapjsActionRegistry(new QueryParamResolver(), resolver);
+```
+
+### 7. Conformance enforcement
+
+A new `HrefConformanceTest` (sibling to `CssConformanceTest`) enforces that the literal substring `href` may appear in DomModule JS **only** as the manager identifier (`href.toAttr(...)`, `href.set(...)`, etc.). Raw `href=` attributes, `el.href = ...` assignments, `window.location.*`, `window.open(...)` are all rejected by the scanner. See [RFC 0001 §6.2](docs/rfcs/0001-app-registry-and-typed-nav.md).
+
+```java
+class MyHrefConformanceTest extends HrefConformanceTest {
+    @Override protected List<DomModule<?>> domModules() {
+        return List.of(/* every DomModule in your project */);
+    }
+}
+```
+
 ## SVG Groups
 
 An `SvgGroup` bundles SVG assets into a single ES module. Each SVG file becomes a template literal constant.
@@ -274,17 +392,23 @@ japjs includes a server module (`japjs-server`) that serves ES modules and SPA a
 
 | Path | Response | Description |
 |------|----------|-------------|
-| `/app?class=<AppModule>` | `text/html` | Full HTML page that boots the app |
+| `/app?app=<simple-name>` | `text/html` | Full HTML page that boots the app (RFC 0001) |
+| `/app?class=<AppModule>` | `text/html` | Legacy fallback — accepts canonical class name |
 | `/module?class=<EsModule>` | `application/javascript` | Generated ES module with imports/exports |
 | `/css?class=<CssGroup>` | `application/json` | Resolved CSS dependency chain |
 | `/css-content?class=<CssGroup>` | `text/css` | Raw CSS file content |
 
 Query parameters `theme` and `locale` are supported on all endpoints and propagate through import URLs for DOM-aware modules.
 
+The `?app=<simple-name>` URL contract — introduced in [RFC 0001](docs/rfcs/0001-app-registry-and-typed-nav.md) — is the public surface. Simple names default to a kebab-case derivation of the AppModule's class name (e.g. `PitchDeck` → `pitch-deck`); each AppModule may override `simpleName()` to lock the URL contract independently of its Java class. The legacy `?class=` form is retained for backwards compatibility.
+
 ### Running
 
 ```java
-var registry = new JapjsActionRegistry(new QueryParamResolver());
+// RFC 0001 Step 11: single entry app — the resolver discovers everything
+// the catalogue links to (and what those link to, transitively).
+var resolver = new SimpleAppResolver(List.of(MyCatalogue.INSTANCE));
+var registry = new JapjsActionRegistry(new QueryParamResolver(), resolver);
 var host = new VertxActionHost(registry, 8080);
 host.start();
 ```
@@ -310,13 +434,15 @@ Edit JS/CSS/SVG files and refresh — no restart needed. Java declaration change
 
 The `japjs-demo` module includes several interactive demos:
 
-| App | URL path | Description |
-|-----|----------|-------------|
-| WonderlandDemo | `/app?class=...WonderlandDemo` | Simple intro — imports from Alice and SVG groups |
-| DancingAnimals | `/app?class=...DancingAnimals` | 5x5 grid of animals, keyboard-controlled direction flipping |
-| SpinningAnimals | `/app?class=...SpinningAnimals` | Grid animation with pause/resume controls |
-| MovingAnimal | `/app?class=...MovingAnimal` | Platformer game with physics, sound, and theme switching |
-| TurtleDemo | `/app?class=...TurtleDemo` | 3D turtle visualization with Three.js |
+| App | URL | Description |
+|-----|-----|-------------|
+| DemoCatalogue | `/app?app=demo-catalogue` | Launcher — start here. Lists every demo. |
+| PitchDeck | `/app?app=pitch-deck` | 13-slide interactive executive deck with BGM |
+| WonderlandDemo | `/app?app=wonderland-demo` | Simple intro — imports from Alice and SVG groups |
+| DancingAnimals | `/app?app=dancing-animals` | 5x5 grid of animals, keyboard-controlled direction flipping |
+| SpinningAnimals | `/app?app=spinning-animals` | Grid animation with pause/resume controls |
+| MovingAnimal | `/app?app=moving-animal` | Platformer game with physics, sound, and theme switching |
+| TurtleDemo | `/app?app=turtle-demo` | 3D turtle visualization with Three.js |
 
 ### Themes
 

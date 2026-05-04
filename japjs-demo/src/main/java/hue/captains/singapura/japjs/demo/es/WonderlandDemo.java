@@ -9,6 +9,8 @@ public record WonderlandDemo() implements AppModule<WonderlandDemo> {
     // lowercase record name — maps to JS identifier "appMain"
     record appMain() implements AppModule._AppMain<WonderlandDemo> {}
 
+    public record link() implements AppLink<WonderlandDemo> {}
+
     public static final WonderlandDemo INSTANCE = new WonderlandDemo();
 
     @Override

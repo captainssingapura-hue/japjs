@@ -9,6 +9,8 @@ public record MovingAnimal() implements AppModule<MovingAnimal> {
 
     record appMain() implements AppModule._AppMain<MovingAnimal> {}
 
+    public record link() implements AppLink<MovingAnimal> {}
+
     public static final MovingAnimal INSTANCE = new MovingAnimal();
 
     @Override
