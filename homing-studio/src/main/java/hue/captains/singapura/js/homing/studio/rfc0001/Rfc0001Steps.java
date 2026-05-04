@@ -150,9 +150,9 @@ public final class Rfc0001Steps {
                     List.of(
                             new Task("New `NavWriter` class — pattern-matches over Linkable subtypes", true),
                             new Task("Detect `AppLink<?>` imports by scanning all import lists for `instanceof AppLink<?>`", true),
-                            new Task("Emit nav block with `// === japjs generated nav ===` markers", true),
-                            new Task("Shared `_japjsBuildAppUrl(simpleName, params)` helper for AppModule entries", true),
-                            new Task("AppModule entries: `nav.X = function(p) { return _japjsBuildAppUrl(\"x\", p); }`", true),
+                            new Task("Emit nav block with `// === homing generated nav ===` markers", true),
+                            new Task("Shared `_homingBuildAppUrl(simpleName, params)` helper for AppModule entries", true),
+                            new Task("AppModule entries: `nav.X = function(p) { return _homingBuildAppUrl(\"x\", p); }`", true),
                             new Task("Theme/locale propagation in helper (override-wins logic)", true),
                             new Task("ProxyApp entries: inline interpolation function from `UrlTemplate.toJsExpression()`", true),
                             new Task("New `UrlTemplate.toJsExpression(paramVar)` method emitting JS code for the template", true),
@@ -234,7 +234,7 @@ public final class Rfc0001Steps {
 
             new Step("08",
                     "Built-in Proxies",
-                    "Mailto, Tel, Sms shipped in japjs-core.proxies as ready-to-import ProxyApps.",
+                    "Mailto, Tel, Sms shipped in homing-core.proxies as ready-to-import ProxyApps.",
                     "Common non-HTTP URL schemes need typed declarations under the strict §6.2 rule. Rather than special-casing them in the scanner, they ship as proxy apps. Users who need `mailto:`, `tel:`, or `sms:` URLs import the built-in proxy and call `nav.Mailto({to: \"...\"})` like any other linkable.",
                     Status.DONE,
                     List.of(
@@ -242,7 +242,7 @@ public final class Rfc0001Steps {
                             new Task("`Tel` with Params(number) — template `tel:{number}`", true),
                             new Task("`Sms` with Params(number, body?) — template `sms:{number}?body={body?}`", true),
                             new Task("Proper URL encoding (`@` → `%40`, `+` → `%2B`, etc.) verified by tests", true),
-                            new Task("All three placed in `japjs-core.proxies` sub-package — concrete instances, not framework primitives", true),
+                            new Task("All three placed in `homing-core.proxies` sub-package — concrete instances, not framework primitives", true),
                             new Task("14 unit tests in `BuiltInProxiesTest`: each proxy template compiles + renders, simpleNames, link types, end-to-end resolver discovery, NavWriter emits typed entries for all three", true),
                             new Task("Documented v1 limitation: optional fields produce empty `&key=` segments (deferred query-string templating per RFC §3.8)", true),
                             new Task("User-guide examples — DEFERRED to Step 12 (documentation)", true)
@@ -251,7 +251,7 @@ public final class Rfc0001Steps {
                     "Importing `Mailto.link()` and calling `nav.Mailto({to: \"u@e.com\", subject: \"Hi\"})` produces `\"mailto:u@e.com?subject=Hi\"`. Same for Tel and Sms.",
                     "1 hour (actual: ~45m)",
                     "§9.11",
-                    "**Landed 2026-05-03.** One v1 simplification: when an optional Mailto/Sms field is absent, the URL still contains its empty key (e.g. `mailto:to?subject=&body=`). RFC §3.8 explicitly defers query-string templating with conditional segments — these built-ins live with that limitation. Mail clients accept the empty fields; the URL just looks slightly verbose. If users need cleaner URLs, they can declare a project-specific Mailto variant with only the fields they care about.\n\nFor `cc` / `bcc` with multiple recipients, users pass a comma-separated string within the single `Optional<String>` (RFC 6068 mailto syntax). `List<String>` would have required deferred List interpolation in the template DSL.\n\nSub-package `proxies` was added to `japjs-core` to keep these *concrete instances* visually distinct from the framework primitives (AppModule, Linkable, ProxyApp). Future built-ins (Geo? Magnet? Custom protocol handlers?) slot into the same sub-package."
+                    "**Landed 2026-05-03.** One v1 simplification: when an optional Mailto/Sms field is absent, the URL still contains its empty key (e.g. `mailto:to?subject=&body=`). RFC §3.8 explicitly defers query-string templating with conditional segments — these built-ins live with that limitation. Mail clients accept the empty fields; the URL just looks slightly verbose. If users need cleaner URLs, they can declare a project-specific Mailto variant with only the fields they care about.\n\nFor `cc` / `bcc` with multiple recipients, users pass a comma-separated string within the single `Optional<String>` (RFC 6068 mailto syntax). `List<String>` would have required deferred List interpolation in the template DSL.\n\nSub-package `proxies` was added to `homing-core` to keep these *concrete instances* visually distinct from the framework primitives (AppModule, Linkable, ProxyApp). Future built-ins (Geo? Magnet? Custom protocol handlers?) slot into the same sub-package."
             ),
 
             new Step("09",
@@ -260,7 +260,7 @@ public final class Rfc0001Steps {
                     "Amendment 3's central piece. The `href` manager is auto-injected into any DomModule that imports an AppLink<?> — same mechanism as `css` today. Six methods cover every legitimate href use; no other interface is exposed. The manager is the chokepoint where future cross-cutting URL behaviour (analytics, history pushState, intercept hooks) will live.",
                     Status.DONE,
                     List.of(
-                            new Task("New `HrefManager` EsModule (japjs-server) — exports `HrefManagerInstance`, mirrors `CssClassManager` shape exactly", true),
+                            new Task("New `HrefManager` EsModule (homing-server) — exports `HrefManagerInstance`, mirrors `CssClassManager` shape exactly", true),
                             new Task("`HrefManager.js` resource with `Object.freeze`d API", true),
                             new Task("JS: `href.toAttr(link)` returning `'href=\"...\"'` with attribute escape", true),
                             new Task("JS: `href.set(el, link)` setting el.href via setAttribute (returns el for chaining)", true),
@@ -287,7 +287,7 @@ public final class Rfc0001Steps {
                     "The scanner. Mirrors the existing CssConformanceTest. One allowed pattern (`href\\.method(`), six forbidden patterns (literal href=, .href, \"href\" string, window.location, window.open, setAttribute href). Comment-aware. Allow-list mechanism for justified exceptions (used sparingly).",
                     Status.DONE,
                     List.of(
-                            new Task("`HrefConformanceTest` base class in japjs-conformance with @TestFactory dynamic-test-per-DomModule", true),
+                            new Task("`HrefConformanceTest` base class in homing-conformance with @TestFactory dynamic-test-per-DomModule", true),
                             new Task("Forbidden: `\\bhref\\s*=` (literal href= attribute or property assignment)", true),
                             new Task("Forbidden: `\\.href\\b` (property access on element)", true),
                             new Task("Forbidden: `[\"']href[\"']` (the string \"href\" — typically setAttribute argument)", true),
@@ -329,8 +329,8 @@ public final class Rfc0001Steps {
                             new Task("MovingAnimal — kept as-is, allowlisted in DemoHrefConformanceTest with rationale (theme-state read needs kernel work)", true),
                             new Task("Simplify `WonderlandDemoServer` to single entry app — `DemoCatalogue.INSTANCE` (transitive walking discovers everything else)", true),
                             new Task("Simplify `StudioServer` to single entry app — `StudioCatalogue.INSTANCE`", true),
-                            new Task("Wire `DemoHrefConformanceTest` (japjs-demo, 14 modules scanned, 1 allowlist)", true),
-                            new Task("Wire `StudioHrefConformanceTest` (japjs-studio, 5 modules scanned, 0 allowlist)", true),
+                            new Task("Wire `DemoHrefConformanceTest` (homing-demo, 14 modules scanned, 1 allowlist)", true),
+                            new Task("Wire `StudioHrefConformanceTest` (homing-studio, 5 modules scanned, 0 allowlist)", true),
                             new Task("Verify both HrefConformance tests pass", true)
                     ),
                     List.of(new Dependency("07", "?app= dispatch must work"),

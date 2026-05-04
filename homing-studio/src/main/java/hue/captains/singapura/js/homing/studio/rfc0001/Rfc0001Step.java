@@ -25,7 +25,7 @@ public record Rfc0001Step() implements AppModule<Rfc0001Step> {
 
     @Override
     public String title() {
-        return "japjs · studio · RFC 0001 step";
+        return "Homing · studio · RFC 0001 step";
     }
 
     @Override

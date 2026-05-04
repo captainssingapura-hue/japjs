@@ -33,7 +33,7 @@ public class WonderlandDemoServer {
         var host = new VertxActionHost(registry, 8080);
 
         host.start().onSuccess(server -> {
-            System.out.println("japjs server listening on port " + server.actualPort());
+            System.out.println("Homing server listening on port " + server.actualPort());
             System.out.println("Registered apps (RFC 0001): " + appResolver.apps().size()
                              + " · proxies: " + appResolver.proxies().size());
             System.out.println();

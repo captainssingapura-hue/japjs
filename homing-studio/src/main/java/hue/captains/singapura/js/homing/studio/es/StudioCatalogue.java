@@ -17,7 +17,7 @@ public record StudioCatalogue() implements AppModule<StudioCatalogue> {
 
     @Override
     public String title() {
-        return "japjs · studio";
+        return "Homing · studio";
     }
 
     @Override

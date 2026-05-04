@@ -17,7 +17,7 @@ public record Rfc0001Plan() implements AppModule<Rfc0001Plan> {
 
     @Override
     public String title() {
-        return "japjs · studio · RFC 0001 plan";
+        return "Homing · studio · RFC 0001 plan";
     }
 
     @Override

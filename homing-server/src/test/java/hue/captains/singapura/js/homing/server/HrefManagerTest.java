@@ -85,7 +85,7 @@ class HrefManagerTest {
     @DisplayName("HrefManager.js resource is present and exposes the six API methods")
     void manager_jsResourcePresent() {
         var lines = ResourceReader.INSTANCE.getStringsFromResource(
-                "japjs/js/hue/captains/singapura/japjs/server/HrefManager.js");
+                "homing/js/hue/captains/singapura/js/homing/server/HrefManager.js");
         var joined = String.join("\n", lines);
 
         assertTrue(joined.contains("HrefManagerInstance"), "exports name");
@@ -102,7 +102,7 @@ class HrefManagerTest {
     @DisplayName("HrefManager.js fragment() emits href=\"#slug\" form")
     void manager_fragmentShape() {
         var joined = String.join("\n", ResourceReader.INSTANCE.getStringsFromResource(
-                "japjs/js/hue/captains/singapura/japjs/server/HrefManager.js"));
+                "homing/js/hue/captains/singapura/js/homing/server/HrefManager.js"));
         assertTrue(joined.contains("'href=\"#'"), joined);
     }
 

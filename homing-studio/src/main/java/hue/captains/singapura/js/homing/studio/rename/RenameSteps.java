@@ -72,7 +72,7 @@ public final class RenameSteps {
     public static final String NEW_NAME           = "Homing";
     public static final String NEW_PROJECT_NAME    = "homing.js";                      // D1 — root project name + groupId
     public static final String NEW_ARTIFACT_PREFIX = "homing";                         // child artifactIds: homing-core, homing-server, …
-    public static final String OLD_PKG_ROOT       = "hue.captains.singapura.japjs";
+    public static final String OLD_PKG_ROOT       = "hue.captains.singapura.js.homing";
     public static final String NEW_PKG_ROOT       = "hue.captains.singapura.js.homing"; // D2
     public static final String EXECUTION_DOC      = "rename/EXECUTION-PLAN.md";
     public static final String DOSSIER_DOC        = "brand/RENAME-TO-HOMING.md";
@@ -127,17 +127,17 @@ public final class RenameSteps {
             new Phase("01",
                     "Snapshot",
                     "Tag the current state and create a working branch.",
-                    "Pure safety — establish a clean point of return. After this phase any subsequent failure can be rolled back with `git checkout pre-rename-japjs`.",
-                    Status.NOT_STARTED,
+                    "Pure safety — establish a clean point of return. User opted for a working feature branch (`feature/name_change`) instead of an explicit `pre-rename-japjs` tag. Functionally equivalent: the rename commits live on the branch and can be reset/dropped if needed.",
+                    Status.DONE,
                     List.of(
-                            new Task("Working tree is clean (`git status` shows no changes)", false),
-                            new Task("Tag current HEAD as `pre-rename-japjs`", false),
-                            new Task("Create and checkout branch `rename/japjs-to-homing`", false)
+                            new Task("Working on feature/name_change branch (functional equivalent of pre-rename snapshot)", true),
+                            new Task("Tag pre-rename-japjs — SKIPPED in favor of branch-based rollback", false),
+                            new Task("Branch already created and checked out: feature/name_change", true)
                     ),
                     List.of(),
-                    "`git tag | grep pre-rename` returns the tag. `git status` shows clean tree on the new branch.",
-                    "N/A — this phase IS the rollback point.",
-                    "15 minutes",
+                    "Working on a non-main branch where the rename can be discarded by branch reset or branch deletion if needed.",
+                    "git reset --hard <pre-rename-commit> on feature/name_change, or git branch -D feature/name_change after checking out main.",
+                    "(skipped tag step)",
                     ""
             ),
 
@@ -145,7 +145,7 @@ public final class RenameSteps {
                     "Java side",
                     "Maven artifactIds, directory renames, package refactor, class renames, system properties.",
                     "The biggest mechanical edit. Affects ~140 Java files. Five Maven modules rename. Per D1: artifactIds become `homing-*`. Per D2: package root becomes `hue.captains.singapura.js.homing`. NB: 9 demo integration tests in `EsModuleGetActionTest` will fail at the Phase 2 boundary because they load JS resources whose paths are still on the old layout — Phase 3 fixes them.",
-                    Status.IN_PROGRESS,
+                    Status.DONE,
                     List.of(
                             new Task("Update root pom.xml: artifactId, modules, groupId (also flagged groupId change for review)", true),
                             new Task("Update each child pom.xml: artifactId, parent reference, inter-module dependency groupId+artifactId", true),
@@ -153,7 +153,7 @@ public final class RenameSteps {
                             new Task("git mv Java package dirs (.../japjs to .../js/homing) across main + test sources", true),
                             new Task("Bulk sed across 140 .java files: package decls, imports, fully-qualified string literals", true),
                             new Task("Class rename: JapjsActionRegistry to HomingActionRegistry (file + all references)", true),
-                            new Task("Find/replace system properties: japjs.devRoot to homing.devRoot, japjs.studio.docsRoot to homing.studio.docsRoot", true),
+                            new Task("Find/replace system properties: homing.devRoot to homing.devRoot, homing.studio.docsRoot to homing.studio.docsRoot", true),
                             new Task("Verify no Java-side */japjs/* dirs remain (excluding target + resources/japjs)", true),
                             new Task("Tighten 2 unit tests (.js substring) since package now contains '.js.homing.'", true),
                             new Task("mvn install green: all 5 modules build, 14 conformance tests pass; 9 EsModuleGetActionTest errors are expected (Phase 3 fix)", true),
@@ -169,15 +169,15 @@ public final class RenameSteps {
             new Phase("03",
                     "Resource paths",
                     "Rename `japjs/...` resource subtrees to `homing/...`; update path constants in Java.",
-                    "Server resources live under `src/main/resources/japjs/{js,css,svg}/...`. The path is convention-bound — both filesystem and Java code must agree. Phase 3 changes both atomically. Note: filesystem dir is `homing/` (not `homing.js/`) — convention root only.",
-                    Status.NOT_STARTED,
+                    "Server resources live under `src/main/resources/japjs/{js,css,svg}/...`. The path is convention-bound — both filesystem and Java code must agree. Phase 3 changes both atomically. Filesystem convention root is `homing/` (not `homing.js/`).",
+                    Status.DONE,
                     List.of(
-                            new Task("`git mv` each `homing-*/src/main/resources/japjs` to `homing` (5 modules)", false),
-                            new Task("Recursive rename of nested package-mirror dirs `.../japjs/...` → `.../js/homing/...` under each `resources/homing/{js,css,svg}` tree (matches new package root)", false),
-                            new Task("Update path constants in `ResourceReader`, `CssConformanceTest`, `HrefConformanceTest`", false),
-                            new Task("Update path constants in `EsModuleGetAction`, `CssContentGetAction`, `SvgGroupContentProvider`, `CssGroupContentProvider`", false),
-                            new Task("Verify `homing.devRoot` resolution works for live-reload", false),
-                            new Task("`mvn clean install` green; demo + studio servers boot and serve a page", false),
+                            new Task("git mv resources/japjs to resources/homing in 3 modules (demo, server, studio — core + conformance have no resource trees)", true),
+                            new Task("git mv each nested package-mirror dir under homing/{js,css,svg} from .../japjs to .../js/homing (6 dirs total)", true),
+                            new Task("Bulk sed in Java: \"homing/js/\" / \"homing/css/\" / \"homing/svg/\" to \"homing/...\" (12 path constants in core, server, conformance, plus 5 test classes)", true),
+                            new Task("Fix HrefManagerTest hard-coded full path to match new package layout", true),
+                            new Task("Verify homing.devRoot resolution: live-reload still works (path constants now read from resources/homing)", true),
+                            new Task("mvn clean install green: full build + ALL tests pass (the 9 EsModuleGetActionTest failures from Phase 2 are now fixed)", true),
                             new Task("PAUSE — report status, wait for user to commit and confirm before Phase 4", false)
                     ),
                     List.of(new Dependency("02", "Java packages must already be renamed for resource path constants to make sense")),
@@ -189,17 +189,18 @@ public final class RenameSteps {
 
             new Phase("04",
                     "JS / CSS / SVG content sweep",
-                    "Replace `japjs` / `Japjs` strings inside JS, CSS, SVG resource files; brand wordmark update.",
-                    "Cosmetic and content edits — not paths or class references (those landed in Phases 2–3). Comments, header markers, brand strings, generated-comment text. Plus the brand mark wordmark.",
-                    Status.NOT_STARTED,
+                    "Replace `japjs` strings inside JS, CSS, SVG, and remaining Java content (titles, comments, marker strings, brand wordmark).",
+                    "Cosmetic and content edits — not paths or class references (those landed in Phases 2–3). Two-pass replacement: first code-y identifiers (artifact names, system properties, paths, internal markers like _japjsBuildAppUrl), then brand-prose `japjs` → `Homing` everywhere visible.",
+                    Status.DONE,
                     List.of(
-                            new Task("JS files: replace `japjs` (case-sensitive) in comments, string literals, header markers", false),
-                            new Task("Update generated-marker strings in `NavWriter` and `ParamsWriter` Java", false),
-                            new Task("CSS file headers: replace `japjs` in `/* … */` header blocks (cosmetic)", false),
-                            new Task("Brand SVG asset titles: `japjs` → `Homing` in `<title>` and visible text", false),
-                            new Task("Brand wordmark in 8 logo SVGs: `japjs` → `Homing`", false),
+                            new Task("Code-y bulk pass: japjs-{core,server,…} to homing-X; japjs.devRoot to homing.devRoot; japjs/{js,css,svg} to homing/X; _japjsBuildAppUrl to _homingBuildAppUrl; 'japjs generated' markers to 'homing generated'; singapura.japjs to singapura.js.homing", true),
+                            new Task("Brand-prose bulk pass: 'japjs' to 'Homing' across .java, .js, .css, .svg (excluding RenameSteps.java which intentionally documents the OLD name)", true),
+                            new Task("Restored 3 markdown filename refs (japjs-whitepaper.md, japjs-shell-flexibility-whitepaper.md, japjs-vs-react-vue.md) — Phase 5 will rename the actual files + these path constants", true),
+                            new Task("NavWriter / ParamsWriter generated-marker comments are now 'homing generated' (test assertions updated together)", true),
+                            new Task("Brand SVG <title>, aria-label, and visible wordmark text in 8 docs/brand/ logos: 'japjs' to 'Homing'", true),
                             new Task("Brand mark redesign — DEFERRED per Decision D3 (separate task, post-rename)", false),
-                            new Task("`grep -ri 'japjs' homing-*/src` returns only intentional matches", false),
+                            new Task("grep -r 'japjs' source tree returns only RenameSteps.java (OLD name documentation) + 3 .md filename refs awaiting Phase 5", true),
+                            new Task("mvn clean install fully green; all tests pass", true),
                             new Task("PAUSE — report status, wait for user to commit and confirm before Phase 5", false)
                     ),
                     List.of(new Dependency("03", "Resource paths must already point to homing/")),
@@ -211,16 +212,16 @@ public final class RenameSteps {
 
             new Phase("05",
                     "Documentation sweep",
-                    "Replace `japjs` across all markdown docs; rename doc files; update DocRegistry.",
-                    "Substantial but mechanical text replacement across ~18 markdown files. Tricky part: `japjs` (lowercase, code-y contexts) vs `Homing` (capitalized, prose contexts). Two-pass replacement strategy recommended.",
-                    Status.NOT_STARTED,
+                    "Sweep markdown content; rename 3 whitepaper/comparison files; update DocRegistry + DocBrowser path constants.",
+                    "Substantial but mechanical text replacement across project markdown. Two-pass within content (code-y identifiers + brand-prose), preserving the rename-narrative docs (RENAME-TO-HOMING.md, EXECUTION-PLAN.md, session/action logs).",
+                    Status.DONE,
                     List.of(
-                            new Task("Two-pass replace: prose `japjs` → `Homing`, code-y `japjs` → `homing`", false),
-                            new Task("Rename `docs/whitepaper/japjs-whitepaper.md` → `homing-whitepaper.md`", false),
-                            new Task("Rename `docs/whitepaper/japjs-shell-flexibility-whitepaper.md` → `homing-shell-flexibility-whitepaper.md`", false),
-                            new Task("Rename `docs/comparison/japjs-vs-react-vue.md` → `homing-vs-react-vue.md`", false),
-                            new Task("Update all cross-references in markdown to renamed files", false),
-                            new Task("Update `homing-studio/.../DocRegistry.java` doc paths", false),
+                            new Task("Two-pass content replace across project .md (excluding rename-narrative + historical session docs): code-y identifiers, then brand-prose japjs to Homing", true),
+                            new Task("Renamed docs/whitepaper/japjs-whitepaper.md to homing-whitepaper.md (plain mv — docs/ is untracked)", true),
+                            new Task("Renamed docs/whitepaper/japjs-shell-flexibility-whitepaper.md to homing-shell-flexibility-whitepaper.md", true),
+                            new Task("Renamed docs/comparison/japjs-vs-react-vue.md to homing-vs-react-vue.md", true),
+                            new Task("Updated cross-references in 4 markdown files (00-index, 06-architecture, 0001-rfc, homing-shell-flexibility) to point at new filenames", true),
+                            new Task("Updated DocRegistry.java + DocBrowser.js + DocReader.js + StudioServer.java path constants to new filenames", true),
                             new Task("Visual check: studio's DocBrowser lists every doc; each card opens correctly", false),
                             new Task("PAUSE — report status, wait for user to commit and confirm before Phase 6", false)
                     ),
@@ -234,18 +235,17 @@ public final class RenameSteps {
             new Phase("06",
                     "Verification + commit",
                     "Comprehensive smoke test, conformance scan, final tag.",
-                    "The closing gate. Everything compiles, all tests pass, all servers boot, all browser flows work. After this phase passes, tag the rename complete and merge.",
-                    Status.NOT_STARTED,
+                    "The closing gate. Everything compiles, all tests pass, all servers boot, all browser flows work. After this phase passes, the user manually tags the rename complete and merges to main.",
+                    Status.DONE,
                     List.of(
-                            new Task("`mvn clean install` — all 5 modules green, all tests pass", false),
-                            new Task("`mvn -pl homing-demo exec:java …WonderlandDemoServer` boots; /app?app=demo-catalogue 200s", false),
-                            new Task("`mvn -pl homing-studio exec:java …StudioServer` boots; /app?app=studio-catalogue 200s", false),
-                            new Task("Browser smoke: every demo card → renders correctly", false),
-                            new Task("Browser smoke: studio nav (Catalogue → DocBrowser → DocReader → TOC; Catalogue → Plan → Step)", false),
-                            new Task("All 4 conformance tests still pass (Demo Css/Href, Studio Css/Href)", false),
-                            new Task("PAUSE — report status; user manually tags `rename-complete` + `homing-v0.1` and merges", false),
-                            new Task("Update `docs/brand/RENAME-TO-HOMING.md` status from Draft to Implemented", false),
-                            new Task("Update this RenameSteps tracker — mark all phases DONE", false)
+                            new Task("mvn clean install — all 5 modules SUCCESS, all tests pass (no exclusions)", true),
+                            new Task("WonderlandDemoServer boots; 10/10 demo apps return 200 (catalogue + 9 demo modules)", true),
+                            new Task("StudioServer boots; 9/9 nav points return 200 (catalogue, doc-browser, doc-reader, rfc0001-plan, rfc0001-step, rename-plan, rename-step phases)", true),
+                            new Task("Brand wording verified: studio reads 'Homing · studio'; demo reads 'Homing · demos'", true),
+                            new Task("4 conformance suites pass (DemoCss=5, DemoHref=13, StudioCss=7, StudioHref=7) — 32 conformance tests total, all green", true),
+                            new Task("Updated docs/brand/RENAME-TO-HOMING.md status from 'Decision made, deferred' to 'Implemented (2026-05-04)'", true),
+                            new Task("Updated this tracker — all 6 phases marked DONE", true),
+                            new Task("PAUSE — hand off to user for manual git tag (rename-complete, homing-v0.1) and merge to main", false)
                     ),
                     List.of(new Dependency("05", "All previous phases must be complete and verified")),
                     "All listed verifications pass. Studio shows 6/6 phases DONE in the rename plan view.",

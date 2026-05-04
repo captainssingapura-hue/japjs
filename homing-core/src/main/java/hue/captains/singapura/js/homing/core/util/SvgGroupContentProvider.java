@@ -24,7 +24,7 @@ public record SvgGroupContentProvider<G extends SvgGroup<G>>(G group, ResourceRe
 
     @Override
     public List<String> content() {
-        final String dirPath = "japjs/svg/" + group.getClass().getCanonicalName().replace(".", "/");
+        final String dirPath = "homing/svg/" + group.getClass().getCanonicalName().replace(".", "/");
         return group.svgBeings().stream()
                 .flatMap(svg->svgDeclaration(dirPath, svg))
                 .toList();

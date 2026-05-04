@@ -12,7 +12,7 @@ import java.util.Map;
  * frozen {@code nav} object. The shape differs slightly between target kinds:</p>
  *
  * <ul>
- *   <li><b>{@link AppModule} target</b> — calls a shared {@code _japjsBuildAppUrl}
+ *   <li><b>{@link AppModule} target</b> — calls a shared {@code _homingBuildAppUrl}
  *       helper that emits {@code /app?app=&lt;simpleName&gt;&...params...} and
  *       propagates current {@code theme}/{@code locale} unless explicitly overridden.</li>
  *   <li><b>{@link ProxyApp} target</b> — interpolates the proxy's
@@ -52,8 +52,8 @@ public final class NavWriter {
         if (targets.isEmpty()) return List.of();
 
         List<String> out = new ArrayList<>();
-        out.add("// === japjs generated nav (RFC 0001) ===");
-        out.add("function _japjsBuildAppUrl(simpleName, params) {");
+        out.add("// === homing generated nav (RFC 0001) ===");
+        out.add("function _homingBuildAppUrl(simpleName, params) {");
         out.add("    var u = \"/app?app=\" + encodeURIComponent(simpleName);");
         out.add("    if (params) for (var k in params) {");
         out.add("        if (params[k] != null) u += \"&\" + encodeURIComponent(k) + \"=\" + encodeURIComponent(String(params[k]));");
@@ -73,7 +73,7 @@ public final class NavWriter {
             switch (target) {
                 case AppModule<?> ignored -> {
                     out.add("    " + identifier
-                          + ": function(p) { return _japjsBuildAppUrl(\""
+                          + ": function(p) { return _homingBuildAppUrl(\""
                           + jsString(target.simpleName()) + "\", p); }" + comma);
                 }
                 case ProxyApp<?> proxy -> {
@@ -87,7 +87,7 @@ public final class NavWriter {
             }
         }
         out.add("});");
-        out.add("// === end japjs generated nav ===");
+        out.add("// === end homing generated nav ===");
         return out;
     }
 

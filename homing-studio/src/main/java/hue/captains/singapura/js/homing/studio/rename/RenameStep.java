@@ -25,7 +25,7 @@ public record RenameStep() implements AppModule<RenameStep> {
 
     @Override
     public String title() {
-        return "japjs · studio · rename phase";
+        return "Homing · studio · rename phase";
     }
 
     @Override

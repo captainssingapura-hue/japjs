@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * GET /css-content?class=&lt;CssGroup.canonical.class.name&gt;
  * <p>Serves the actual CSS file content for a {@link CssGroup}.
- * Reads from {@code japjs/css/<canonical-path>.css}.</p>
+ * Reads from {@code homing/css/<canonical-path>.css}.</p>
  */
 public class CssContentGetAction
         implements GetAction<RoutingContext, ModuleQuery, EmptyParam.NoHeaders, CssContent> {
@@ -59,7 +59,7 @@ public class CssContentGetAction
                 return CompletableFuture.failedFuture(ResourceNotFound.wrongType(query.className(), "CssGroup"));
             }
 
-            String basePath = "japjs/css/" + query.className().replace(".", "/");
+            String basePath = "homing/css/" + query.className().replace(".", "/");
             String path = query.theme() != null
                     ? basePath + "." + query.theme() + ".css"
                     : basePath + ".css";

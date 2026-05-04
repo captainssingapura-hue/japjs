@@ -75,7 +75,7 @@ public final class ParamsWriter {
         }
 
         List<String> out = new ArrayList<>();
-        out.add("// === japjs generated params (RFC 0001) ===");
+        out.add("// === homing generated params (RFC 0001) ===");
         out.add("const params = (function() {");
         out.add("    var sp = new URLSearchParams(window.location.search);");
         if (needsEnumHelper) {
@@ -90,7 +90,7 @@ public final class ParamsWriter {
         }
         out.add("    });");
         out.add("})();");
-        out.add("// === end japjs generated params ===");
+        out.add("// === end homing generated params ===");
         return out;
     }
 

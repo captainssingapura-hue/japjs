@@ -15,7 +15,7 @@ public record DocBrowser() implements AppModule<DocBrowser> {
 
     @Override
     public String title() {
-        return "japjs · studio · documents";
+        return "Homing · studio · documents";
     }
 
     @Override

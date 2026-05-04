@@ -17,7 +17,7 @@ public record RenamePlan() implements AppModule<RenamePlan> {
 
     @Override
     public String title() {
-        return "japjs · studio · rename plan";
+        return "Homing · studio · rename plan";
     }
 
     @Override

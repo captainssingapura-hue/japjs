@@ -1,10 +1,10 @@
-# japjs
+# Homing
 
-A Java library for declaratively defining ES6 module structure — imports, exports, and inter-module dependencies — and generating valid JavaScript ES modules from that definition. You write the module logic in `.js` files; japjs wires them together with correct `import`/`export` statements based on a dependency graph you define in Java.
+A Java library for declaratively defining ES6 module structure — imports, exports, and inter-module dependencies — and generating valid JavaScript ES modules from that definition. You write the module logic in `.js` files; Homing wires them together with correct `import`/`export` statements based on a dependency graph you define in Java.
 
 ## Why?
 
-ES module graphs are easy to get wrong at scale: circular imports, missing exports, mismatched paths. japjs moves the module wiring into Java, where you get compile-time type safety, IDE refactoring support, and a single source of truth for your JS dependency graph. The actual JavaScript logic stays in plain `.js` files — japjs only generates the glue.
+ES module graphs are easy to get wrong at scale: circular imports, missing exports, mismatched paths. Homing moves the module wiring into Java, where you get compile-time type safety, IDE refactoring support, and a single source of truth for your JS dependency graph. The actual JavaScript logic stays in plain `.js` files — Homing only generates the glue.
 
 ## How It Works
 
@@ -140,7 +140,7 @@ export { Alice1, Alice2, AliceClass };
 
 ## Type-Safe CSS
 
-japjs provides a type-safe CSS class management system that eliminates raw string-based DOM class operations. CSS resources are declared as `CssGroup` modules that export typed `CssClass` objects.
+Homing provides a type-safe CSS class management system that eliminates raw string-based DOM class operations. CSS resources are declared as `CssGroup` modules that export typed `CssClass` objects.
 
 ### 1. Declare a CSS module with typed classes
 
@@ -217,16 +217,16 @@ Record names use `snake_case`, which maps 1:1 to `kebab-case` CSS class names:
 CSS files support theme variants. Place theme-specific CSS alongside the default:
 
 ```
-japjs/css/.../PlaygroundStyles.css           # default
-japjs/css/.../PlaygroundStyles.beach.css     # beach theme
-japjs/css/.../PlaygroundStyles.alpine.css    # alpine theme
+homing/css/.../PlaygroundStyles.css           # default
+homing/css/.../PlaygroundStyles.beach.css     # beach theme
+homing/css/.../PlaygroundStyles.alpine.css    # alpine theme
 ```
 
 Theme is selected via the `?theme=` query parameter and propagates through import URLs automatically.
 
 ## Typed Navigation
 
-japjs provides type-safe navigation between AppModules — and to typed external destinations — through the same Java-records-as-source-of-truth pattern that drives modules, CSS, and assets. Introduced in [RFC 0001](docs/rfcs/0001-app-registry-and-typed-nav.md).
+Homing provides type-safe navigation between AppModules — and to typed external destinations — through the same Java-records-as-source-of-truth pattern that drives modules, CSS, and assets. Introduced in [RFC 0001](docs/rfcs/0001-app-registry-and-typed-nav.md).
 
 ### 1. Make an AppModule linkable
 
@@ -319,7 +319,7 @@ public record GitHubProxy() implements ProxyApp<GitHubProxy> {
 
 From JS: `href.toAttr(nav.GitHubProxy({repo: "acme/proj", path: Optional.of("README.md")}))`.
 
-Built-in proxies for common non-HTTP schemes (`Mailto`, `Tel`, `Sms`) ship in `japjs-core.proxies`.
+Built-in proxies for common non-HTTP schemes (`Mailto`, `Tel`, `Sms`) ship in `homing-core.proxies`.
 
 ### 6. Server bootstrap — single entry point
 
@@ -366,7 +366,7 @@ public record Icons() implements SvgGroup<Icons> {
 }
 ```
 
-Place SVG files at `japjs/svg/<canonical-path>/Icons/search.svg`, etc. Other modules import SVGs like any other export.
+Place SVG files at `homing/svg/<canonical-path>/Icons/search.svg`, etc. Other modules import SVGs like any other export.
 
 ## External Modules
 
@@ -386,7 +386,7 @@ The JS resource file handles the actual loading strategy (CDN import, global var
 
 ## Server-Side Hosting
 
-japjs includes a server module (`japjs-server`) that serves ES modules and SPA applications over HTTP, using `VertxActionHost` from `ja-http`.
+Homing includes a server module (`homing-server`) that serves ES modules and SPA applications over HTTP, using `VertxActionHost` from `ja-http`.
 
 ### Endpoints
 
@@ -414,25 +414,25 @@ host.start();
 ```
 
 ```bash
-mvn -pl japjs-demo -am compile exec:java \
-  -Dexec.mainClass="hue.captains.singapura.japjs.demo.WonderlandDemoServer"
+mvn -pl homing-demo -am compile exec:java \
+  -Dexec.mainClass="hue.captains.singapura.js.homing.demo.WonderlandDemoServer"
 ```
 
 ### Live Reload
 
-Set `japjs.devRoot` to read resource files from the filesystem instead of the classpath:
+Set `homing.devRoot` to read resource files from the filesystem instead of the classpath:
 
 ```bash
 mvn compile exec:java \
   -Dexec.mainClass="com.example.DevServer" \
-  -Djapjs.devRoot=src/main/resources
+  -Dhoming.devRoot=src/main/resources
 ```
 
 Edit JS/CSS/SVG files and refresh — no restart needed. Java declaration changes still require a recompile.
 
 ## Demo Applications
 
-The `japjs-demo` module includes several interactive demos:
+The `homing-demo` module includes several interactive demos:
 
 | App | URL | Description |
 |-----|-----|-------------|
@@ -460,7 +460,7 @@ Each theme has its own CSS (`PlaygroundStyles.<theme>.css`) and BGM (`Platformer
 
 ## Conformance Testing
 
-The `japjs-conformance` module provides a base class for verifying that DomModule JS files use the type-safe `css.*` API instead of raw CSS class operations.
+The `homing-conformance` module provides a base class for verifying that DomModule JS files use the type-safe `css.*` API instead of raw CSS class operations.
 
 ```java
 class MyCssConformanceTest extends CssConformanceTest {
@@ -482,18 +482,18 @@ The `@TestFactory` generates a dynamic test per DomModule with CSS imports, scan
 ## Project Structure
 
 ```
-japjs/
-  japjs-core/          Core library — module interfaces, writers, resolvers
-  japjs-server/        Server module — HTTP hosting, CssClassManager, content providers
-  japjs-conformance/   Test framework — CSS conformance base class
-  japjs-demo/          Demo apps — WonderlandDemo, DancingAnimals, MovingAnimal, etc.
+Homing/
+  homing-core/          Core library — module interfaces, writers, resolvers
+  homing-server/        Server module — HTTP hosting, CssClassManager, content providers
+  homing-conformance/   Test framework — CSS conformance base class
+  homing-demo/          Demo apps — WonderlandDemo, DancingAnimals, MovingAnimal, etc.
 ```
 
 ### External Dependencies
 
 | Module | From `ja-http` | Purpose |
 |--------|----------------|---------|
-| `japjs-server` | `vertx-host` | HTTP action hosting via Vert.x Router |
+| `homing-server` | `vertx-host` | HTTP action hosting via Vert.x Router |
 
 ## Requirements
 

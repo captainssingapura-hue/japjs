@@ -15,7 +15,7 @@ public record PitchDeck() implements AppModule<PitchDeck> {
 
     @Override
     public String title() {
-        return "japjs — Executive Pitch";
+        return "Homing — Executive Pitch";
     }
 
     @Override

@@ -18,7 +18,7 @@ public record DocReader() implements AppModule<DocReader> {
 
     @Override
     public String title() {
-        return "japjs · studio · doc";
+        return "Homing · studio · doc";
     }
 
     @Override

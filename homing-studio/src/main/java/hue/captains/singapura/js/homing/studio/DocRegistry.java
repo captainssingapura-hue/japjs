@@ -18,6 +18,7 @@ public final class DocRegistry {
         RFC("RFCs"),
         BRAND("Brand"),
         RENAME("Rename"),
+        GUIDE("Guides"),
         SESSION("Session Notes"),
         REFERENCE("Reference");
 
@@ -26,7 +27,7 @@ public final class DocRegistry {
     }
 
     public record Doc(
-            String path,        // relative path under docs root, e.g. "whitepaper/japjs-whitepaper.md"
+            String path,        // relative path under docs root, e.g. "whitepaper/homing-whitepaper.md"
             String title,       // display title
             String summary,     // one-line description
             Category category
@@ -34,13 +35,13 @@ public final class DocRegistry {
 
     public static final List<Doc> ALL = List.of(
             // White papers
-            new Doc("whitepaper/japjs-whitepaper.md",
-                    "japjs — Main White Paper",
+            new Doc("whitepaper/homing-whitepaper.md",
+                    "Homing — Main White Paper",
                     "The full technical design: four-layer architecture, diagrams, positioning.",
                     Category.WHITEPAPER),
-            new Doc("whitepaper/japjs-shell-flexibility-whitepaper.md",
+            new Doc("whitepaper/homing-shell-flexibility-whitepaper.md",
                     "Shell Flexibility — Exploration",
-                    "japjs's output is shell-agnostic. The Java backend with CLI parity is the killer feature.",
+                    "Homing's output is shell-agnostic. The Java backend with CLI parity is the killer feature.",
                     Category.WHITEPAPER),
 
             // Brochure
@@ -86,13 +87,19 @@ public final class DocRegistry {
                     Category.BRAND),
             // Rename
             new Doc("brand/RENAME-TO-HOMING.md",
-                    "Rename Dossier — japjs → Homing",
+                    "Rename Dossier — Homing → Homing",
                     "Decision context, three-layer metaphor, migration logistics.",
                     Category.RENAME),
             new Doc("rename/EXECUTION-PLAN.md",
                     "Rename Execution Plan",
                     "Six-phase migration plan with verification gates and rollback strategy.",
                     Category.RENAME),
+
+            // Guides
+            new Doc("guides/live-tracker-pattern.md",
+                    "Live Tracker Pattern",
+                    "How to use the homing-studio technique to build a live progress tracker for any multi-phase project plan.",
+                    Category.GUIDE),
 
             // Session
             new Doc("SESSION-SUMMARY-2026-04-25.md",
@@ -105,8 +112,8 @@ public final class DocRegistry {
                     Category.SESSION),
 
             // Reference
-            new Doc("comparison/japjs-vs-react-vue.md",
-                    "japjs vs React / Vue",
+            new Doc("comparison/homing-vs-react-vue.md",
+                    "Homing vs React / Vue",
                     "Honest comparison, fair assessment of strengths and gaps.",
                     Category.REFERENCE),
             new Doc("user-guide.md",

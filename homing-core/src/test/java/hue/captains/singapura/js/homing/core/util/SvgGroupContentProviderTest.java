@@ -31,7 +31,7 @@ class SvgGroupContentProviderTest {
 
     @Test
     void content_generatesConstDeclarationsForEachSvg(@TempDir Path tempDir) throws IOException {
-        String dirPath = "japjs/svg/" + Animals.class.getCanonicalName().replace(".", "/");
+        String dirPath = "homing/svg/" + Animals.class.getCanonicalName().replace(".", "/");
         Path svgDir = tempDir.resolve(dirPath);
         Files.createDirectories(svgDir);
         Files.writeString(svgDir.resolve("Cat.svg"), "<svg>cat</svg>");
@@ -60,7 +60,7 @@ class SvgGroupContentProviderTest {
 
     @Test
     void content_singleSvg(@TempDir Path tempDir) throws IOException {
-        String dirPath = "japjs/svg/" + SingleSvg.class.getCanonicalName().replace(".", "/");
+        String dirPath = "homing/svg/" + SingleSvg.class.getCanonicalName().replace(".", "/");
         Path svgDir = tempDir.resolve(dirPath);
         Files.createDirectories(svgDir);
         Files.writeString(svgDir.resolve("Circle.svg"), "<circle r=\"5\"/>");

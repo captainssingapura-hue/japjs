@@ -15,7 +15,7 @@ public record DemoCatalogue() implements AppModule<DemoCatalogue> {
 
     @Override
     public String title() {
-        return "japjs · demos";
+        return "Homing · demos";
     }
 
     @Override

@@ -49,7 +49,7 @@ class ResourceReaderTest {
 
     @Test
     void fromSystemProperty_returnsDefaultWhenNotSet() {
-        // System property japjs.devRoot should not be set in test env
+        // System property homing.devRoot should not be set in test env
         String prev = System.getProperty("homing.devRoot");
         try {
             System.clearProperty("homing.devRoot");

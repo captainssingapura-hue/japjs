@@ -72,7 +72,7 @@ class ParamsWriterTest {
     void stringComponent() {
         var joined = String.join("\n", new ParamsWriter(StringP.class).write());
         assertTrue(joined.contains("name: (sp.get(\"name\") || \"\")"), joined);
-        assertTrue(joined.contains("// === japjs generated params"), joined);
+        assertTrue(joined.contains("// === homing generated params"), joined);
         assertTrue(joined.contains("Object.freeze({"), joined);
     }
 
@@ -281,7 +281,7 @@ class ParamsWriterTest {
                         m -> new hue.captains.singapura.js.homing.core.PartialModulePath("ignored", false)));
         var lines = writer.writeModule();
         var joined = String.join("\n", lines);
-        assertTrue(joined.contains("// === japjs generated params"), joined);
+        assertTrue(joined.contains("// === homing generated params"), joined);
         assertTrue(joined.contains("productId:"), joined);
         assertTrue(joined.contains("quantity:"), joined);
     }
@@ -297,6 +297,6 @@ class ParamsWriterTest {
                 new hue.captains.singapura.js.homing.core.util.SimpleImportsWriterResolver(
                         m -> new hue.captains.singapura.js.homing.core.PartialModulePath("ignored", false)));
         var joined = String.join("\n", writer.writeModule());
-        assertFalse(joined.contains("japjs generated params"), joined);
+        assertFalse(joined.contains("homing generated params"), joined);
     }
 }

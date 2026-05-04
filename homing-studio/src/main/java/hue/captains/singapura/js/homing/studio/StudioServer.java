@@ -14,15 +14,15 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Entry point for the japjs studio — design &amp; project management workspace.
+ * Entry point for the Homing studio — design &amp; project management workspace.
  *
  * <p>Live-reads markdown documents from a docs root on disk. Defaults to
  * {@code ./docs} relative to the working directory. Override with
- * {@code -Djapjs.studio.docsRoot=/path/to/docs}.</p>
+ * {@code -Dhoming.studio.docsRoot=/path/to/docs}.</p>
  *
  * <p>Run with:</p>
  * <pre>
- * mvn -pl japjs-studio exec:java \
+ * mvn -pl homing-studio exec:java \
  *   -Dexec.mainClass="hue.captains.singapura.js.homing.studio.StudioServer"
  * </pre>
  *
@@ -45,13 +45,13 @@ public class StudioServer {
         var host         = new VertxActionHost(registry, 8080);
 
         host.start().onSuccess(server -> {
-            System.out.println("japjs studio listening on port " + server.actualPort());
+            System.out.println("Homing studio listening on port " + server.actualPort());
             System.out.println("docs root: " + docsRoot);
             System.out.println();
             System.out.println("Try:");
             System.out.println("  http://localhost:8080/app?class=" + StudioCatalogue.class.getCanonicalName() + "  ← studio launcher (start here)");
             System.out.println("  http://localhost:8080/app?class=" + DocBrowser.class.getCanonicalName());
-            System.out.println("  http://localhost:8080/app?class=" + DocReader.class.getCanonicalName() + "&path=whitepaper/japjs-whitepaper.md");
+            System.out.println("  http://localhost:8080/app?class=" + DocReader.class.getCanonicalName() + "&path=whitepaper/homing-whitepaper.md");
             System.out.println();
             System.out.println("Endpoints:");
             System.out.println("  /app           → AppModule HTML bootstrap");

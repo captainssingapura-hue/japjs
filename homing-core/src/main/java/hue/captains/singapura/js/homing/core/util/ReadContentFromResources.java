@@ -17,7 +17,7 @@ public record ReadContentFromResources<M extends EsModule>(M module, String them
 
     @Override
     public List<String> content() {
-        final String basePath = "japjs/js/" + module.getClass().getCanonicalName().replace(".", "/");
+        final String basePath = "homing/js/" + module.getClass().getCanonicalName().replace(".", "/");
         if (theme != null) {
             try {
                 return resourceReader.getStringsFromResource(basePath + "." + theme + ".js");

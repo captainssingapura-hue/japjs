@@ -82,7 +82,7 @@ public abstract class HrefConformanceTest {
     }
 
     private void assertNoRawHrefOperations(DomModule<?> module) {
-        String basePath = "japjs/js/" + module.getClass().getCanonicalName().replace(".", "/") + ".js";
+        String basePath = "homing/js/" + module.getClass().getCanonicalName().replace(".", "/") + ".js";
         List<String> lines;
         try {
             lines = ResourceReader.INSTANCE.getStringsFromResource(basePath);

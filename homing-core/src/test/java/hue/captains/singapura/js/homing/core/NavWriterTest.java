@@ -72,7 +72,7 @@ class NavWriterTest {
     }
 
     @Test
-    @DisplayName("AppModule target → entry calls _japjsBuildAppUrl with simpleName")
+    @DisplayName("AppModule target → entry calls _homingBuildAppUrl with simpleName")
     void appModuleTarget() {
         var imports = ImportsFor.<TargetA>builder()
                 .add(new ModuleImports<>(List.of(new TargetA.link()), TargetA.INSTANCE))
@@ -80,11 +80,11 @@ class NavWriterTest {
         var lines = new NavWriter(imports.getAllImports()).write();
         var joined = String.join("\n", lines);
 
-        assertTrue(joined.contains("// === japjs generated nav"), joined);
-        assertTrue(joined.contains("function _japjsBuildAppUrl"), joined);
+        assertTrue(joined.contains("// === homing generated nav"), joined);
+        assertTrue(joined.contains("function _homingBuildAppUrl"), joined);
         assertTrue(joined.contains("const nav = Object.freeze({"), joined);
-        assertTrue(joined.contains("TargetA: function(p) { return _japjsBuildAppUrl(\"target-a\", p); }"), joined);
-        assertTrue(joined.contains("// === end japjs generated nav"), joined);
+        assertTrue(joined.contains("TargetA: function(p) { return _homingBuildAppUrl(\"target-a\", p); }"), joined);
+        assertTrue(joined.contains("// === end homing generated nav"), joined);
     }
 
     @Test
@@ -94,7 +94,7 @@ class NavWriterTest {
                 .add(new ModuleImports<>(List.of(new TargetB.link()), TargetB.INSTANCE))
                 .build();
         var joined = String.join("\n", new NavWriter(imports.getAllImports()).write());
-        assertTrue(joined.contains("TargetB: function(p) { return _japjsBuildAppUrl(\"custom-b\", p); }"), joined);
+        assertTrue(joined.contains("TargetB: function(p) { return _homingBuildAppUrl(\"custom-b\", p); }"), joined);
     }
 
     @Test

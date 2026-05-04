@@ -1,12 +1,12 @@
-# japjs-studio
+# homing-studio
 
-A design and project management suite, built on japjs itself. Sibling module to `japjs-demo`.
+A design and project management suite, built on Homing itself. Sibling module to `homing-demo`.
 
 ## What it is
 
-A workspace UI for the design, documentation, and project artifacts that drive japjs forward — white papers, brochure pages, RFCs, brand assets, session notes, action plans. The studio is itself a japjs application: every page is an `AppModule`, every CSS class is a typed `CssClass<StudioStyles>`, every external library is an `ExternalModule`. Builds on the same primitives the framework offers to its users.
+A workspace UI for the design, documentation, and project artifacts that drive Homing forward — white papers, brochure pages, RFCs, brand assets, session notes, action plans. The studio is itself a Homing application: every page is an `AppModule`, every CSS class is a typed `CssClass<StudioStyles>`, every external library is an `ExternalModule`. Builds on the same primitives the framework offers to its users.
 
-This is *eat-your-own-dog-food* validation. If japjs can host the studio cleanly, it can host real workspace applications.
+This is *eat-your-own-dog-food* validation. If Homing can host the studio cleanly, it can host real workspace applications.
 
 ## Apps shipped today (v0)
 
@@ -32,10 +32,10 @@ These are natural follow-ons. Each is a new sibling AppModule under `studio.es.*
 ```
 StudioServer
   └── StudioActionRegistry   (composes JapjsActionRegistry + DocContent)
-        ├── /app           ← japjs core
-        ├── /module        ← japjs core
-        ├── /css           ← japjs core
-        ├── /css-content   ← japjs core
+        ├── /app           ← Homing core
+        ├── /module        ← Homing core
+        ├── /css           ← Homing core
+        ├── /css-content   ← Homing core
         └── /doc-content?path=<rel>   ← studio
 
 DocRegistry (Java)          — catalog of known documents (path, title, summary, category)
@@ -48,32 +48,32 @@ MarkedJs (ExternalModule)    — markdown rendering via esm.sh CDN
 
 ```bash
 # from project root
-mvn -pl japjs-studio -am compile
+mvn -pl homing-studio -am compile
 
-mvn -pl japjs-studio exec:java \
-  -Dexec.mainClass="hue.captains.singapura.japjs.studio.StudioServer"
+mvn -pl homing-studio exec:java \
+  -Dexec.mainClass="hue.captains.singapura.js.homing.studio.StudioServer"
 ```
 
 Then open:
 
-- `http://localhost:8080/app?class=hue.captains.singapura.japjs.studio.es.StudioCatalogue` — the launcher
-- `http://localhost:8080/app?class=hue.captains.singapura.japjs.studio.es.DocBrowser` — direct to the browser
+- `http://localhost:8080/app?class=hue.captains.singapura.js.homing.studio.es.StudioCatalogue` — the launcher
+- `http://localhost:8080/app?class=hue.captains.singapura.js.homing.studio.es.DocBrowser` — direct to the browser
 
 ## Configuration
 
 | Property | Default | Purpose |
 |---|---|---|
-| `japjs.studio.docsRoot` | `./docs` | Filesystem root for markdown documents served by `/doc-content`. |
-| `japjs.devRoot` | (unset) | Standard japjs live-reload root for JS/CSS/SVG resources. Set to `japjs-studio/src/main/resources` during development. |
+| `homing.studio.docsRoot` | `./docs` | Filesystem root for markdown documents served by `/doc-content`. |
+| `homing.devRoot` | (unset) | Standard Homing live-reload root for JS/CSS/SVG resources. Set to `homing-studio/src/main/resources` during development. |
 
 ## URL surface
 
 | Path | Method | Returns | Notes |
 |---|---|---|---|
-| `/app?class=<App>` | GET | `text/html` | AppModule bootstrap (japjs core) |
-| `/module?class=<EsModule>` | GET | `application/javascript` | Generated ES module (japjs core) |
-| `/css?class=<CssGroup>` | GET | `application/json` | Resolved CSS chain (japjs core) |
-| `/css-content?class=<CssGroup>` | GET | `text/css` | Raw CSS body (japjs core) |
+| `/app?class=<App>` | GET | `text/html` | AppModule bootstrap (Homing core) |
+| `/module?class=<EsModule>` | GET | `application/javascript` | Generated ES module (Homing core) |
+| `/css?class=<CssGroup>` | GET | `application/json` | Resolved CSS chain (Homing core) |
+| `/css-content?class=<CssGroup>` | GET | `text/css` | Raw CSS body (Homing core) |
 | `/doc-content?path=<rel>` | GET | `text/markdown` | **Studio.** Markdown body, served from docs root. Validates path. |
 
 ## Adding a new document
@@ -87,7 +87,7 @@ The triple-mirror is a v0 limitation. A future iteration ships the registry as J
 ## Adding a new studio app
 
 1. Create a new `AppModule` class under `studio.es.*`.
-2. Create the matching JS resource under `resources/japjs/js/.../studio/es/`.
+2. Create the matching JS resource under `resources/homing/js/.../studio/es/`.
 3. Add a tile entry to `StudioCatalogue.js`'s `apps` array.
 
 The catalogue is hand-edited per new app. When RFC 0001 (typed nav) lands, the tiles will move to `nav.X(...)` calls.

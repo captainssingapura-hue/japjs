@@ -26,7 +26,7 @@ class ReadContentFromResourcesTest {
     @Test
     void content_readsDefaultFile(@TempDir Path tempDir) throws IOException {
         // Create the expected resource path
-        String basePath = "japjs/js/" + TestMod.class.getCanonicalName().replace(".", "/");
+        String basePath = "homing/js/" + TestMod.class.getCanonicalName().replace(".", "/");
         Path jsFile = tempDir.resolve(basePath + ".js");
         Files.createDirectories(jsFile.getParent());
         Files.writeString(jsFile, "const x = 42;");
@@ -40,7 +40,7 @@ class ReadContentFromResourcesTest {
 
     @Test
     void content_readsThemedFile(@TempDir Path tempDir) throws IOException {
-        String basePath = "japjs/js/" + TestMod.class.getCanonicalName().replace(".", "/");
+        String basePath = "homing/js/" + TestMod.class.getCanonicalName().replace(".", "/");
         Path defaultFile = tempDir.resolve(basePath + ".js");
         Path darkFile = tempDir.resolve(basePath + ".dark.js");
         Files.createDirectories(defaultFile.getParent());
@@ -56,7 +56,7 @@ class ReadContentFromResourcesTest {
 
     @Test
     void content_fallsBackToDefaultWhenThemeNotFound(@TempDir Path tempDir) throws IOException {
-        String basePath = "japjs/js/" + TestMod.class.getCanonicalName().replace(".", "/");
+        String basePath = "homing/js/" + TestMod.class.getCanonicalName().replace(".", "/");
         Path defaultFile = tempDir.resolve(basePath + ".js");
         Files.createDirectories(defaultFile.getParent());
         Files.writeString(defaultFile, "const x = 'default';");

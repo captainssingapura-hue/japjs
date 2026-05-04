@@ -14,8 +14,8 @@ import java.util.Objects;
  * <p>
  * When {@code sourceRoot} is set, reads from the filesystem at {@code sourceRoot/path},
  * enabling live-reload during development without server restarts.
- * Set the system property {@code japjs.devRoot} to activate, e.g.:
- * <pre>-Djapjs.devRoot=japjs-demo/src/main/resources</pre>
+ * Set the system property {@code homing.devRoot} to activate, e.g.:
+ * <pre>-Dhoming.devRoot=homing-demo/src/main/resources</pre>
  */
 public record ResourceReader(Path sourceRoot) {
     public static final ResourceReader INSTANCE = new ResourceReader((Path) null);

@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
  * docs root after normalization. Anything else returns a not-found error.</p>
  *
  * <p>The docs root defaults to {@code ./docs} relative to the working directory,
- * configurable via the {@code japjs.studio.docsRoot} system property.</p>
+ * configurable via the {@code homing.studio.docsRoot} system property.</p>
  */
 public class DocContentGetAction
         implements GetAction<RoutingContext, DocContentGetAction.Query, EmptyParam.NoHeaders, DocContent> {
