@@ -48,7 +48,16 @@ public class EsModuleGetAction
             return CompletableFuture.failedFuture(ResourceNotFound.missingClass());
         }
         try {
-            EsModuleWriter<?> writer = createWriter(query.className(), query.theme(), query.locale());
+            EsModule<?> module = resolveModule(query.className());
+            // BundledExternalModule short-circuit: a 3rd-party library bundled at
+            // build time. Ship the classpath bytes verbatim — no imports prefix,
+            // no exports suffix, no css/href injection. The bundled JS file has
+            // its own native export declarations.
+            if (module instanceof BundledExternalModule<?> bundled) {
+                String body = String.join("\n", bundled.content());
+                return CompletableFuture.completedFuture(new JsModuleContent(body));
+            }
+            EsModuleWriter<?> writer = createWriter(module, query.theme(), query.locale());
             String js = String.join("\n", writer.writeModule());
             return CompletableFuture.completedFuture(new JsModuleContent(js));
         } catch (Exception e) {
@@ -57,18 +66,21 @@ public class EsModuleGetAction
     }
 
     @SuppressWarnings("unchecked")
-    private <M extends EsModule<M>> EsModuleWriter<M> createWriter(
-            String className, String theme, String locale
-    ) throws Exception {
+    private <M extends EsModule<M>> M resolveModule(String className) throws Exception {
         Class<?> clazz = Class.forName(className);
-        M module;
         try {
             var instanceField = clazz.getField("INSTANCE");
-            module = (M) instanceField.get(null);
+            return (M) instanceField.get(null);
         } catch (NoSuchFieldException e) {
-            module = (M) clazz.getDeclaredConstructor().newInstance();
+            return (M) clazz.getDeclaredConstructor().newInstance();
         }
+    }
 
+    @SuppressWarnings("unchecked")
+    private <M extends EsModule<M>> EsModuleWriter<M> createWriter(
+            EsModule<?> resolvedModule, String theme, String locale
+    ) throws Exception {
+        M module = (M) resolvedModule;
         ContentProvider<M> contentProvider;
         if (module instanceof SvgGroup) {
             @SuppressWarnings("rawtypes")
@@ -78,6 +90,11 @@ public class EsModuleGetAction
             @SuppressWarnings("rawtypes")
             CssGroup css = (CssGroup) module;
             contentProvider = (ContentProvider<M>) new CssGroupContentProvider<>(css, theme, nameResolver);
+        } else if (module instanceof SelfContent self) {
+            // Generic self-providing module: the type emits its own JS body.
+            // Used by DocGroup (in homing-studio-base) and any future self-contained types
+            // — homing-server has no compile-time knowledge of which.
+            contentProvider = () -> self.selfContent(nameResolver);
         } else {
             contentProvider = new ReadContentFromResources<>(module, theme, resourceReader);
         }
@@ -92,6 +109,14 @@ public class EsModuleGetAction
             contentProvider = withHrefManager(contentProvider);
         }
 
+        // Generic manager injection: each ManagerInjector source whose JS this
+        // module imports gets `import { <export> as <bind> } from "<manager>"`
+        // prepended to the consumer's body. Supports DocGroup (studio-base)
+        // and any future opt-in source — no homing-server-side knowledge of which.
+        for (ManagerInjector mi : collectManagerInjectors(module)) {
+            contentProvider = withManager(contentProvider, mi);
+        }
+
         return new EsModuleWriter<>(module, contentProvider, nameResolver,
                 ExportWriter.INSTANCE, new SimpleImportsWriterResolver(nameResolver, theme, locale));
     }
@@ -100,6 +125,15 @@ public class EsModuleGetAction
     static boolean importsAnyAppLink(EsModule<?> module) {
         return module.imports().getAllImports().values().stream()
                 .anyMatch(mi -> mi.allImports().stream().anyMatch(e -> e instanceof AppLink<?>));
+    }
+
+    /** Public for cross-module testing — distinct {@link ManagerInjector}s reachable through this module's imports. */
+    public static List<ManagerInjector> collectManagerInjectors(EsModule<?> module) {
+        return module.imports().getAllImports().keySet().stream()
+                .filter(target -> target instanceof ManagerInjector)
+                .map(target -> (ManagerInjector) target)
+                .distinct()
+                .toList();
     }
 
     private <M extends EsModule<M>> ContentProvider<M> withCssManager(ContentProvider<M> delegate) {
@@ -117,6 +151,24 @@ public class EsModuleGetAction
     private <M extends EsModule<M>> ContentProvider<M> withHrefManager(ContentProvider<M> delegate) {
         String managerPath = nameResolver.resolve(HrefManager.INSTANCE).basePath();
         String importLine = "import { HrefManagerInstance as href } from \"" + managerPath + "\";";
+        return () -> {
+            List<String> combined = new ArrayList<>();
+            combined.add(importLine);
+            combined.add("");
+            combined.addAll(delegate.content());
+            return combined;
+        };
+    }
+
+    /**
+     * Generic ManagerInjector wrapper — prepends one
+     * {@code import { <exportName> as <bindName> } from "<managerPath>"} line.
+     * Decoupled from any specific manager (Doc, CSS, etc.).
+     */
+    private <M extends EsModule<M>> ContentProvider<M> withManager(ContentProvider<M> delegate, ManagerInjector mi) {
+        String managerPath = nameResolver.resolve(mi.manager()).basePath();
+        String importLine = "import { " + mi.managerExportName() + " as " + mi.managerBindName()
+                + " } from \"" + managerPath + "\";";
         return () -> {
             List<String> combined = new ArrayList<>();
             combined.add(importLine);
