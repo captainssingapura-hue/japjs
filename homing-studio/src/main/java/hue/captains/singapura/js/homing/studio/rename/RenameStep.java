@@ -3,7 +3,7 @@ package hue.captains.singapura.js.homing.studio.rename;
 import hue.captains.singapura.js.homing.core.*;
 import hue.captains.singapura.js.homing.studio.css.StudioStyles;
 import hue.captains.singapura.js.homing.studio.es.DocReader;
-import hue.captains.singapura.js.homing.studio.es.MarkedJs;
+import hue.captains.singapura.js.homing.libs.MarkedJs;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
 
 import java.util.List;

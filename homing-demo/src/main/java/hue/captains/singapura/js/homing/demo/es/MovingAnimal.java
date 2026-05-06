@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.demo.es;
 
 import hue.captains.singapura.js.homing.core.*;
+import hue.captains.singapura.js.homing.libs.ToneJs;
 import hue.captains.singapura.js.homing.demo.css.PlaygroundStyles;
 
 import java.util.List;

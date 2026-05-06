@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+        <artifactId>homing.js</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>homing-libs</artifactId>
+
+    <description>
+        Bundled 3rd-party JavaScript libraries served self-contained from the homing.js classpath.
+
+        Each library is declared as a Java class implementing BundledExternalModule. The
+        LibDownloader tool reads the source URL from each declaration, downloads the bundle
+        at build time, verifies the SHA-512 against the pinned hash, and copies the file
+        onto the classpath at the declared resource path. Subsequent builds use the local
+        Maven cache and run fully offline.
+    </description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                LibDownloader is invoked AFTER compile (so reflection on
+                BundledExternalModule classes can find them) and BEFORE package
+                (so target/classes/lib/... is included in the JAR).
+
+                Fully cacheable: SHA-512 checksum verification against ~/.m2/.../homing-libs/
+                means subsequent builds run offline. CI workers can prime the cache once.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>download-bundled-libs</id>
+                        <phase>process-classes</phase>
+                        <goals><goal>java</goal></goals>
+                        <configuration>
+                            <mainClass>hue.captains.singapura.js.homing.libs.tools.LibDownloader</mainClass>
+                            <classpathScope>compile</classpathScope>
+                            <arguments>
+                                <argument>${project.build.outputDirectory}</argument>
+                                <argument>${user.home}/.m2/repository/.cache/homing-libs</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
