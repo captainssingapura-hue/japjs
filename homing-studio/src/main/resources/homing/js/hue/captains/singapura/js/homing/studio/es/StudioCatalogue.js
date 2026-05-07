@@ -21,21 +21,14 @@ function appMain(rootElement) {
             featured: true
         },
         {
-            link:     function() { return nav.Rfc0001Plan(); },
-            label:    "RFC 0001 Plan",
-            desc:     "Live implementation tracker for the App Registry & Typed Navigation RFC. Every step is its own URL; progress is recorded in Java code and rendered live in the studio.",
-            icon:     "R",
-            featured: false
-        },
-        {
-            link:     function() { return nav.RenamePlan(); },
-            label:    "Rename Plan",
-            desc:     "Migration plan for Homing → Homing. Six phases with verification gates and rollback strategies, plus four open decisions to resolve before executing. Live tracker — edit RenameSteps.java to revise.",
-            icon:     "→",
-            featured: false
+            link:     function() { return nav.JourneysCatalogue(); },
+            label:    "Journeys",
+            desc:     "Live trackers for every multi-phase plan — RFC implementations, migrations, audits. Each plan's source of truth is a *Steps.java file; the studio renders the latest state on every page load.",
+            icon:     "J",
+            featured: true
         }
-        // Future apps register themselves here as new tiles, importing their link()
-        // record into StudioCatalogue.java imports().
+        // Future top-level apps register themselves here as new tiles, importing
+        // their link() record into StudioCatalogue.java imports().
     ];
 
     var html = ''

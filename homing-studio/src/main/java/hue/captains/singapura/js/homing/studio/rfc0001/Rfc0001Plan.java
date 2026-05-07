@@ -1,9 +1,10 @@
 package hue.captains.singapura.js.homing.studio.rfc0001;
 
 import hue.captains.singapura.js.homing.core.*;
-import hue.captains.singapura.js.homing.studio.css.StudioStyles;
+import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
 import hue.captains.singapura.js.homing.studio.es.DocReader;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
+import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public record Rfc0001Plan() implements AppModule<Rfc0001Plan> {
         return ImportsFor.<Rfc0001Plan>builder()
                 // Navigation targets — RFC 0001 Step 11.
                 .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new JourneysCatalogue.link()), JourneysCatalogue.INSTANCE))
                 .add(new ModuleImports<>(List.of(new Rfc0001Step.link()),     Rfc0001Step.INSTANCE))
                 .add(new ModuleImports<>(List.of(new DocReader.link()),       DocReader.INSTANCE))
                 // CSS imports.

@@ -1,9 +1,8 @@
 package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.core.*;
-import hue.captains.singapura.js.homing.studio.css.StudioStyles;
-import hue.captains.singapura.js.homing.studio.rename.RenamePlan;
-import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001Plan;
+import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
+// Plan trackers are reached via JourneysCatalogue (the sub-catalogue), not directly from Home.
 
 import java.util.List;
 
@@ -24,10 +23,9 @@ public record StudioCatalogue() implements AppModule<StudioCatalogue> {
     public ImportsFor<StudioCatalogue> imports() {
         return ImportsFor.<StudioCatalogue>builder()
                 // Navigation targets — RFC 0001 Step 11.
-                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
-                .add(new ModuleImports<>(List.of(new DocBrowser.link()),     DocBrowser.INSTANCE))
-                .add(new ModuleImports<>(List.of(new Rfc0001Plan.link()),    Rfc0001Plan.INSTANCE))
-                .add(new ModuleImports<>(List.of(new RenamePlan.link()),     RenamePlan.INSTANCE))
+                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()),    StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DocBrowser.link()),         DocBrowser.INSTANCE))
+                .add(new ModuleImports<>(List.of(new JourneysCatalogue.link()),  JourneysCatalogue.INSTANCE))
                 // CSS imports.
                 .add(new ModuleImports<>(List.of(
                         new StudioStyles.st_root(),

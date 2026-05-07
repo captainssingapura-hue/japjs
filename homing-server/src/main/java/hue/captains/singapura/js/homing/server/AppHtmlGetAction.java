@@ -107,10 +107,15 @@ public class AppHtmlGetAction
                 <body>
                     <div id="app"></div>
                     <script type="module">
-                        const theme = %s || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+                        // RFC 0002: theme is opt-in. If the URL didn't carry ?theme=, we
+                        // forward nothing and the server resolves to its registered default.
+                        // Browser prefers-color-scheme is intentionally ignored — themes are
+                        // explicit, not auto-derived.
+                        const theme = %s;
                         const locale = %s || navigator.language;
-                        document.documentElement.style.colorScheme = theme;
-                        const moduleUrl = "%s" + "&theme=" + encodeURIComponent(theme) + "&locale=" + encodeURIComponent(locale);
+                        if (theme) document.documentElement.style.colorScheme = theme;
+                        let moduleUrl = "%s" + "&locale=" + encodeURIComponent(locale);
+                        if (theme) moduleUrl += "&theme=" + encodeURIComponent(theme);
                         const { appMain } = await import(moduleUrl);
                         appMain(document.getElementById("app"));
                     </script>

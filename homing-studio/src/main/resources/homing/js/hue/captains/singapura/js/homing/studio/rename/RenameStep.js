@@ -40,6 +40,8 @@ function appMain(rootElement) {
         + '  </a>'
         + '  <div class="' + cn(st_breadcrumbs) + '">'
         + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.StudioCatalogue()) + '>Home</a>'
+        + '    <span class="' + cn(st_crumb_sep) + '">/</span>'  
+        + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.JourneysCatalogue()) + '>Journeys</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'
         + '    <a class="' + cn(st_crumb) + '" ' + href.toAttr(nav.RenamePlan()) + '>Rename Plan</a>'
         + '    <span class="' + cn(st_crumb_sep) + '">/</span>'

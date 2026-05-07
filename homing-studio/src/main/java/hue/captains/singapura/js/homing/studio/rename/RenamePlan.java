@@ -1,9 +1,10 @@
 package hue.captains.singapura.js.homing.studio.rename;
 
 import hue.captains.singapura.js.homing.core.*;
-import hue.captains.singapura.js.homing.studio.css.StudioStyles;
+import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
 import hue.captains.singapura.js.homing.studio.es.DocReader;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
+import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public record RenamePlan() implements AppModule<RenamePlan> {
     public ImportsFor<RenamePlan> imports() {
         return ImportsFor.<RenamePlan>builder()
                 .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new JourneysCatalogue.link()), JourneysCatalogue.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RenameStep.link()),       RenameStep.INSTANCE))
                 .add(new ModuleImports<>(List.of(new DocReader.link()),        DocReader.INSTANCE))
                 .add(new ModuleImports<>(List.of(

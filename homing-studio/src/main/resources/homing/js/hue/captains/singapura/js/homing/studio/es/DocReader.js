@@ -32,8 +32,8 @@ function appMain(rootElement) {
     // RFC 0001 Step 06+11: typed `params` const is auto-generated from DocReader.Params (Java).
     var docPath = params.path || "";
 
-    // Mirror of DocRegistry — used to display the title and category.
-    // (Kept brief; the browser app has the full mirror.)
+    // Hardcoded title/category lookup — kept in sync with DocBrowser.js's docs[] list.
+    // Future iteration: replace with a typed DocGroup so titles flow from Java declarations.
     var docMeta = (function() {
         var entries = {
             "whitepaper/homing-whitepaper.md":                  {title:"Homing — Main White Paper",            category:"WHITEPAPER"},
@@ -46,6 +46,7 @@ function appMain(rootElement) {
             "brochure/05-faq.md":                              {title:"05 — FAQ & Objection Handling",       category:"BROCHURE"},
             "brochure/06-architecture-at-a-glance.md":         {title:"06 — Architecture at a Glance",       category:"BROCHURE"},
             "rfcs/0001-app-registry-and-typed-nav.md":         {title:"RFC 0001 — App Registry & Typed Nav", category:"RFC"},
+            "rfcs/0002-typed-themes-for-cssgroups.md":         {title:"RFC 0002 — Typed Themes for CssGroups", category:"RFC"},
             "brand/README.md":                                 {title:"Brand Guide",                         category:"BRAND"},
             "brand/RENAME-TO-HOMING.md":                       {title:"Rename Dossier — Homing → Homing",     category:"BRAND"},
             "SESSION-SUMMARY-2026-04-25.md":                   {title:"Session Summary — 2026-04-25",        category:"SESSION"},

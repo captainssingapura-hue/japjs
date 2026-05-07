@@ -20,8 +20,9 @@ function appMain(rootElement) {
             .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
 
-    // Hardcoded mirror of DocRegistry.java for v0. A future iteration can serve
-    // this as JSON from a /doc-list endpoint to avoid duplication.
+    // Hardcoded list of homing's docs. Future iteration: declare these as a typed
+    // DocGroup (see homing-studio-base.DocGroup) so this list is generated from
+    // Java instead of duplicated here.
     var docs = [
         {path:"whitepaper/homing-whitepaper.md",                      title:"Homing — Main White Paper",            summary:"The full technical design: four-layer architecture, diagrams, positioning.",        category:"WHITEPAPER", catLabel:"White Papers"},
         {path:"whitepaper/homing-shell-flexibility-whitepaper.md",    title:"Shell Flexibility — Exploration",     summary:"Homing's output is shell-agnostic. The Java backend with CLI parity is the killer feature.", category:"WHITEPAPER", catLabel:"White Papers"},
@@ -33,6 +34,7 @@ function appMain(rootElement) {
         {path:"brochure/05-faq.md",                                  title:"05 — FAQ & Objection Handling",        summary:"25 honest Q&As across strategy, risk, tech, people, cost.",                         category:"BROCHURE",   catLabel:"Brochure"},
         {path:"brochure/06-architecture-at-a-glance.md",             title:"06 — Architecture at a Glance",        summary:"Visual summary with built-vs-designed status table.",                               category:"BROCHURE",   catLabel:"Brochure"},
         {path:"rfcs/0001-app-registry-and-typed-nav.md",             title:"RFC 0001 — App Registry & Typed Nav",  summary:"Friendly-name URL contract, AppLink<L>, ProxyApp, conformance enforcement.",        category:"RFC",        catLabel:"RFCs"},
+        {path:"rfcs/0002-typed-themes-for-cssgroups.md",             title:"RFC 0002 — Typed Themes for CssGroups",summary:"Header/Impl split: typed Theme records, per-CssGroup Impl<TH> nested interfaces, registry-based resolution, no silent fallbacks.", category:"RFC",        catLabel:"RFCs"},
         {path:"brand/README.md",                                     title:"Brand Guide",                          summary:"Logo concept, asset inventory, palette, typography, usage rules.",                  category:"BRAND",      catLabel:"Brand"},
         {path:"brand/RENAME-TO-HOMING.md",                           title:"Rename Dossier — Homing → Homing",       summary:"Decision context, three-layer metaphor, migration logistics.",                      category:"RENAME",     catLabel:"Rename"},
         {path:"rename/EXECUTION-PLAN.md",                            title:"Rename Execution Plan",                summary:"Six-phase migration plan with verification gates and rollback strategy.",           category:"RENAME",     catLabel:"Rename"},
@@ -99,7 +101,7 @@ function appMain(rootElement) {
         + '  <div id="docResults"></div>'
 
         + '  <div class="' + cn(st_footer) + '">'
-        + '    Documents are read live from <code>docs/</code> on the server. Add a new doc by editing <code>DocRegistry.java</code> and the mirror in <code>DocBrowser.js</code>.'
+        + '    Documents are read live from <code>docs/</code> on the server. Add a new doc by editing the <code>docs</code> array in <code>DocBrowser.js</code>.'
         + '  </div>'
         + '</div>'
         + '</div>';
