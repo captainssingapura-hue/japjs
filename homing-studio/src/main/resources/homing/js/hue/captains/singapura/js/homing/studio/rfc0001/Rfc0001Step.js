@@ -109,7 +109,7 @@ function appMain(rootElement) {
 
         var depsHtml = s.dependsOn.length
             ? s.dependsOn.map(function(d) {
-                    return '<a class="' + cn(st_dep) + '" ' + href.toAttr(stepUrl(d.stepId)) + ' title="' + escape(d.reason) + '">Step ' + escape(d.stepId) + '</a>';
+                    return '<a class="' + cn(st_dep, border_emphasis.hover) + '" ' + href.toAttr(stepUrl(d.stepId)) + ' title="' + escape(d.reason) + '">Step ' + escape(d.stepId) + '</a>';
                 }).join("")
             : '<span style="color:var(--st-gray-mid);font-style:italic;font-size:13px;">(no dependencies — independent)</span>';
 

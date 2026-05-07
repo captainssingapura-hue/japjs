@@ -54,15 +54,34 @@ public interface CssGroupImpl<CG extends CssGroup<CG>, TH extends Theme> {
     TH theme();
 
     /**
-     * Optional CSS custom properties (cascading variables) emitted as a
-     * single {@code :root { … }} block before the per-class rules. Default
-     * is empty: most themes will override.
+     * Optional <em>primitive</em> CSS custom properties (cascading variables)
+     * emitted into a single {@code :root { … }} block before the per-class
+     * rules. Default is empty: most themes will override.
      *
      * <p>Map keys are property names with the leading {@code --} included
      * (e.g., {@code "--st-navy"}); values are the CSS literal value
      * (e.g., {@code "#1A2330"}, {@code "16px"}, {@code "var(--st-foo, white)"}).
+     *
+     * <p>RFC 0002-ext1: this is the <em>primitive</em> token layer — concrete
+     * values per theme. Pair with {@link #semanticTokens()} for the role-named
+     * (theme-independent) layer that components actually reference.</p>
      */
     default Map<String, String> cssVariables() { return Map.of(); }
+
+    /**
+     * Optional <em>semantic</em> CSS custom properties — role-named tokens
+     * that map to primitive values via {@code var(--primitive)} references.
+     * Emitted into the same {@code :root { … }} block as {@link #cssVariables()},
+     * <em>after</em> the primitives so the semantic tokens can reference them.
+     *
+     * <p>RFC 0002-ext1: this is the layer component CSS bodies actually
+     * reference (e.g., {@code var(--color-text-link)}, not
+     * {@code var(--st-amber)}). Per-theme work shrinks to redefining
+     * primitives; semantic mappings are usually shared.</p>
+     *
+     * <p>Default empty (back-compat).</p>
+     */
+    default Map<String, String> semanticTokens() { return Map.of(); }
 
     /**
      * Global / non-class-keyed rules emitted between the {@code :root} block

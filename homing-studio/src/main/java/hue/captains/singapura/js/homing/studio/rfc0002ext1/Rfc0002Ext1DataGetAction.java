@@ -114,7 +114,17 @@ public class Rfc0002Ext1DataGetAction
           .append("\"verification\":").append(jstr(p.verification())).append(",")
           .append("\"rollback\":").append(jstr(p.rollback())).append(",")
           .append("\"effort\":").append(jstr(p.effort())).append(",")
-          .append("\"notes\":").append(jstr(p.notes()))
+          .append("\"notes\":").append(jstr(p.notes())).append(",")
+          .append("\"metrics\":[");
+        boolean firstM = true;
+        for (var m : p.metrics()) {
+            if (!firstM) sb.append(","); firstM = false;
+            sb.append("{\"label\":").append(jstr(m.label()))
+              .append(",\"before\":").append(jstr(m.before()))
+              .append(",\"after\":").append(jstr(m.after()))
+              .append(",\"delta\":").append(jstr(m.delta())).append("}");
+        }
+        sb.append("]")
           .append("}");
         return sb.toString();
     }
