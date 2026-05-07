@@ -7,25 +7,17 @@ import java.util.List;
 /**
  * Manual registry of every {@link CssGroupImpl} the homing-demo ships.
  *
- * <p>Mirrors the studio-base {@code CssGroupImplRegistry}. The framework's
- * {@code CssContentGetAction} consults this list to resolve which impl to
- * render for a given {@code (CssGroup canonical name, Theme.slug)} pair.</p>
+ * <p>RFC 0002-ext1 Phase 11 — empty after the marker-shape migration. All
+ * CssClass records carry inline {@code body()} overrides that reference
+ * theme-provided {@code var(--…)} tokens; no per-(group, theme) impl files
+ * remain. The framework's {@code CssGroupImplConsistencyTest} accepts a
+ * group with all-inline bodies as satisfying the per-default-theme
+ * reachability requirement without a registered impl.</p>
  */
 public final class DemoCssGroupImplRegistry {
 
-    /** Every CssGroup × Theme implementation shipped by homing-demo. */
-    public static final List<CssGroupImpl<?, ?>> ALL = List.of(
-            CatalogueStylesDemoDefault.INSTANCE,
-            PitchDeckStylesDemoDefault.INSTANCE,
-            PlaygroundStylesDemoDefault.INSTANCE,
-            PlaygroundStylesAlpine.INSTANCE,
-            PlaygroundStylesBeach.INSTANCE,
-            PlaygroundStylesDracula.INSTANCE,
-            SpinningStylesDemoDefault.INSTANCE,
-            SpinningStylesBeach.INSTANCE,
-            SubwayStylesDemoDefault.INSTANCE,
-            SubwayStylesBeach.INSTANCE
-    );
+    /** Every CssGroup × Theme implementation shipped by homing-demo (now empty). */
+    public static final List<CssGroupImpl<?, ?>> ALL = List.of();
 
     private DemoCssGroupImplRegistry() {}
 }

@@ -54,7 +54,43 @@ class CssUtility extends CssClass {
 const CssClassManagerInstance = (() => {
     const loaded = new Set();
 
+    /**
+     * RFC 0002-ext1 Phase 09 — auto-load the theme bundle (vars + globals)
+     * once per page per theme. The bundle endpoints always return 200 with an
+     * empty body when the theme has nothing registered, so this is safe to
+     * call before deployments have populated their ThemeRegistry. Once
+     * deployments migrate (Phase 10/11), the bundle becomes the canonical
+     * source of `:root` and global rules; per-group `/css-content` files are
+     * just class rules.
+     */
+    async function ensureThemeBundleLoaded(theme) {
+        // SEQUENTIAL: theme-vars must land in the cascade BEFORE theme-globals.
+        // Globals contains `@media (prefers-color-scheme: dark) { :root { … } }`
+        // overrides for primitives; if vars loaded last, the unconditional :root
+        // would shadow the @media override (last-wins for same specificity).
+        //
+        // When `theme` is null (no ?theme= URL param), we still call the routes
+        // — the server uses its registered default theme. Without this, class
+        // bodies that reference `var(--color-*)` resolve to nothing because the
+        // cascade is never set up.
+        const themeKey = theme || "__default";
+        const themeQuery = theme ? "?theme=" + encodeURIComponent(theme) : "";
+        const varsKey = themeKey + ":__theme-vars";
+        if (!loaded.has(varsKey)) {
+            loaded.add(varsKey);
+            await appendLink("/theme-vars" + themeQuery).catch(() => {});
+        }
+        const globalsKey = themeKey + ":__theme-globals";
+        if (!loaded.has(globalsKey)) {
+            loaded.add(globalsKey);
+            await appendLink("/theme-globals" + themeQuery).catch(() => {});
+        }
+    }
+
     async function loadCss(cssBeing, theme) {
+        // Theme-scoped bundle (vars + globals) loads first, idempotently.
+        await ensureThemeBundleLoaded(theme);
+
         const key = cssBeing + (theme ? ":" + theme : "");
         if (loaded.has(key)) return;
 

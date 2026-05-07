@@ -20,9 +20,7 @@ public final class CssGroupImplRegistry {
 
     /** Every CssGroup × Theme implementation shipped by homing-studio-base. */
     public static final List<CssGroupImpl<?, ?>> ALL = List.of(
-            StudioStylesHomingDefault.INSTANCE,
             UtilImpl.INSTANCE
-            // future themes register here, e.g. StudioStylesHomingDark.INSTANCE
     );
 
     private CssGroupImplRegistry() {}

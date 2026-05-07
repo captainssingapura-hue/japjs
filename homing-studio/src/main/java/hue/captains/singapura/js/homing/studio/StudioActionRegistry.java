@@ -4,10 +4,13 @@ import hue.captains.singapura.js.homing.core.ModuleNameResolver;
 import hue.captains.singapura.js.homing.core.SimpleAppResolver;
 import hue.captains.singapura.js.homing.server.CssContentGetAction;
 import hue.captains.singapura.js.homing.server.HomingActionRegistry;
+import hue.captains.singapura.js.homing.server.ThemeGlobalsGetAction;
+import hue.captains.singapura.js.homing.server.ThemeVarsGetAction;
 import hue.captains.singapura.js.homing.studio.base.DocContentGetAction;
 import hue.captains.singapura.js.homing.studio.base.DocGetAction;
 import hue.captains.singapura.js.homing.studio.base.theme.CssGroupImplRegistry;
 import hue.captains.singapura.js.homing.studio.base.theme.HomingDefault;
+import hue.captains.singapura.js.homing.studio.base.theme.StudioThemeRegistry;
 import hue.captains.singapura.js.homing.studio.rename.RenameDataGetAction;
 import hue.captains.singapura.js.homing.studio.rfc0001.StepDataGetAction;
 import hue.captains.singapura.js.homing.studio.rfc0002.Rfc0002DataGetAction;
@@ -40,6 +43,8 @@ public class StudioActionRegistry implements ActionRegistry<RoutingContext> {
     private final Rfc0002DataGetAction rfc0002DataAction;
     private final Rfc0002Ext1DataGetAction rfc0002Ext1DataAction;
     private final CssContentGetAction cssContentAction;
+    private final ThemeVarsGetAction themeVarsAction;
+    private final ThemeGlobalsGetAction themeGlobalsAction;
 
     public StudioActionRegistry(ModuleNameResolver nameResolver) {
         this(nameResolver, Path.of(System.getProperty("homing.studio.docsRoot", "docs")), null);
@@ -50,7 +55,13 @@ public class StudioActionRegistry implements ActionRegistry<RoutingContext> {
     }
 
     public StudioActionRegistry(ModuleNameResolver nameResolver, Path docsRoot, SimpleAppResolver appResolver) {
-        this.inner = new HomingActionRegistry(nameResolver, appResolver);
+        // RFC 0002-ext1 Phase 10/12: pass StudioThemeRegistry through to the
+        // inner HomingActionRegistry so AppHtmlGetAction renders the theme
+        // picker widget driven by the studio's registered themes.
+        this.inner = new HomingActionRegistry(
+                nameResolver, appResolver,
+                hue.captains.singapura.js.homing.core.util.ResourceReader.fromSystemProperty(),
+                StudioThemeRegistry.INSTANCE);
         this.docContentAction = new DocContentGetAction(docsRoot);
         this.docAction = new DocGetAction();
         this.stepDataAction = new StepDataGetAction();
@@ -64,6 +75,11 @@ public class StudioActionRegistry implements ActionRegistry<RoutingContext> {
         this.cssContentAction = new CssContentGetAction(
                 CssGroupImplRegistry.ALL,
                 HomingDefault.INSTANCE);
+        // RFC 0002-ext1 Phase 10: theme-bundle endpoints backed by the studio's
+        // populated ThemeRegistry. /theme-vars and /theme-globals now serve real
+        // content (HomingDefault.Vars + HomingDefault.Globals) instead of empty.
+        this.themeVarsAction    = new ThemeVarsGetAction(StudioThemeRegistry.INSTANCE, HomingDefault.INSTANCE);
+        this.themeGlobalsAction = new ThemeGlobalsGetAction(StudioThemeRegistry.INSTANCE, HomingDefault.INSTANCE);
     }
 
     @Override
@@ -77,6 +93,10 @@ public class StudioActionRegistry implements ActionRegistry<RoutingContext> {
         all.put("/rfc0002ext1-data", rfc0002Ext1DataAction);
         // Override the inner registry's file-based /css-content with the typed-impl one (RFC 0002).
         all.put("/css-content",  cssContentAction);
+        // RFC 0002-ext1 Phase 10: override the inner registry's empty theme-bundle endpoints
+        // with the studio's populated registry (HomingDefault.Vars / .Globals).
+        all.put("/theme-vars",    themeVarsAction);
+        all.put("/theme-globals", themeGlobalsAction);
         return Map.copyOf(all);
     }
 

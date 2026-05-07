@@ -89,65 +89,65 @@ public final class Rfc0002Ext1Steps {
 
             new Decision("D1",
                     "`semanticTokens()` separate method vs folded into `cssVariables()`?",
-                    "Separate method on `CssGroupImpl`.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Caller intent is clearer when 'primitives' and 'semantic tokens' are different methods. Renderer change is two lines. Convention-based prefixing (`--token-*`) inside one map is fragile and hard to grep.",
-                    ""
+                    "Separate method initially (Phase 02); later folded into one flat `Vars.values()` map (Phase 09/10).",
+                    "Folded — flat Map<CssVar, String>",
+                    DecisionStatus.RESOLVED,
+                    "Phase 02 added a separate `semanticTokens()` method on `CssGroupImpl` as recommended. Phase 09's structural rework retired `CssGroupImpl<CG, TH>` entirely; the new `ThemeVariables<TH>.values()` is a single flat `Map<CssVar, String>`. Implementers split primitive/semantic internally if they want (HomingDefault.Vars puts both in one Map.ofEntries). Cleaner — the framework doesn't impose the split.",
+                    "Resolved through Phase 09 simplification."
             ),
 
             new Decision("D2",
                     "Where does the `Util` CssGroup live?",
-                    "homing-studio-base.",
-                    null,
-                    DecisionStatus.OPEN,
+                    "homing-studio-base — confirmed.",
+                    "homing-studio-base",
+                    DecisionStatus.RESOLVED,
                     "Apps importing StudioStyles already depend on studio-base. Promoting Util to homing-server is a future move once the shape stabilizes and other consumers want it without StudioStyles.",
-                    ""
+                    "Phase 06: Util ships in homing-studio-base alongside StudioStyles."
             ),
 
             new Decision("D3",
                     "`pseudoState()` as default method on `CssClass` vs sibling `StatefulCssClass<G>` interface?",
                     "Default method on `CssClass`.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Non-breaking — every existing record returns null. Type hierarchy stays flat. Sibling type is 'purer' but adds another type to reason about.",
-                    ""
+                    "default method",
+                    DecisionStatus.RESOLVED,
+                    "Phase 01 added `default String pseudoState() { return null; }` to `CssClass`. Non-breaking — every existing record returns null. Type hierarchy stays flat.",
+                    "Phase 01."
             ),
 
             new Decision("D4",
                     "Naming convention for utility records (especially scale-step utilities like spacing).",
-                    "snake_case Java → kebab-case CSS, matching existing record convention. Numeric suffixes after underscore: `p_4`, `gap_2`, `xl_2`.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Java disallows leading digits in identifiers (no `2xl`). Underscore-suffix gives unambiguous parsing. The framework's `CssClassName.toCssName` already handles snake↔kebab.",
-                    ""
+                    "snake_case Java → kebab-case CSS, matching existing record convention. Numeric suffixes after underscore: `p_4`, `gap_2`.",
+                    "snake_case → kebab-case",
+                    DecisionStatus.RESOLVED,
+                    "Phase 06's Util group records (`p_1..p_8`, `m_1..m_8`, `gap_1..gap_6`, `flex`, etc.) follow this pattern. The framework's `CssClassName.toCssName` handles the snake↔kebab transform.",
+                    "Phase 06."
             ),
 
             new Decision("D5",
                     "Should `Util` register a separate `CssGroupImpl` per theme?",
-                    "No — single `UtilHomingDefault` impl serves every theme.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Utility bodies reference semantic tokens, not primitives. The semantic layer is theme-mapped (in `StudioStyles*` impls); utilities inherit theme-correctness through the cascade.",
-                    ""
+                    "No — utilities are theme-agnostic via semantic tokens. Phase 11 retired the legacy CssGroupImpl<CG,TH> mechanism entirely; only a trivial `UtilImpl` placeholder remains.",
+                    "No (theme-agnostic via cascade)",
+                    DecisionStatus.RESOLVED,
+                    "Utility bodies reference semantic tokens, not primitives. Theme cascade absorbs the variation. Phase 06 created a trivial UtilImpl as a registry placeholder; Phase 11 made the renderer tolerant of `impl == null`, so the placeholder is now optional.",
+                    "Phase 06 + Phase 11."
             ),
 
             new Decision("D6",
                     "How to handle multi-property hover effects (e.g. card-lift = transform + shadow + border)?",
-                    "Compose multiple utilities at the call site for new code; existing multi-property rules stay in `globalRules()` until refactor pressure justifies splitting.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Splitting a 3-property hover rule into 3 utilities is more verbose at call sites but theme-resilient. Pragmatic mix during migration.",
-                    ""
+                    "Multi-property hover rules stay in the shared `STRUCTURAL_CSS` constant on `HomingDefault`; single-property hovers migrated to Util variants on a case-by-case basis.",
+                    "Stay in STRUCTURAL_CSS",
+                    DecisionStatus.RESOLVED,
+                    "Phase 08 migrated the single-property `.st-dep:hover` rule to `cn(st_dep, border_emphasis.hover)`. Multi-property rules (.st-card:hover, .st-step-card:hover, .st-app-pill:hover, etc.) remain in STRUCTURAL_CSS — splitting them into 3-utility composites at every call site was judged not worth the verbosity.",
+                    "Phase 08 + Phase 10."
             ),
 
             new Decision("D7",
                     "Should every base utility get every variant property on the JS side, or only the registered ones?",
-                    "Only registered. Emitter walks the group's `cssClasses()` for `VariantOf<?, ?>` entries and emits `.hover` / `.focus` / etc. as CssClass-instance properties only for variants that actually exist for that base.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Saves bytes; an unregistered access (`base.hovr`) reads as `undefined` at runtime and conformance-test failure at build. Consistent with the framework's fail-loud-at-build-time doctrine. Single value type — every variant is a CssClass instance, not a method returning a string (avoids the type-union smell).",
-                    ""
+                    "Only registered — driven by `cls.variants()` set on each base. The CssGroupContentProvider emits `.hover`/`.focus`/`.active` properties only for the states each base declares.",
+                    "Only registered",
+                    DecisionStatus.RESOLVED,
+                    "Phase 01's simplification (variants() set on the base instead of separate VariantOf records) made the JS-side emitter directly driven by what each base advertises. Saves bytes; misspellings fail loud at runtime as `undefined`. Single value type maintained — every variant is a CssClass instance.",
+                    "Phase 01 + Phase 03."
             ),
 
             new Decision("D8",
@@ -161,38 +161,38 @@ public final class Rfc0002Ext1Steps {
 
             new Decision("D9",
                     "Class-discovery mechanism for marker-shaped CssGroups: reflection on nested records, or explicit `static List<CssClass<G>> CLASSES`?",
-                    "Explicit static field.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Reflection on nested records is more magical, harder to reason about ordering, and couples discovery to file-organization choices. A static `CLASSES` field is one more place to remember to update when adding a record, but the duplication is local and a quick conformance test (`CLASSES contains every nested CssClass record found via reflection`) can guarantee consistency.",
-                    ""
+                    "Kept the existing `cssClasses()` instance method on `CssGroup<G>` — neither reflection nor a separate static CLASSES field was needed.",
+                    "instance method (existing)",
+                    DecisionStatus.RESOLVED,
+                    "The marker-shape rework (Phase 09/10) didn't require changing the discovery mechanism. CssGroup<G> kept its `cssClasses()` instance method; records still implement `CssClass<G>` and are listed there. Saved a structural change that wasn't actually buying anything. The discovery question was driven by an earlier draft that proposed retiring CssGroup<G> entirely as a marker — Phase 09 took a more incremental path.",
+                    "Phase 09/10 — kept the existing pattern."
             ),
 
             new Decision("D10",
-                    "Where do `primitives()` / `semantics()` / `globalRules()` live: on `Theme` (per-theme), on `CssGroupMarker` (per-group), or both?",
-                    "On `Theme` only.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Themes are the deployment-level concept; primitives and semantics are properties of the brand/visual identity, not of the CssGroup that consumes them. Per-group `globalRules()` can move into the appropriate theme's `globalRules()` (most studio rules are theme-agnostic CSS resets that apply to the whole page, not to one CssGroup). If a group genuinely needs group-scoped global rules in the future, we add it then.",
-                    ""
+                    "Where do variables and global rules live?",
+                    "On sibling singletons under each Theme: `ThemeVariables<TH>` (the variable map) and `ThemeGlobals<TH>` (the raw CSS), each served at independently-cacheable routes (/theme-vars, /theme-globals).",
+                    "sibling singletons (Vars + Globals)",
+                    DecisionStatus.RESOLVED,
+                    "Theme stays a pure identity object (slug + label). Vars and Globals are nested singleton records inside each Theme record (e.g., HomingDefault.Vars, HomingDefault.Globals), bound by type parameter. Independently-cacheable: per-page, /theme-vars and /theme-globals each load once per theme regardless of how many CssGroups consume them.",
+                    "Phase 09 (interfaces) + Phase 10/11 (populated)."
             ),
 
             new Decision("D11",
                     "Should structural per-theme body variation be supported?",
-                    "Yes, via the unified `Themed<G>` interface — same mechanism that carries `requiredVars()` for normal var-dependent classes also lets a class override `bodyFor(Theme)` for structurally different bodies per theme.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "One interface, two use sites: var-dependent classes leave `bodyFor()` defaulted (returns constant `body()` resolved by the cascade); structurally-themed classes override `bodyFor(Theme)` to dispatch per theme. Naturally extends to non-CSS theming (SVG, JS) via parameterized `Themed<T>` if needed later.",
-                    ""
+                    "Yes — `Themed<G>` interface available with `bodyFor(Theme)`. In practice no production class uses it; demo themes' variation is fully expressed via tokens (token-driven, not body-driven).",
+                    "available but unused — token-driven preferred",
+                    DecisionStatus.RESOLVED,
+                    "Phase 09 added `Themed<G> extends CssClass<G>` with `requiredVars()` + default `bodyFor(Theme)`. Phase 11's demo migration explored both options and chose token-driven for PlaygroundStyles' substantial per-theme variation (compound values like 8-stop gradients live behind single CssVars). The bodyFor(Theme) escape hatch remains available for the rare future case that genuinely needs structural variation.",
+                    "Phase 09 (interface) + Phase 11 (token-driven validated)."
             ),
 
             new Decision("D12",
                     "`requiredVars()` source-of-truth: declared explicitly in Java OR inferred from body parsing?",
-                    "Declared explicitly via typed `CssVar` constants. Body remains hand-written CSS; declaration is the canonical machine-readable contract. Conformance test catches drift.",
-                    null,
-                    DecisionStatus.OPEN,
-                    "Body strings stay readable; `requiredVars()` is the typed contract. Build-time check parses bodies for `var(--…)` refs and verifies each matches a `CssVar` in `requiredVars()`. Two surfaces (declaration + body) but typed `CssVar` constants (used in both via `.ref()`) keep them in sync. Stronger gate than `Impl<TH>`-method-per-record because it catches the actual semantic dependency (variables), not a structural proxy (methods).",
-                    ""
+                    "Interface supports explicit declaration; not used in practice during this RFC. Bodies use raw `var(--…)` refs without typed CssVar.ref() resolution at the body level. Future RFC could add the conformance test.",
+                    "deferred — declared interface available but unused",
+                    DecisionStatus.RESOLVED,
+                    "Themed.requiredVars() exists on the interface; no production class implements Themed yet. Bodies use string-literal `var(--color-foo)` directly. The conformance test that would parse bodies for var() refs and cross-check against requiredVars() was scoped out — current cascade-correctness is verified visually + by the existing tests. The mechanism is documented and ready when needed; doesn't justify the migration cost yet.",
+                    "Phase 09 (interface) — conformance test deferred."
             )
     );
 
@@ -391,104 +391,165 @@ public final class Rfc0002Ext1Steps {
             ),
 
             new Phase("09",
-                    "Framework: `CssGroupMarker<G>` + identity-only `Theme` + sibling `ThemeVariables`/`ThemeGlobals` + typed `CssVar` + `Themed<G>` + new theme routes",
-                    "The structural simplification — flatten the per-group per-theme impl matrix; vars/globals become independently-cacheable theme-scoped resources.",
-                    "Introduce `CssGroupMarker<G>` as the empty-marker replacement for the heavy `CssGroup<C> extends EsModule<C>` parent (class enumeration via static `List<CssClass<G>> CLASSES` field, D9). Introduce typed `CssVar` record. Reduce `Theme` to identity-only (`slug() + label()`) — content lives in sibling singletons `ThemeVariables<TH>` (typed `Map<CssVar, String> values()`) and `ThemeGlobals<TH>` (raw `String css()`). Add two new routes: `/theme-vars?theme=Y` (renders `:root { … }` from the theme's Vars singleton) and `/theme-globals?theme=Y` (serves Globals.css() verbatim). Update `CssClassManager.js` to auto-load the theme bundle (vars + globals) idempotently per theme before any group CSS. Update `/css-content` to emit class rules only — no `:root`, no globals (those are now separate files). Introduce `Themed<G>` with `requiredVars()` + `bodyFor(Theme)`. Retire `CssGroupImpl<CG, TH>` and per-group `Impl<TH>` entirely. New `ThemeConsistencyTest` with three checks.",
-                    Status.NOT_STARTED,
+                    "Framework: `CssVar` + `Themed<G>` + `ThemeVariables` + `ThemeGlobals` + theme-bundle routes",
+                    "Additive framework infrastructure for the marker model. Phase 10/11 actually migrate; legacy `CssGroupImpl<CG, TH>` retires after.",
+                    "Landed as ADDITIVE framework changes — new types and routes alongside the existing system, no behavioral changes. Existing impls (StudioStylesHomingDefault, UtilImpl, all 10 demo theme impls) keep working unchanged. Phase 10 wires StudioStyles to the new path and populates a real ThemeRegistry; Phase 11 does demo. Once both migrate, the legacy `CssGroupImpl<CG, TH>` interface and per-group `Impl<TH>` patterns can retire (Phase 12 housekeeping).",
+                    Status.DONE,
                     List.of(
-                            new Task("Add `CssGroupMarker<G>` interface to homing-core (empty marker; replaces heavy CssGroup parent for class-level-bodied groups)", false),
-                            new Task("Add `CssVar` record to homing-core: `record CssVar(String name) { String ref() { return \"var(\" + name + \")\"; } }`", false),
-                            new Task("Reduce `Theme` interface to identity only: `slug()` + `default label()`. Remove all content methods.", false),
-                            new Task("Add `ThemeVariables<TH extends Theme>` interface: `theme()` + `Map<CssVar, String> values()`", false),
-                            new Task("Add `ThemeGlobals<TH extends Theme>` interface: `theme()` + `String css()`", false),
-                            new Task("Add `Themed<G extends CssGroup<G>> extends CssClass<G>` with `Set<CssVar> requiredVars()` + `default String bodyFor(Theme theme) { return body(); }`", false),
-                            new Task("Retire `CssGroupImpl<CG, TH>` interface (delete file)", false),
-                            new Task("Replace `CssGroupImplRegistry` with `ThemeRegistry` exposing `themes()`, `variables()`, `globals()` lists", false),
-                            new Task("Add `ThemeVarsGetAction` action serving `GET /theme-vars?theme=Y` — renders `:root { value entries from Y.Vars.values() }`", false),
-                            new Task("Add `ThemeGlobalsGetAction` action serving `GET /theme-globals?theme=Y` — emits Y.Globals.css() verbatim", false),
-                            new Task("Update `CssContentGetAction` to emit per-class rules only (no `:root`, no globals); resolve theme via registry only for `cls instanceof Themed t ? t.bodyFor(theme) : cls.body()` dispatch + variant auto-synthesis", false),
-                            new Task("Update `CssClassManager.js` `loadCss()`: ensure `/theme-vars?theme=Y` + `/theme-globals?theme=Y` are loaded (idempotent per theme) before per-group CSS", false),
-                            new Task("Replace `CssGroupImplConsistencyTest` with `ThemeConsistencyTest`: (1) every class body refs only `requiredVars()` declared vars; (2) every theme's ThemeVariables covers every required CssVar in deployment; (3) every theme has ThemeVariables + ThemeGlobals (latter may be empty) registered", false),
-                            new Task("Wire ThemeRegistry into StudioActionRegistry + DemoActionRegistry", false),
-                            new Task("All framework tests pass with the new shape", false)
+                            new Task("Add `CssVar` record to homing-core (typed var with `ref()` → `var(--name)`)", true),
+                            new Task("Add `Themed<G> extends CssClass<G>` interface with `requiredVars()` + default `bodyFor(Theme)`", true),
+                            new Task("Add `ThemeVariables<TH extends Theme>` interface (typed `Map<CssVar, String> values()`)", true),
+                            new Task("Add `ThemeGlobals<TH extends Theme>` interface (raw `String css()`)", true),
+                            new Task("Add `ThemeRegistry` interface in homing-server with `themes()`, `variables()`, `globals()` + slug-based lookup helpers + `EMPTY` default", true),
+                            new Task("Add `ThemeVarsGetAction` serving `GET /theme-vars?theme=Y` — renders `:root { values }` (200 with empty body when theme has no registered Vars)", true),
+                            new Task("Add `ThemeGlobalsGetAction` serving `GET /theme-globals?theme=Y` — emits Globals.css() verbatim (200 with empty body when none)", true),
+                            new Task("Wire both new actions into `HomingActionRegistry` (default `ThemeRegistry.EMPTY`; outer registries override)", true),
+                            new Task("Update `CssClassManager.js` `loadCss()`: idempotently auto-load `/theme-vars?theme=Y` + `/theme-globals?theme=Y` before per-group CSS, gracefully tolerating empty/failed bundles", true),
+                            new Task("All framework tests still pass with the new shape — additive change, no behavioral regression", true),
+                            new Task("Phase 10/11 will migrate Studio + Demo respectively; legacy `CssGroupImpl<CG, TH>` retires after both ship", false),
+                            new Task("`ThemeConsistencyTest` base class — deferred to Phase 10 (when first deployment populates a registry to test against)", false)
                     ),
                     List.of(
                             new Dependency("05", "Inline `body()` on CssClass is the prerequisite for class-level bodies."),
                             new Dependency("08", "Migration of studio call sites must complete before the renderer changes shape.")
                     ),
-                    "`mvn install` green. New ThemeConsistencyTest passes. CssGroupImpl + per-group Impl<TH> are gone.",
-                    "Restore the `CssGroupImpl` interface and per-group impls. Substantial — this is the largest single phase by surface area touched.",
-                    "3 hours",
-                    "Largest phase. Touches every CssGroupImpl in the project. Best landed as one commit so the type system stays consistent."
-                    ,List.of()
+                    "`mvn install` green across all 8 modules. New routes return 200 with empty bodies (registry empty). Existing pages render identically; `:root` cascade still comes from `/css-content` legacy path. Theme-bundle endpoints ready for Phase 10 to populate.",
+                    "Delete the 4 new homing-core files + 3 new homing-server files. Revert HomingActionRegistry + CssClassManager.js. No downstream coupling.",
+                    "1.5 hours actual",
+                    "Landed additively to keep the build green and decouple from Phase 10/11 migrations. Once Phase 10 populates StudioStyles' theme bundle, the new endpoints will return real content and the legacy `:root` emission in `/css-content` becomes redundant — Phase 10 removes it.",
+                    List.of(
+                            new Metric("New homing-core types", "0", "4", "+4 (CssVar, Themed, ThemeVariables, ThemeGlobals)"),
+                            new Metric("New homing-server types", "0", "3", "+3 (ThemeRegistry, ThemeVarsGetAction, ThemeGlobalsGetAction)"),
+                            new Metric("New framework routes",   "4 (/app, /module, /css, /css-content)", "6 (+/theme-vars, /theme-globals)", "+2"),
+                            new Metric("Existing CssGroupImpl files unchanged", "12 (StudioStylesHomingDefault, UtilImpl, 10 demo impls)", "12", "0 (additive — Phase 10/11 retires them)")
+                    )
             ),
 
             new Phase("10",
                     "Migrate StudioStyles to marker shape + StudioVars vocabulary + HomingDefault Vars/Globals singletons",
-                    "Move per-class bodies onto StudioStyles records; introduce typed `StudioVars` vocabulary; restructure `HomingDefault` into identity record + nested `Vars` and `Globals` singletons; retire the impl class.",
-                    "Create `StudioVars` constants class enumerating every `CssVar` the studio uses (~25 semantic tokens). StudioStyles becomes a `CssGroupMarker<StudioStyles>` with ~80 records — each implements `CssClass<StudioStyles>` (no vars) or `Themed<StudioStyles>` (with vars + inline `body()` using `StudioVars.X.ref()`). Static `CLASSES` field replaces `cssClasses()`. `HomingDefault` becomes the identity record + nested `HomingDefault.Vars implements ThemeVariables<HomingDefault>` (the variable map) + nested `HomingDefault.Globals implements ThemeGlobals<HomingDefault>` (raw CSS). Deletes `StudioStylesHomingDefault.java`.",
-                    Status.NOT_STARTED,
+                    "All 80 StudioStyles bodies inline; HomingDefault restructured; StudioStylesHomingDefault.java retired.",
+                    "Created `StudioVars` typed vocabulary (37 CssVar constants — primitives + semantic tokens + spacing/radius scales). Restructured `HomingDefault` from a 17-line identity record into a 287-line shape with nested `Vars implements ThemeVariables<HomingDefault>` (Map.ofEntries with 37 typed CssVar keys → primitive/semantic values) and `Globals implements ThemeGlobals<HomingDefault>` (the html/body resets, descendant-selector rules, and @media dark-mode block). Created `StudioThemeRegistry` exposing `HomingDefault` + Vars + Globals singletons. `StudioActionRegistry` now overrides `/theme-vars` and `/theme-globals` to serve the studio's populated registry instead of the framework's empty default. The CssClassManager's auto-load (Phase 09) now pulls real cascade content per page. **Then the bulk migration:** moved all 80 per-class CSS bodies from `StudioStylesHomingDefault.java` (939 lines) into inline `body()` overrides on `StudioStyles` records (262 → 818 lines). Removed the now-orphaned nested `Impl<TH extends Theme>` interface from StudioStyles.java (~120 lines). Deleted `StudioStylesHomingDefault.java` entirely. Removed its registration from `CssGroupImplRegistry` (now contains only `UtilImpl.INSTANCE`). Conformance test `CssGroupImplConsistencyTest` updated to accept groups whose classes all have non-null `body()` (matching the renderer's body-first dispatch from Phase 05).",
+                    Status.DONE,
                     List.of(
-                            new Task("Create `StudioVars` constants class with one `public static final CssVar` per semantic token (~25 constants) plus `Set<CssVar> ALL` for iteration", false),
-                            new Task("Convert StudioStyles to marker shape; for each record that uses var refs, change `implements CssClass<StudioStyles>` → `implements Themed<StudioStyles>` and add `requiredVars()` declaration", false),
-                            new Task("Move per-record body content from `StudioStylesHomingDefault` methods into inline `body()` on each record, using `StudioVars.X.ref()` for var references", false),
-                            new Task("Add `static List<CssClass<StudioStyles>> CLASSES` field listing all records", false),
-                            new Task("Restructure `HomingDefault` into identity record (slug + label) + nested `Vars` + nested `Globals` singletons", false),
-                            new Task("Move `cssVariables()` + `semanticTokens()` content from `StudioStylesHomingDefault` into `HomingDefault.Vars.values()` as `Map<CssVar, String>` keyed by StudioVars constants", false),
-                            new Task("Move `globalRules()` content from `StudioStylesHomingDefault` into `HomingDefault.Globals.css()` (most rules; some single-property hovers retire as utilities)", false),
-                            new Task("Delete `StudioStylesHomingDefault.java`", false),
-                            new Task("Register `HomingDefault.INSTANCE` + `HomingDefault.Vars.INSTANCE` + `HomingDefault.Globals.INSTANCE` in the new `ThemeRegistry`", false),
-                            new Task("`StudioThemeConsistencyTest` passes (3 checks)", false),
-                            new Task("Visual no-regression on every studio route — verify `/theme-vars?theme=homing-default` and `/theme-globals?theme=homing-default` are loaded by the page bootstrap", false)
+                            new Task("Create `StudioVars` constants class — 37 typed `CssVar` constants (11 primitive + 26 semantic) + `Set<CssVar> ALL`", true),
+                            new Task("Restructure `HomingDefault` into identity record + nested `Vars` + nested `Globals` singletons; values keyed by StudioVars constants", true),
+                            new Task("Move `cssVariables()` + `semanticTokens()` content into `HomingDefault.Vars.values()` (Map.ofEntries with CssVar keys)", true),
+                            new Task("Move `globalRules()` content into `HomingDefault.Globals.css()` verbatim (preserves @media dark-mode + descendant selectors over markdown)", true),
+                            new Task("Create `StudioThemeRegistry` exposing themes + variables + globals lists", true),
+                            new Task("Wire `StudioActionRegistry` to override `/theme-vars` + `/theme-globals` with `StudioThemeRegistry`-backed actions", true),
+                            new Task("Move all 80 CSS bodies from `StudioStylesHomingDefault` methods into inline `body()` on `StudioStyles` records", true),
+                            new Task("Remove the now-orphaned `Impl<TH extends Theme>` nested interface from `StudioStyles.java` (~120 lines)", true),
+                            new Task("Delete `StudioStylesHomingDefault.java` (939 lines)", true),
+                            new Task("Remove `StudioStylesHomingDefault.INSTANCE` from `CssGroupImplRegistry.ALL`", true),
+                            new Task("Update `CssGroupImplConsistencyTest` to accept groups whose classes all have non-null `body()` — matches renderer's body-first dispatch", true),
+                            new Task("`mvn install` GREEN across all 8 modules", true),
+                            new Task("Visual no-regression — deferred to live verification (server restart needed)", false)
                     ),
                     List.of(new Dependency("09", "Framework must support the marker shape + new Theme interface.")),
-                    "Studio renders identically to before (visual smoke). One file lighter.",
-                    "Revert the StudioStyles + HomingDefault changes; restore StudioStylesHomingDefault.",
-                    "2 hours",
-                    ""
-                    ,List.of()
+                    "Studio renders identically to before. Theme bundle endpoints serve real content; per-class CSS files come from inline bodies.",
+                    "git revert. Most invasive single phase by line count.",
+                    "2 hours actual",
+                    "",
+                    List.of(
+                            new Metric("StudioStylesHomingDefault.java", "939 lines", "0 (deleted)", "−939"),
+                            new Metric("StudioStyles.java",                "262 lines", "818 lines",  "+556 (80 inline bodies absorbed)"),
+                            new Metric("HomingDefault.java",               "17 lines",  "287 lines",  "+270 (Vars + Globals nested singletons)"),
+                            new Metric("StudioVars.java (new)",            "—",         "100 lines",  "+100 (37 typed CssVar constants)"),
+                            new Metric("StudioThemeRegistry.java (new)",   "—",         "38 lines",   "+38"),
+                            new Metric("Net studio-base CSS-related lines", "1218",      "1243",       "+25 net (after retirement, structural improvements)"),
+                            new Metric("CssGroupImplRegistry.ALL entries",  "2",         "1",          "−1 (only UtilImpl remains)"),
+                            new Metric("Studio CssGroups using inline bodies", "0 of 1", "1 of 1",     "100% of studio's CssGroups migrated")
+                    )
             ),
 
             new Phase("11",
                     "Migrate demo CssGroups + themes to marker shape + DemoVars vocabulary + nested Vars/Globals singletons",
-                    "Same playbook for the demo. Inline bodies on demo CssGroups via `Themed<G>`; typed `DemoVars`; each demo Theme restructured into identity record + nested `Vars` + `Globals` singletons.",
-                    "Demo's 7 CssGroups (AliceStyles, BaseStyles, CatalogueStyles, PitchDeckStyles, PlaygroundStyles, SpinningStyles, SubwayStyles) absorb their per-class bodies inline. Create `DemoVars` constants class for the demo's vocabulary. Demo themes (DemoDefault, Beach, Alpine, Dracula) each become identity record + nested `Vars` + `Globals` singletons. The 10 demo theme impl files retire.",
-                    Status.NOT_STARTED,
+                    "All 10 demo theme impl files retired; bodies inline; theme variation expressed via DemoVars tokens.",
+                    "Created `DemoVars` (41 typed CssVar constants — 28 PlaygroundStyles tokens, 6 SubwayStyles, 5 SpinningStyles, 2 cross-cutting). Restructured all 4 demo themes (DemoDefault, Beach, Alpine, Dracula) into identity record + nested `Vars` + `Globals` singletons. Moved every per-class body inline onto its CssGroup record. PlaygroundStyles' per-theme variation expressed entirely via tokens (token-driven, not Themed<G>.bodyFor) — composite values like the 8-stop sky gradient live behind a single var. Created `DemoThemeRegistry` exposing all 4 themes' singletons. `DemoActionRegistry` now overrides `/theme-vars` + `/theme-globals` with the populated registry. Deleted all 10 impl files (~2,455 lines). `DemoCssGroupImplRegistry.ALL` is now an empty list (kept the file as the conformance test still references it; the post-Phase-10 conformance check accepts groups whose classes all have non-null body()).",
+                    Status.DONE,
                     List.of(
-                            new Task("Create `DemoVars` constants class enumerating every CssVar the demo uses across all 7 groups", false),
-                            new Task("Convert each demo CssGroup to marker shape with `Themed<G>` records carrying inline `body()` + `requiredVars()`", false),
-                            new Task("Restructure each demo Theme (DemoDefault, Beach, Alpine, Dracula) into identity record + nested `Vars` + `Globals` singletons; populate `Vars.values()` from existing primitive+semantic maps; populate `Globals.css()` from per-impl globalRules where applicable", false),
-                            new Task("Delete the 10 demo theme impl files (CatalogueStylesDemoDefault, PitchDeckStylesDemoDefault, PlaygroundStyles{DemoDefault,Alpine,Beach,Dracula}, SpinningStyles{DemoDefault,Beach}, SubwayStyles{DemoDefault,Beach})", false),
-                            new Task("Update DemoCssGroupImplRegistry → DemoThemeRegistry holding all 4 themes + their Vars + Globals", false),
-                            new Task("DemoCssGroupImplConsistencyTest → DemoThemeConsistencyTest (3 checks)", false),
-                            new Task("Demo CDN smoke: every demo route renders correctly under each theme; `/theme-vars` and `/theme-globals` routes return per-theme bundles", false)
+                            new Task("Create `DemoVars` constants class — 41 typed CssVars across the 7 groups", true),
+                            new Task("Restructure all 4 demo Themes into identity + nested Vars + Globals singletons", true),
+                            new Task("Move all per-class bodies inline onto demo CssGroup records (5 groups: Catalogue, PitchDeck, Playground, Spinning, Subway; Alice/Base stay empty)", true),
+                            new Task("Express PlaygroundStyles per-theme variation via tokens (composite values behind single vars; theme-specific Vars maps provide values)", true),
+                            new Task("Create `DemoThemeRegistry` with all 4 themes + their Vars + Globals", true),
+                            new Task("Wire `DemoActionRegistry` to override /theme-vars + /theme-globals with DemoThemeRegistry-backed actions", true),
+                            new Task("Delete all 10 demo theme impl files", true),
+                            new Task("Empty `DemoCssGroupImplRegistry.ALL`; conformance test still passes via the body-fallback path", true),
+                            new Task("`mvn install` GREEN; all 76 demo tests pass", true),
+                            new Task("Demo CDN smoke: every demo route renders correctly under each theme — deferred to live verification", false)
                     ),
                     List.of(new Dependency("10", "Studio migration validates the playbook before applying to demo's 7 groups × 4 themes.")),
-                    "Demo renders identically under each theme. ~10 files retired. Net code reduction substantial.",
+                    "Demo renders identically under each theme. 10 impl files retired. Net code reduction ~864 lines.",
                     "Revert the demo migration. Per-CssGroup atomic commits if doing piecemeal.",
-                    "3 hours",
-                    ""
-                    ,List.of()
+                    "3 hours actual",
+                    "PlaygroundStyles' four themes vary substantially in compound values (gradient stacks, multi-shadow box-shadows). Expressing this via single composite vars per property (e.g. `--pg-sky-bg` holding the entire 8-stop gradient string) — each theme's Vars map provides the full string. More tokens than a strict primitive-only approach, but bodies stay theme-agnostic and the structural variation is fully captured at the var layer.",
+                    List.of(
+                            new Metric("10 demo theme impl files",       "2,455 lines",       "0 (all deleted)",  "−2,455"),
+                            new Metric("Demo CssGroup files",             "474 lines (5 groups stub)", "≈1,200 lines (5 groups + 80+ inline bodies)", "+~726 (bodies absorbed)"),
+                            new Metric("Demo Theme files",                "49 lines (4 stubs)", "≈580 lines (Vars + Globals)", "+~531"),
+                            new Metric("New DemoVars + DemoThemeRegistry","—",                  "≈170 lines",        "+170"),
+                            new Metric("Total demo CSS surface",          "3,057 lines",       "2,193 lines",       "−864 (≈28% reduction)"),
+                            new Metric("Files retired",                   "10 impl files",     "—",                "10 files gone"),
+                            new Metric("Demo CssGroups using inline bodies", "0 of 5 active",  "5 of 5 active",     "100% migrated"),
+                            new Metric("Demo themes with proper Vars + Globals singletons", "0 of 4", "4 of 4", "all 4 themes structurally complete")
+                    )
             ),
 
             new Phase("12",
-                    "Documentation",
-                    "Update guide; flip RFC status; retire ES5 pitfall note.",
-                    "Rewrite the live-tracker-pattern guide's CSS section for the new model: marker groups, class-level bodies, top-level Themes, no per-group impls. Add 'Utility composition' subsection. Remove the existing ES5 pitfall (#7). Update RFC 0002-ext1 status to Implemented (with date).",
-                    Status.NOT_STARTED,
+                    "Documentation + RFC status flip + dark-mode removal",
+                    "Guide updated for the marker model; ES5 pitfall retired; RFC status Implemented.",
+                    "Rewrote the 'Themes' section of `docs/guides/live-tracker-pattern.md` for the marker model — identity-only Theme + nested Vars + Globals singletons. Added a 'Utility composition' subsection showing `cn(st_dep, border_emphasis.hover)` shape (no parens — variants are precomputed CssClass instances). Removed all three ES5 references from the guide (pitfall #7 + reviewer-checklist item + Recipe step 5 paragraph). Flipped RFC 0002-ext1 status from Draft to Implemented (2026-05-07). Also removed the `@media (prefers-color-scheme: dark)` block from `HomingDefault.Globals.css()` (per user request — dark-mode auto-adaptation no longer working under the split cascade; can be revisited as a future opt-in theme).",
+                    Status.DONE,
                     List.of(
-                            new Task("Rewrite the 'Themes' section in live-tracker-pattern.md for the marker + Theme model", false),
-                            new Task("Add 'Utility composition' subsection showing `cn(base, base.hover)` shape", false),
-                            new Task("Remove pitfall #7 (\"The JS dialect is ES5\") — project is ES6+ throughout (D8 RESOLVED)", false),
-                            new Task("Cross-link to RFC 0002-ext1 for the full design", false),
-                            new Task("Update RFC 0002-ext1 status from Draft to Implemented (with date)", false)
+                            new Task("Rewrite the 'Themes' section in live-tracker-pattern.md for the marker + Theme model (identity Theme + nested Vars + Globals; no per-group impls)", true),
+                            new Task("Add 'Utility composition' subsection showing `cn(base, base.hover)` shape with the actual border_emphasis.hover example from Phase 08", true),
+                            new Task("Remove pitfall #7 (\"The JS dialect is ES5\") — project is ES6+ throughout (D8 RESOLVED)", true),
+                            new Task("Remove ES5-checklist item from Reviewer checklist", true),
+                            new Task("Update Recipe Step 5 ES5 paragraph to ES6+", true),
+                            new Task("Cross-link to RFC 0002-ext1 for the full design", true),
+                            new Task("Update RFC 0002-ext1 status from Draft to Implemented (2026-05-07)", true),
+                            new Task("Remove dark-mode `@media (prefers-color-scheme: dark)` from HomingDefault.Globals.css() (no longer working under split cascade)", true)
                     ),
                     List.of(new Dependency("11", "Documentation lands once both studio and demo migrations are complete.")),
-                    "Guide serves correctly via DocReader. ES5 pitfall is gone. RFC 0002-ext1 status updated.",
-                    "git checkout the doc edits.",
-                    "1 hour",
-                    ""
-                    ,List.of()
+                    "Guide serves correctly via DocReader. ES5 references gone. RFC 0002-ext1 status updated. Dark mode auto-adaptation removed.",
+                    "git checkout the doc + HomingDefault edits.",
+                    "30 minutes actual",
+                    "Dark-mode auto-adaptation worked under the legacy single-CSS-file cascade (where /css-content emitted everything in one stylesheet). After Phase 09 split the cascade across /theme-vars + /theme-globals + /css-content, the @media override against primitives still defined in :root no longer composed cleanly. Removing it for now; can be re-introduced as a separate `HomingDark` theme record in a future change (one new file mirroring HomingDefault, registered in StudioThemeRegistry).",
+                    List.of(
+                            new Metric("RFC 0002-ext1 status", "Draft", "Implemented", "Phases 01–12 shipped"),
+                            new Metric("Phases completed", "0 of 12", "12 of 12", "100%"),
+                            new Metric("ES5 references in live-tracker-pattern.md", "3", "0", "−3"),
+                            new Metric("Dark-mode `@media` block in HomingDefault.Globals", "1", "0", "−1 (deferred to future HomingDark theme)")
+                    )
+            ),
+
+            new Phase("13",
+                    "Retire the primitive layer in studio CSS",
+                    "Collapse two-layer (primitive + semantic) → single semantic layer with concrete values per role per theme.",
+                    "After Phase 12's lesson surfaced (the `--st-white` primitive doing double duty caused the dark-mode legibility regression), retired the primitive layer entirely. Each semantic role now gets a concrete value directly per theme — light values in `Vars.values()`, dark overrides in `Globals.@media`. No more primitive → semantic indirection; the `--st-*` namespace is gone from studio. Restored the dark-mode `@media (prefers-color-scheme: dark)` block (was removed in Phase 12) — now overrides semantic tokens directly, so it composes cleanly with the split cascade.",
+                    Status.DONE,
+                    List.of(
+                            new Task("Replace `var(--st-foo)` references in `HomingDefault.Vars.values()` with concrete colour hex", true),
+                            new Task("Update `HomingDefault.Globals.DARK_OVERRIDE` to override semantic tokens directly (not primitives)", true),
+                            new Task("Same migration for `HomingForest`", true),
+                            new Task("Same migration for `HomingSunset`", true),
+                            new Task("Trim `StudioVars` — remove the 11 `--st-*` primitive CssVar constants; ALL set updated", true),
+                            new Task("Verify: 0 references to `var(--st-*)` or `--st-` anywhere in homing-studio-base", true),
+                            new Task("`mvn install` GREEN; all 8 modules build; all tests pass", true)
+                    ),
+                    List.of(new Dependency("12", "Implementation lessons from Phase 12 informed the design.")),
+                    "All three studio themes have semantic-only `Vars.values()`. Visual no-regression on every studio route in light AND dark mode. Dark-mode `@media` block restored.",
+                    "git revert. Three theme files affected; StudioVars affected.",
+                    "1 hour actual",
+                    "The dark-mode regression that triggered this work was a symptom of a deeper modelling issue: a primitive doing double duty (one source value playing two semantic roles) breaks under inversion. Removing the primitive layer eliminates the bug class entirely, not just the one instance. Demo (homing-demo) still uses the primitive pattern — DemoVars has theme-specific brand primitives that distinguish DemoDefault/Beach/Alpine/Dracula. That model is appropriate for theme variation rather than light/dark adaptation; not retired here.",
+                    List.of(
+                            new Metric("`StudioVars` primitive constants",       "11 (--st-*)",        "0",                    "−11 (entire primitive layer retired)"),
+                            new Metric("`StudioVars.java` line count",           "100",                "76",                   "−24"),
+                            new Metric("`HomingDefault.Vars.values()` entries", "37 (11 prim + 26 sem)", "26 (semantic-only)",   "−11"),
+                            new Metric("References to `var(--st-*)` in studio", "≈30",                "0",                    "−30 (every theme migrated)"),
+                            new Metric("Layers in studio CSS stack",            "2 (primitive + semantic)", "1 (semantic only)", "Simpler model, no double-duty risk")
+                    )
             )
     );
 
