@@ -17,6 +17,8 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
     private final EsModuleGetAction moduleAction;
     private final CssGetAction cssAction;
     private final CssContentGetAction cssContentAction;
+    private final ThemeVarsGetAction themeVarsAction;
+    private final ThemeGlobalsGetAction themeGlobalsAction;
 
     /** Legacy constructor — only the {@code ?class=} contract is supported. */
     public HomingActionRegistry(ModuleNameResolver nameResolver) {
@@ -33,7 +35,15 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
     }
 
     public HomingActionRegistry(ModuleNameResolver nameResolver, SimpleAppResolver appResolver, ResourceReader resourceReader) {
-        this.appAction = new AppHtmlGetAction(nameResolver, appResolver);
+        this(nameResolver, appResolver, resourceReader, ThemeRegistry.EMPTY);
+    }
+
+    /** RFC 0002-ext1: construct with a populated ThemeRegistry — drives the
+     *  theme-bundle endpoints AND the theme picker widget in the page bootstrap. */
+    public HomingActionRegistry(ModuleNameResolver nameResolver, SimpleAppResolver appResolver,
+                                ResourceReader resourceReader, ThemeRegistry themeRegistry) {
+        if (themeRegistry == null) themeRegistry = ThemeRegistry.EMPTY;
+        this.appAction = new AppHtmlGetAction(nameResolver, appResolver, themeRegistry);
         this.moduleAction = new EsModuleGetAction(nameResolver, resourceReader);
         this.cssAction = new CssGetAction();
         // Base registry serves a typed-only CssContentGetAction with no impls
@@ -41,6 +51,8 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
         // outer registry (e.g. StudioActionRegistry) overrides this route with
         // its own typed-impl-aware action. RFC 0002 §3.6 (hard cut, no file-based fallback).
         this.cssContentAction = new CssContentGetAction(List.of(), null);
+        this.themeVarsAction    = new ThemeVarsGetAction(themeRegistry, null);
+        this.themeGlobalsAction = new ThemeGlobalsGetAction(themeRegistry, null);
     }
 
     /** Backwards-compatible constructor for callers that don't yet use {@code SimpleAppResolver}. */
@@ -54,7 +66,9 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
                 "/app", appAction,
                 "/module", moduleAction,
                 "/css", cssAction,
-                "/css-content", cssContentAction
+                "/css-content", cssContentAction,
+                "/theme-vars", themeVarsAction,
+                "/theme-globals", themeGlobalsAction
         );
     }
 

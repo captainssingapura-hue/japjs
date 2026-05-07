@@ -87,14 +87,12 @@ public class CssContentGetAction
                         new IllegalStateException(
                                 "No theme specified and no default theme configured")));
             }
+            // RFC 0002-ext1 Phase 10/11: groups whose classes all have non-null
+            // `body()` no longer need a registered CssGroupImpl. The renderer
+            // handles `impl == null` by rendering purely from inline bodies.
+            // Theme cascade comes from the theme-bundle endpoints
+            // (/theme-vars, /theme-globals), not from the per-group response.
             CssGroupImpl<?, ?> impl = findImpl(group, themeSlug);
-            if (impl == null) {
-                return CompletableFuture.failedFuture(ResourceNotFound.forClass(
-                        query.className() + "/" + themeSlug,
-                        new IllegalStateException(
-                                "No CssGroupImpl registered for group=" + query.className()
-                                        + " theme=" + themeSlug)));
-            }
             return CompletableFuture.completedFuture(new CssContent(renderCss(impl, group)));
         } catch (Exception e) {
             return CompletableFuture.failedFuture(ResourceNotFound.forClass(query.className(), e));
@@ -125,41 +123,75 @@ public class CssContentGetAction
     private static String renderCss(CssGroupImpl<?, ?> impl, CssGroup<?> group) {
         StringBuilder sb = new StringBuilder();
 
-        // 1. CSS custom properties
-        Map<String, String> vars = impl.cssVariables();
-        if (!vars.isEmpty()) {
-            sb.append(":root {\n");
-            vars.forEach((k, v) -> sb.append("    ").append(k).append(": ").append(v).append(";\n"));
-            sb.append("}\n\n");
+        // 1. Legacy CSS custom properties + globalRules — emitted only when an
+        // impl is registered for the group. RFC 0002-ext1 Phase 09+ deployments
+        // serve these via the dedicated /theme-vars + /theme-globals endpoints;
+        // for fully-migrated groups (no impl registered) the renderer skips
+        // these blocks entirely and emits only per-class rules.
+        if (impl != null) {
+            Map<String, String> primitives = impl.cssVariables();
+            Map<String, String> semantic   = impl.semanticTokens();
+            if (!primitives.isEmpty() || !semantic.isEmpty()) {
+                sb.append(":root {\n");
+                primitives.forEach((k, v) -> sb.append("    ").append(k).append(": ").append(v).append(";\n"));
+                semantic  .forEach((k, v) -> sb.append("    ").append(k).append(": ").append(v).append(";\n"));
+                sb.append("}\n\n");
+            }
+            String global = impl.globalRules();
+            if (global != null && !global.isEmpty()) {
+                sb.append(global);
+                if (!global.endsWith("\n")) sb.append('\n');
+                sb.append('\n');
+            }
         }
 
-        // 2. Global rules (pseudo-classes, descendants, media queries, etc.)
-        String global = impl.globalRules();
-        if (global != null && !global.isEmpty()) {
-            sb.append(global);
-            if (!global.endsWith("\n")) sb.append('\n');
-            sb.append('\n');
-        }
-
-        // 3. Per-class rules — iterate the group's declared CssClasses and
-        // dispatch by record-name to a matching method on the impl.
+        // 2. Per-class rules — iterate the group's declared CssClasses, resolve
+        // each one's body, then emit the base rule + auto-generated variant
+        // rules per `cls.variants()`.
+        //
+        // RFC 0002-ext1 Phase 05: prefer `cls.body()` when non-null (inline
+        // class-level body — theme-agnostic, no impl method needed). Fall back
+        // to the legacy impl-method dispatch via reflection for classes that
+        // still rely on the per-theme Impl<TH> contract.
         for (CssClass<?> cssClass : group.cssClasses()) {
-            String methodName = cssClass.getClass().getSimpleName();
             try {
-                Method m = impl.getClass().getMethod(methodName);
-                CssBlock<?> block = (CssBlock<?>) m.invoke(impl);
-                String selector = "." + CssClassName.toCssName(cssClass.getClass());
-                String body = block.body();
-                sb.append(selector).append(" {\n");
-                if (!body.isEmpty()) {
-                    sb.append(body.indent(4));
+                String baseKebab = CssClassName.toCssName(cssClass.getClass());
+                String selector = "." + baseKebab;
+                String state = cssClass.pseudoState();
+                if (state != null && !state.isEmpty()) selector += state;
+
+                String body;
+                String inline = cssClass.body();
+                if (inline != null) {
+                    body = inline;
+                } else if (impl != null) {
+                    Method m = impl.getClass().getMethod(cssClass.getClass().getSimpleName());
+                    body = ((CssBlock<?>) m.invoke(impl)).body();
+                } else {
+                    sb.append("/* render error: no body() and no registered impl for ")
+                      .append(cssClass.getClass().getSimpleName()).append(" */\n");
+                    continue;
                 }
+
+                // Base rule (with optional pseudoState suffix).
+                sb.append(selector).append(" {\n");
+                if (!body.isEmpty()) sb.append(body.indent(4));
                 sb.append("}\n");
+
+                // Auto-generated variant rules — same body, state-prefixed kebab,
+                // pseudo-state suffix on the selector.
+                for (String variant : cssClass.variants()) {
+                    sb.append(".").append(variant).append("-").append(baseKebab)
+                      .append(":").append(variant).append(" {\n");
+                    if (!body.isEmpty()) sb.append(body.indent(4));
+                    sb.append("}\n");
+                }
             } catch (NoSuchMethodException e) {
-                sb.append("/* render error: no method ").append(methodName)
-                  .append("() on ").append(impl.getClass().getSimpleName()).append(" */\n");
+                sb.append("/* render error: no method ").append(cssClass.getClass().getSimpleName())
+                  .append("() on ").append(impl == null ? "(null impl)" : impl.getClass().getSimpleName())
+                  .append(" */\n");
             } catch (Exception e) {
-                sb.append("/* render error: ").append(methodName)
+                sb.append("/* render error: ").append(cssClass.getClass().getSimpleName())
                   .append(" — ").append(e.getMessage()).append(" */\n");
             }
         }

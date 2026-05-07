@@ -95,7 +95,8 @@ function appMain(rootElement) {
 
         var depsHtml = p.dependsOn.length
             ? p.dependsOn.map(function(d) {
-                    return '<a class="' + cn(st_dep) + '" ' + href.toAttr(nav.Rfc0002Ext1Step({phase: d.phaseId})) + ' title="' + escape(d.reason) + '">Phase ' + escape(d.phaseId) + '</a>';
+                    // RFC 0002-ext1 Phase 08 — Tailwind-style co-location: hover variant of border_emphasis.
+                    return '<a class="' + cn(st_dep, border_emphasis.hover) + '" ' + href.toAttr(nav.Rfc0002Ext1Step({phase: d.phaseId})) + ' title="' + escape(d.reason) + '">Phase ' + escape(d.phaseId) + '</a>';
                 }).join("")
             : '<span style="color:var(--st-gray-mid);font-style:italic;font-size:13px;">(no dependencies — independent)</span>';
 
@@ -151,6 +152,32 @@ function appMain(rootElement) {
             + '  <div class="' + cn(st_panel_title) + '">Notes</div>'
             + '  <div class="' + cn(st_doc) + '">' + notesHtml + '</div>'
             + '</div>';
+
+        // Code-reduction metrics (only rendered when this phase has at least one).
+        if (p.metrics && p.metrics.length > 0) {
+            html += '<div class="' + cn(st_panel) + '">'
+                  + '  <div class="' + cn(st_panel_title) + '">Code reduction</div>'
+                  + '  <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;">'
+                  + '    <thead><tr style="text-align:left;color:var(--color-text-muted);font-weight:600;">'
+                  + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">Metric</th>'
+                  + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">Before</th>'
+                  + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">After</th>'
+                  + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">Δ</th>'
+                  + '    </tr></thead>'
+                  + '    <tbody>';
+            for (var mi = 0; mi < p.metrics.length; mi++) {
+                var m = p.metrics[mi];
+                html += '<tr>'
+                      + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);">' + escape(m.label) + '</td>'
+                      + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);font-family:Consolas,monospace;color:var(--color-text-muted);">' + escape(m.before) + '</td>'
+                      + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);font-family:Consolas,monospace;">' + escape(m.after) + '</td>'
+                      + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);color:var(--color-accent-emphasis);">' + escape(m.delta) + '</td>'
+                      + '</tr>';
+            }
+            html += '    </tbody>'
+                  + '  </table>'
+                  + '</div>';
+        }
 
         // Prev / next navigation
         var idNum = parseInt(p.id, 10);

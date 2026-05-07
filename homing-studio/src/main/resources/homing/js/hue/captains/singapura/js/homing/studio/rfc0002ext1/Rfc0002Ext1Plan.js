@@ -142,6 +142,46 @@ function appMain(rootElement) {
 
         html += '</div>';
 
+        // Code-reduction metrics — aggregated per-phase, only shown when at least one phase has metrics.
+        var phasesWithMetrics = data.phases.filter(function(p) { return p.metrics && p.metrics.length > 0; });
+        if (phasesWithMetrics.length > 0) {
+            html += '<div class="' + cn(st_section) + '">'
+                  + '  <div class="' + cn(st_section_title) + '">Code reduction (so far)</div>'
+                  + '  <p style="font-size:13px;color:var(--color-text-muted);margin:0 0 16px 0;font-style:italic;">'
+                  +    'Per-phase before/after measurements. Each row is a property of the codebase the phase changed.'
+                  + '  </p>';
+
+            for (var pm = 0; pm < phasesWithMetrics.length; pm++) {
+                var ph = phasesWithMetrics[pm];
+                html += '<div style="background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:6px;padding:14px 18px;margin-bottom:12px;">'
+                      + '  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">'
+                      + '    <span style="font-family:Georgia,serif;font-style:italic;font-size:11px;color:var(--color-accent-emphasis);font-weight:700;letter-spacing:2px;">PHASE ' + escape(ph.id) + '</span>'
+                      + '    <h4 style="margin:0;font-size:15px;color:var(--color-text-link);">' + escape(ph.label) + '</h4>'
+                      + '  </div>'
+                      + '  <table style="width:100%;border-collapse:collapse;font-size:13px;">'
+                      + '    <thead><tr style="text-align:left;color:var(--color-text-muted);font-weight:600;">'
+                      + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">Metric</th>'
+                      + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">Before</th>'
+                      + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">After</th>'
+                      + '      <th style="padding:6px 8px;border-bottom:1px solid var(--color-border);">Δ</th>'
+                      + '    </tr></thead>'
+                      + '    <tbody>';
+                for (var mi = 0; mi < ph.metrics.length; mi++) {
+                    var m = ph.metrics[mi];
+                    html += '<tr>'
+                          + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);">' + escape(m.label) + '</td>'
+                          + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);font-family:Consolas,monospace;color:var(--color-text-muted);">' + escape(m.before) + '</td>'
+                          + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);font-family:Consolas,monospace;">' + escape(m.after) + '</td>'
+                          + '  <td style="padding:6px 8px;border-bottom:1px solid var(--color-surface-recessed);color:var(--color-accent-emphasis);">' + escape(m.delta) + '</td>'
+                          + '</tr>';
+                }
+                html += '    </tbody>'
+                      + '  </table>'
+                      + '</div>';
+            }
+            html += '</div>';
+        }
+
         // Footer
         html += '<div class="' + cn(st_footer) + '">'
               + '  Reference: <a ' + href.toAttr(nav.DocReader({path: data.rfcDoc})) + '>RFC 0002-ext1 — Utility-First + Semantic Tokens</a>'

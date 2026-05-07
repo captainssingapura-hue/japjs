@@ -2,6 +2,7 @@ package hue.captains.singapura.js.homing.studio.rfc0001;
 
 import hue.captains.singapura.js.homing.core.*;
 import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
+import hue.captains.singapura.js.homing.studio.base.css.Util;
 import hue.captains.singapura.js.homing.studio.es.DocReader;
 import hue.captains.singapura.js.homing.libs.MarkedJs;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
@@ -64,6 +65,7 @@ public record Rfc0001Step() implements AppModule<Rfc0001Step> {
                         new StudioStyles.st_doc(),
                         new StudioStyles.st_loading(), new StudioStyles.st_error()
                 ), StudioStyles.INSTANCE))
+                .add(new ModuleImports<>(List.of(new Util.border_emphasis()), Util.INSTANCE))   // RFC 0002-ext1 Phase 08
                 .build();
     }
 

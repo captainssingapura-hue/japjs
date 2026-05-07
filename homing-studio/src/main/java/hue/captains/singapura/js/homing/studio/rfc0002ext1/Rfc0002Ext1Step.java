@@ -3,6 +3,7 @@ package hue.captains.singapura.js.homing.studio.rfc0002ext1;
 import hue.captains.singapura.js.homing.core.*;
 import hue.captains.singapura.js.homing.libs.MarkedJs;
 import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
+import hue.captains.singapura.js.homing.studio.base.css.Util;
 import hue.captains.singapura.js.homing.studio.es.DocReader;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
@@ -61,6 +62,11 @@ public record Rfc0002Ext1Step() implements AppModule<Rfc0002Ext1Step> {
                         new StudioStyles.st_doc(),
                         new StudioStyles.st_loading(), new StudioStyles.st_error()
                 ), StudioStyles.INSTANCE))
+                .add(new ModuleImports<>(List.of(
+                        // RFC 0002-ext1 Phase 08: import Util base utility for `cn(st_dep, border_emphasis.hover)`
+                        // call shape. The .hover variant property is auto-generated on the JS side from the base.
+                        new Util.border_emphasis()
+                ), Util.INSTANCE))
                 .build();
     }
 

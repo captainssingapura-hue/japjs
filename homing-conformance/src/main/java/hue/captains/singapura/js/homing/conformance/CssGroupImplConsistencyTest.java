@@ -108,13 +108,17 @@ public abstract class CssGroupImplConsistencyTest {
         }
 
         // For each reachable group: skip empty, otherwise demand an impl
+        // OR every CssClass providing an inline body() (RFC 0002-ext1 Phase 10).
         var missing = new ArrayList<String>();
         Map<Class<?>, CssGroup<?>> byClass = collectReachableGroupInstances();
         for (Class<?> groupClass : reachable) {
             CssGroup<?> g = byClass.get(groupClass);
             if (g == null) continue; // shouldn't happen
             if (g.cssClasses().isEmpty()) continue; // empty groups need no impl
-            if (!implementedAtDefault.contains(groupClass)) {
+            if (implementedAtDefault.contains(groupClass)) continue;
+            // No registered impl — accept the group iff every class has an inline body().
+            boolean allInline = g.cssClasses().stream().allMatch(c -> c.body() != null);
+            if (!allInline) {
                 missing.add(groupClass.getName());
             }
         }

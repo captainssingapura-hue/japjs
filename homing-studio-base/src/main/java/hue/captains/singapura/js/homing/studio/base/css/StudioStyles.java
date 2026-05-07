@@ -1,224 +1,780 @@
 package hue.captains.singapura.js.homing.studio.base.css;
 
-import hue.captains.singapura.js.homing.core.CssBlock;
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.CssGroupImpl;
 import hue.captains.singapura.js.homing.core.CssImportsFor;
-import hue.captains.singapura.js.homing.core.Theme;
 
 import java.util.List;
 
 public record StudioStyles() implements CssGroup<StudioStyles> {
     public static final StudioStyles INSTANCE = new StudioStyles();
 
-    public record st_root() implements CssClass<StudioStyles> {}
-    public record st_header() implements CssClass<StudioStyles> {}
-    public record st_nav() implements CssClass<StudioStyles> {}
-    public record st_brand() implements CssClass<StudioStyles> {}
-    public record st_brand_dot() implements CssClass<StudioStyles> {}
-    public record st_brand_word() implements CssClass<StudioStyles> {}
-    public record st_breadcrumbs() implements CssClass<StudioStyles> {}
-    public record st_crumb() implements CssClass<StudioStyles> {}
-    public record st_crumb_sep() implements CssClass<StudioStyles> {}
-    public record st_main() implements CssClass<StudioStyles> {}
-    public record st_kicker() implements CssClass<StudioStyles> {}
-    public record st_title() implements CssClass<StudioStyles> {}
-    public record st_subtitle() implements CssClass<StudioStyles> {}
-    public record st_section() implements CssClass<StudioStyles> {}
-    public record st_section_title() implements CssClass<StudioStyles> {}
-    public record st_grid() implements CssClass<StudioStyles> {}
-    public record st_card() implements CssClass<StudioStyles> {}
-    public record st_card_featured() implements CssClass<StudioStyles> {}
-    public record st_card_title() implements CssClass<StudioStyles> {}
-    public record st_card_summary() implements CssClass<StudioStyles> {}
-    public record st_card_meta() implements CssClass<StudioStyles> {}
-    public record st_card_link() implements CssClass<StudioStyles> {}
-    public record st_badge() implements CssClass<StudioStyles> {}
-    public record st_badge_whitepaper() implements CssClass<StudioStyles> {}
-    public record st_badge_brochure() implements CssClass<StudioStyles> {}
-    public record st_badge_rfc() implements CssClass<StudioStyles> {}
-    public record st_badge_brand() implements CssClass<StudioStyles> {}
-    public record st_badge_session() implements CssClass<StudioStyles> {}
-    public record st_badge_reference() implements CssClass<StudioStyles> {}
-    public record st_badge_rename() implements CssClass<StudioStyles> {}
-    public record st_search_wrap() implements CssClass<StudioStyles> {}
-    public record st_search() implements CssClass<StudioStyles> {}
-    public record st_filter() implements CssClass<StudioStyles> {}
-    public record st_filter_btn() implements CssClass<StudioStyles> {}
-    public record st_filter_btn_active() implements CssClass<StudioStyles> {}
-    public record st_layout() implements CssClass<StudioStyles> {}
-    public record st_sidebar() implements CssClass<StudioStyles> {}
-    public record st_sidebar_title() implements CssClass<StudioStyles> {}
-    public record st_toc() implements CssClass<StudioStyles> {}
-    public record st_toc_item() implements CssClass<StudioStyles> {}
-    public record st_toc_h1() implements CssClass<StudioStyles> {}
-    public record st_toc_h2() implements CssClass<StudioStyles> {}
-    public record st_toc_h3() implements CssClass<StudioStyles> {}
-    public record st_toc_active() implements CssClass<StudioStyles> {}
-    public record st_doc() implements CssClass<StudioStyles> {}
-    public record st_doc_meta() implements CssClass<StudioStyles> {}
-    public record st_loading() implements CssClass<StudioStyles> {}
-    public record st_error() implements CssClass<StudioStyles> {}
-    public record st_footer() implements CssClass<StudioStyles> {}
-    public record st_app_pill() implements CssClass<StudioStyles> {}
-    public record st_app_pill_dark() implements CssClass<StudioStyles> {}
-    public record st_app_pill_icon() implements CssClass<StudioStyles> {}
-    public record st_app_pill_label() implements CssClass<StudioStyles> {}
-    public record st_app_pill_desc() implements CssClass<StudioStyles> {}
+    public record st_root() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            """;
+        }
+    }
+    public record st_header() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-inverted);
+            border-bottom: 2px solid var(--color-border-emphasis);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex: 0 0 auto;
+            """;
+        }
+    }
+    public record st_nav() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            margin-left: auto;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            """;
+        }
+    }
+    public record st_brand() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--color-text-on-inverted);
+            """;
+        }
+    }
+    public record st_brand_dot() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            width: 12px;
+            height: 12px;
+            background: var(--color-accent);
+            """;
+        }
+    }
+    public record st_brand_word() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-style: italic;
+            font-size: 22px;
+            color: var(--color-text-on-inverted);
+            line-height: 1;
+            """;
+        }
+    }
+    public record st_breadcrumbs() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: var(--color-text-on-inverted-muted);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            """;
+        }
+    }
+    public record st_crumb() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: var(--color-text-on-inverted-muted);
+            text-decoration: none;
+            """;
+        }
+    }
+    public record st_crumb_sep() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: var(--color-text-muted);
+            """;
+        }
+    }
+    public record st_main() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex: 1;
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 36px 32px 64px;
+            box-sizing: border-box;
+            """;
+        }
+    }
+    public record st_kicker() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 12px;
+            letter-spacing: 4px;
+            color: var(--color-text-link-hover);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 0 0 12px 0;
+            """;
+        }
+    }
+    public record st_title() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--color-text-link);
+            margin: 0 0 12px 0;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            """;
+        }
+    }
+    public record st_subtitle() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 17px;
+            color: var(--color-text-muted);
+            margin: 0 0 32px 0;
+            max-width: 760px;
+            line-height: 1.55;
+            font-style: italic;
+            """;
+        }
+    }
+    public record st_section() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            margin-top: 40px;
+            """;
+        }
+    }
+    public record st_section_title() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-text-link);
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin: 0 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--color-border-emphasis);
+            display: inline-block;
+            """;
+        }
+    }
+    public record st_grid() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            """;
+        }
+    }
+    public record st_card() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-border-emphasis);
+            border-radius: 4px;
+            padding: 18px 20px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.04);
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+            min-height: 150px;
+            """;
+        }
+    }
+    public record st_card_featured() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            grid-column: 1 / -1;
+            background: var(--color-surface-inverted);
+            color: var(--color-text-on-inverted-muted);
+            border-left-color: var(--color-border-emphasis);
+            flex-direction: row;
+            align-items: center;
+            gap: 24px;
+            padding: 20px 28px;
+            min-height: auto;
+            """;
+        }
+    }
+    public record st_card_title() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-link);
+            margin: 0 0 6px 0;
+            line-height: 1.25;
+            """;
+        }
+    }
+    public record st_card_summary() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 13px;
+            color: var(--color-text-muted);
+            line-height: 1.5;
+            margin: 0;
+            flex: 1;
+            """;
+        }
+    }
+    public record st_card_meta() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--color-border);
+            font-size: 11px;
+            color: var(--color-text-muted);
+            """;
+        }
+    }
+    public record st_card_link() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: var(--color-text-link-hover);
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            """;
+        }
+    }
+    public record st_badge() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 3px 8px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            """;
+        }
+    }
+    public record st_badge_whitepaper() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-surface-inverted); color: var(--color-accent);"; }
+    }
+    public record st_badge_brochure() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-accent); color: var(--color-accent-on);"; }
+    }
+    public record st_badge_rfc() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-surface-inverted); color: var(--color-text-on-inverted-muted);"; }
+    }
+    public record st_badge_brand() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-text-on-inverted-muted); color: var(--color-text-link);"; }
+    }
+    public record st_badge_session() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-surface-recessed); color: var(--color-text-primary); border: 1px solid var(--color-border);"; }
+    }
+    public record st_badge_reference() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-border); color: var(--color-text-link);"; }
+    }
+    public record st_badge_rename() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-accent-emphasis); color: var(--color-text-on-inverted-muted);"; }
+    }
+    public record st_search_wrap() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            margin: 8px 0 24px 0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            """;
+        }
+    }
+    public record st_search() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex: 1;
+            min-width: 280px;
+            padding: 10px 16px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--color-text-primary);
+            background: var(--color-surface-raised);
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+            """;
+        }
+    }
+    public record st_filter() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            """;
+        }
+    }
+    public record st_filter_btn() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 6px 12px;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface-raised);
+            color: var(--color-text-primary);
+            cursor: pointer;
+            border-radius: 3px;
+            text-transform: uppercase;
+            transition: all 140ms ease;
+            """;
+        }
+    }
+    public record st_filter_btn_active() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-inverted);
+            color: var(--color-text-on-inverted);
+            border-color: var(--color-surface-inverted);
+            """;
+        }
+    }
+    public record st_layout() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 32px;
+            margin-top: 8px;
+            """;
+        }
+    }
+    public record st_sidebar() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            position: sticky;
+            top: 24px;
+            align-self: start;
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+            padding: 4px 8px 4px 4px;
+            """;
+        }
+    }
+    public record st_sidebar_title() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 11px;
+            letter-spacing: 4px;
+            color: var(--color-text-link-hover);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 0 0 12px 0;
+            """;
+        }
+    }
+    public record st_toc() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            border-left: 1px solid var(--color-border);
+            """;
+        }
+    }
+    public record st_toc_item() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: block;
+            padding: 4px 12px;
+            font-size: 13px;
+            color: var(--color-text-muted);
+            text-decoration: none;
+            line-height: 1.4;
+            border-left: 2px solid transparent;
+            margin-left: -1px;
+            transition: color 140ms ease, border-color 140ms ease;
+            """;
+        }
+    }
+    public record st_toc_h1() implements CssClass<StudioStyles> {
+        @Override public String body() { return "font-weight: 700; color: var(--color-text-link); padding-left: 12px;"; }
+    }
+    public record st_toc_h2() implements CssClass<StudioStyles> {
+        @Override public String body() { return "padding-left: 24px;"; }
+    }
+    public record st_toc_h3() implements CssClass<StudioStyles> {
+        @Override public String body() { return "padding-left: 36px; font-size: 12px;"; }
+    }
+    public record st_toc_active() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: var(--color-text-link);
+            border-left-color: var(--color-border-emphasis);
+            background: var(--color-surface-recessed);
+            """;
+        }
+    }
+    public record st_doc() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--color-text-primary);
+            max-width: 820px;
+            """;
+        }
+    }
+    public record st_doc_meta() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            """;
+        }
+    }
+    public record st_loading() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--color-text-muted);
+            font-style: italic;
+            font-size: 14px;
+            """;
+        }
+    }
+    public record st_error() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: rgba(220, 38, 38, 0.06);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-left: 4px solid #DC2626;
+            padding: 16px 20px;
+            border-radius: 4px;
+            color: #7F1D1D;
+            margin: 16px 0;
+            """;
+        }
+    }
+    public record st_footer() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            margin-top: 64px;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            font-size: 12px;
+            """;
+        }
+    }
+    public record st_app_pill() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-border-emphasis);
+            padding: 22px 24px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.05);
+            transition: all 160ms ease;
+            """;
+        }
+    }
+    public record st_app_pill_dark() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-inverted);
+            color: var(--color-text-on-inverted-muted);
+            border-left-color: var(--color-border-emphasis);
+            """;
+        }
+    }
+    public record st_app_pill_icon() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex: 0 0 56px;
+            height: 56px;
+            background: var(--color-accent);
+            color: var(--color-text-link);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Georgia", serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 700;
+            """;
+        }
+    }
+    public record st_app_pill_label() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--color-text-link);
+            margin: 0 0 4px 0;
+            """;
+        }
+    }
+    public record st_app_pill_desc() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin: 0;
+            line-height: 1.5;
+            """;
+        }
+    }
 
     // RFC implementation tracker
-    public record st_overall_progress() implements CssClass<StudioStyles> {}
-    public record st_overall_bar() implements CssClass<StudioStyles> {}
-    public record st_overall_fill() implements CssClass<StudioStyles> {}
-    public record st_overall_pct() implements CssClass<StudioStyles> {}
-    public record st_step_card() implements CssClass<StudioStyles> {}
-    public record st_step_head() implements CssClass<StudioStyles> {}
-    public record st_step_id() implements CssClass<StudioStyles> {}
-    public record st_step_label() implements CssClass<StudioStyles> {}
-    public record st_step_summary() implements CssClass<StudioStyles> {}
-    public record st_step_progress() implements CssClass<StudioStyles> {}
-    public record st_step_progress_bar() implements CssClass<StudioStyles> {}
-    public record st_step_progress_fill() implements CssClass<StudioStyles> {}
-    public record st_step_meta() implements CssClass<StudioStyles> {}
-    public record st_status_badge() implements CssClass<StudioStyles> {}
-    public record st_status_not_started() implements CssClass<StudioStyles> {}
-    public record st_status_in_progress() implements CssClass<StudioStyles> {}
-    public record st_status_blocked() implements CssClass<StudioStyles> {}
-    public record st_status_done() implements CssClass<StudioStyles> {}
-    public record st_panel() implements CssClass<StudioStyles> {}
-    public record st_panel_title() implements CssClass<StudioStyles> {}
-    public record st_task_list() implements CssClass<StudioStyles> {}
-    public record st_task_item() implements CssClass<StudioStyles> {}
-    public record st_task_done() implements CssClass<StudioStyles> {}
-    public record st_task_box() implements CssClass<StudioStyles> {}
-    public record st_dep() implements CssClass<StudioStyles> {}
-    public record st_acceptance() implements CssClass<StudioStyles> {}
-    public record st_effort() implements CssClass<StudioStyles> {}
-
-    /**
-     * Per-theme implementation contract for {@link StudioStyles}.
-     *
-     * <p>Adding a {@link CssClass} record above forces every concrete
-     * implementation of this interface to override the corresponding new
-     * method, or it won't compile — the compile-time gate for theme
-     * completeness across all themes (RFC 0002 §3.1).</p>
-     *
-     * <p>Method names match record simple names exactly. Each method
-     * returns a {@link CssBlock} parameterized by the matching record class
-     * (e.g. {@code CssBlock<st_root>}) — the body that goes <em>inside</em>
-     * the curly braces of the rule. The witness type catches "I pasted the
-     * wrong body into the wrong method" at compile time. The framework wraps
-     * the body with a kebab-cased selector derived from the record name
-     * ({@code st_root} → {@code .st-root}).</p>
-     *
-     * <p>{@link #cssVariables()} is inherited from {@link CssGroupImpl} and
-     * defaults to an empty map; override to emit a {@code :root \{ … \}}
-     * block of CSS custom properties before the per-class rules.</p>
-     *
-     * @param <TH> the {@link Theme} this impl realizes
-     */
-    public interface Impl<TH extends Theme> extends CssGroupImpl<StudioStyles, TH> {
-
-        @Override default StudioStyles group() { return INSTANCE; }
-
-        // {@link CssGroupImpl#globalRules()} is the home for non-class-keyed rules
-        // (html/body resets, pseudo-classes, descendants, media queries) — override there.
-
-        // -- structure --
-        CssBlock<st_root> st_root();
-        CssBlock<st_header> st_header();
-        CssBlock<st_nav> st_nav();
-        CssBlock<st_brand> st_brand();
-        CssBlock<st_brand_dot> st_brand_dot();
-        CssBlock<st_brand_word> st_brand_word();
-        CssBlock<st_breadcrumbs> st_breadcrumbs();
-        CssBlock<st_crumb> st_crumb();
-        CssBlock<st_crumb_sep> st_crumb_sep();
-        CssBlock<st_main> st_main();
-        CssBlock<st_kicker> st_kicker();
-        CssBlock<st_title> st_title();
-        CssBlock<st_subtitle> st_subtitle();
-        CssBlock<st_section> st_section();
-        CssBlock<st_section_title> st_section_title();
-        CssBlock<st_grid> st_grid();
-        CssBlock<st_card> st_card();
-        CssBlock<st_card_featured> st_card_featured();
-        CssBlock<st_card_title> st_card_title();
-        CssBlock<st_card_summary> st_card_summary();
-        CssBlock<st_card_meta> st_card_meta();
-        CssBlock<st_card_link> st_card_link();
-
-        // -- badges --
-        CssBlock<st_badge> st_badge();
-        CssBlock<st_badge_whitepaper> st_badge_whitepaper();
-        CssBlock<st_badge_brochure> st_badge_brochure();
-        CssBlock<st_badge_rfc> st_badge_rfc();
-        CssBlock<st_badge_brand> st_badge_brand();
-        CssBlock<st_badge_session> st_badge_session();
-        CssBlock<st_badge_reference> st_badge_reference();
-        CssBlock<st_badge_rename> st_badge_rename();
-
-        // -- doc browser controls --
-        CssBlock<st_search_wrap> st_search_wrap();
-        CssBlock<st_search> st_search();
-        CssBlock<st_filter> st_filter();
-        CssBlock<st_filter_btn> st_filter_btn();
-        CssBlock<st_filter_btn_active> st_filter_btn_active();
-
-        // -- doc reader layout --
-        CssBlock<st_layout> st_layout();
-        CssBlock<st_sidebar> st_sidebar();
-        CssBlock<st_sidebar_title> st_sidebar_title();
-        CssBlock<st_toc> st_toc();
-        CssBlock<st_toc_item> st_toc_item();
-        CssBlock<st_toc_h1> st_toc_h1();
-        CssBlock<st_toc_h2> st_toc_h2();
-        CssBlock<st_toc_h3> st_toc_h3();
-        CssBlock<st_toc_active> st_toc_active();
-        CssBlock<st_doc> st_doc();
-        CssBlock<st_doc_meta> st_doc_meta();
-
-        // -- shared --
-        CssBlock<st_loading> st_loading();
-        CssBlock<st_error> st_error();
-        CssBlock<st_footer> st_footer();
-
-        // -- catalogue tiles --
-        CssBlock<st_app_pill> st_app_pill();
-        CssBlock<st_app_pill_dark> st_app_pill_dark();
-        CssBlock<st_app_pill_icon> st_app_pill_icon();
-        CssBlock<st_app_pill_label> st_app_pill_label();
-        CssBlock<st_app_pill_desc> st_app_pill_desc();
-
-        // -- RFC implementation tracker --
-        CssBlock<st_overall_progress> st_overall_progress();
-        CssBlock<st_overall_bar> st_overall_bar();
-        CssBlock<st_overall_fill> st_overall_fill();
-        CssBlock<st_overall_pct> st_overall_pct();
-        CssBlock<st_step_card> st_step_card();
-        CssBlock<st_step_head> st_step_head();
-        CssBlock<st_step_id> st_step_id();
-        CssBlock<st_step_label> st_step_label();
-        CssBlock<st_step_summary> st_step_summary();
-        CssBlock<st_step_progress> st_step_progress();
-        CssBlock<st_step_progress_bar> st_step_progress_bar();
-        CssBlock<st_step_progress_fill> st_step_progress_fill();
-        CssBlock<st_step_meta> st_step_meta();
-        CssBlock<st_status_badge> st_status_badge();
-        CssBlock<st_status_not_started> st_status_not_started();
-        CssBlock<st_status_in_progress> st_status_in_progress();
-        CssBlock<st_status_blocked> st_status_blocked();
-        CssBlock<st_status_done> st_status_done();
-        CssBlock<st_panel> st_panel();
-        CssBlock<st_panel_title> st_panel_title();
-        CssBlock<st_task_list> st_task_list();
-        CssBlock<st_task_item> st_task_item();
-        CssBlock<st_task_done> st_task_done();
-        CssBlock<st_task_box> st_task_box();
-        CssBlock<st_dep> st_dep();
-        CssBlock<st_acceptance> st_acceptance();
-        CssBlock<st_effort> st_effort();
+    public record st_overall_progress() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-inverted);
+            color: var(--color-text-on-inverted-muted);
+            border-left: 4px solid var(--color-border-emphasis);
+            padding: 18px 24px;
+            border-radius: 4px;
+            margin: 0 0 24px 0;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            """;
+        }
+    }
+    public record st_overall_bar() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex: 1;
+            height: 12px;
+            background: rgba(202, 220, 252, 0.18);
+            border-radius: 6px;
+            overflow: hidden;
+            """;
+        }
+    }
+    public record st_overall_fill() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-accent-emphasis));
+            transition: width 280ms ease;
+            """;
+        }
+    }
+    public record st_overall_pct() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-accent);
+            flex: 0 0 auto;
+            """;
+        }
+    }
+    public record st_step_card() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-border-emphasis);
+            border-radius: 4px;
+            padding: 18px 22px;
+            margin-bottom: 12px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.04);
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+            """;
+        }
+    }
+    public record st_step_head() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            margin-bottom: 6px;
+            """;
+        }
+    }
+    public record st_step_id() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-style: italic;
+            font-size: 13px;
+            color: var(--color-text-link-hover);
+            font-weight: 700;
+            flex: 0 0 auto;
+            letter-spacing: 1px;
+            """;
+        }
+    }
+    public record st_step_label() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-link);
+            margin: 0;
+            flex: 1;
+            """;
+        }
+    }
+    public record st_step_summary() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin: 0 0 10px 0;
+            line-height: 1.5;
+            """;
+        }
+    }
+    public record st_step_progress() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+            """;
+        }
+    }
+    public record st_step_progress_bar() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex: 1;
+            height: 6px;
+            background: var(--color-surface-recessed);
+            border-radius: 3px;
+            overflow: hidden;
+            """;
+        }
+    }
+    public record st_step_progress_fill() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            height: 100%;
+            background: var(--color-accent);
+            transition: width 280ms ease;
+            """;
+        }
+    }
+    public record st_step_meta() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 0 0 auto;
+            font-size: 11px;
+            color: var(--color-text-muted);
+            """;
+        }
+    }
+    public record st_status_badge() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 3px 8px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            """;
+        }
+    }
+    public record st_status_not_started() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-border); color: var(--color-text-primary);"; }
+    }
+    public record st_status_in_progress() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: var(--color-accent); color: var(--color-accent-on);"; }
+    }
+    public record st_status_blocked() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: #FECACA; color: #7F1D1D;"; }
+    }
+    public record st_status_done() implements CssClass<StudioStyles> {
+        @Override public String body() { return "background: #BBF7D0; color: #14532D;"; }
+    }
+    public record st_panel() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            padding: 18px 22px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.04);
+            """;
+        }
+    }
+    public record st_panel_title() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-text-link-hover);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin: 0 0 12px 0;
+            """;
+        }
+    }
+    public record st_task_list() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            """;
+        }
+    }
+    public record st_task_item() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 6px 0;
+            color: var(--color-text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+            """;
+        }
+    }
+    public record st_task_done() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: var(--color-text-muted);
+            text-decoration: line-through;
+            """;
+        }
+    }
+    public record st_task_box() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex: 0 0 16px;
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--color-text-muted);
+            border-radius: 3px;
+            margin-top: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--color-text-on-inverted);
+            background: var(--color-surface-raised);
+            """;
+        }
+    }
+    public record st_dep() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: inline-block;
+            margin: 4px 6px 4px 0;
+            padding: 4px 10px;
+            background: var(--color-surface-recessed);
+            border: 1px solid var(--color-border);
+            border-radius: 3px;
+            font-size: 12px;
+            color: var(--color-text-link);
+            text-decoration: none;
+            """;
+        }
+    }
+    public record st_acceptance() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            """;
+        }
+    }
+    public record st_effort() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-style: italic;
+            color: var(--color-text-link-hover);
+            font-size: 14px;
+            """;
+        }
     }
 
     @Override

@@ -25,14 +25,20 @@ public class AppHtmlGetAction
 
     private final ModuleNameResolver nameResolver;
     private final SimpleAppResolver appResolver;   // may be null in legacy-only mode
+    private final ThemeRegistry themeRegistry;     // RFC 0002-ext1 — for the theme picker widget
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver) {
-        this(nameResolver, null);
+        this(nameResolver, null, ThemeRegistry.EMPTY);
     }
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver) {
+        this(nameResolver, appResolver, ThemeRegistry.EMPTY);
+    }
+
+    public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver, ThemeRegistry themeRegistry) {
         this.nameResolver = nameResolver;
         this.appResolver = appResolver;
+        this.themeRegistry = themeRegistry != null ? themeRegistry : ThemeRegistry.EMPTY;
     }
 
     @Override
@@ -96,6 +102,7 @@ public class AppHtmlGetAction
         String baseModuleUrl = nameResolver.resolve(app).basePath();
         String themeJs  = query.theme()  != null ? "\"" + query.theme()  + "\"" : "null";
         String localeJs = query.locale() != null ? "\"" + query.locale() + "\"" : "null";
+        String themePickerHtml = renderThemePicker(query.theme());
 
         String html = """
                 <!DOCTYPE html>
@@ -106,6 +113,7 @@ public class AppHtmlGetAction
                 </head>
                 <body>
                     <div id="app"></div>
+                    %s
                     <script type="module">
                         // RFC 0002: theme is opt-in. If the URL didn't carry ?theme=, we
                         // forward nothing and the server resolves to its registered default.
@@ -121,9 +129,55 @@ public class AppHtmlGetAction
                     </script>
                 </body>
                 </html>
-                """.formatted(app.title(), themeJs, localeJs, baseModuleUrl);
+                """.formatted(app.title(), themePickerHtml, themeJs, localeJs, baseModuleUrl);
 
         return CompletableFuture.completedFuture(new HtmlPageContent(html));
+    }
+
+    /**
+     * RFC 0002-ext1 — fixed-position theme switcher widget. Lists every theme
+     * registered in the deployment's {@link ThemeRegistry}. On change, navigates
+     * to the same URL with an updated {@code ?theme=<slug>} parameter. When the
+     * registry has 0 or 1 themes, the widget renders nothing.
+     */
+    private String renderThemePicker(String currentTheme) {
+        var themes = themeRegistry.themes();
+        if (themes.size() < 2) return "";   // no point switching if there's only one
+
+        StringBuilder options = new StringBuilder();
+        for (var theme : themes) {
+            String slug   = theme.slug();
+            String label  = theme.label();
+            String selected = slug.equals(currentTheme) ? " selected" : "";
+            options.append("<option value=\"").append(htmlEscape(slug)).append("\"").append(selected)
+                   .append(">").append(htmlEscape(label)).append("</option>");
+        }
+
+        return """
+                <div style="position:fixed; top:12px; right:12px; z-index:9999; background:rgba(255,255,255,0.92); border:1px solid rgba(0,0,0,0.12); border-radius:6px; padding:6px 10px; font:13px system-ui,sans-serif; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                    <label style="color:#666; margin-right:6px;">Theme:</label>
+                    <select id="__theme_picker__" style="font:inherit; border:none; background:transparent; cursor:pointer; padding:2px 4px;">
+                        %s
+                    </select>
+                </div>
+                <script>
+                    (function () {
+                        var sel = document.getElementById('__theme_picker__');
+                        if (!sel) return;
+                        sel.addEventListener('change', function () {
+                            var params = new URLSearchParams(window.location.search);
+                            if (sel.value) params.set('theme', sel.value);
+                            else params.delete('theme');
+                            window.location.search = params.toString();
+                        });
+                    })();
+                </script>
+                """.formatted(options.toString());
+    }
+
+    private static String htmlEscape(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
     private static ResourceNotFound notFound(String resource, String reason) {
