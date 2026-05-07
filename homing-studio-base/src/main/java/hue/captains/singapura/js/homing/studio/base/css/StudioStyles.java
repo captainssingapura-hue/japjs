@@ -1,8 +1,11 @@
-package hue.captains.singapura.js.homing.studio.css;
+package hue.captains.singapura.js.homing.studio.base.css;
 
+import hue.captains.singapura.js.homing.core.CssBlock;
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
+import hue.captains.singapura.js.homing.core.CssGroupImpl;
 import hue.captains.singapura.js.homing.core.CssImportsFor;
+import hue.captains.singapura.js.homing.core.Theme;
 
 import java.util.List;
 
@@ -92,6 +95,131 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
     public record st_dep() implements CssClass<StudioStyles> {}
     public record st_acceptance() implements CssClass<StudioStyles> {}
     public record st_effort() implements CssClass<StudioStyles> {}
+
+    /**
+     * Per-theme implementation contract for {@link StudioStyles}.
+     *
+     * <p>Adding a {@link CssClass} record above forces every concrete
+     * implementation of this interface to override the corresponding new
+     * method, or it won't compile — the compile-time gate for theme
+     * completeness across all themes (RFC 0002 §3.1).</p>
+     *
+     * <p>Method names match record simple names exactly. Each method
+     * returns a {@link CssBlock} parameterized by the matching record class
+     * (e.g. {@code CssBlock<st_root>}) — the body that goes <em>inside</em>
+     * the curly braces of the rule. The witness type catches "I pasted the
+     * wrong body into the wrong method" at compile time. The framework wraps
+     * the body with a kebab-cased selector derived from the record name
+     * ({@code st_root} → {@code .st-root}).</p>
+     *
+     * <p>{@link #cssVariables()} is inherited from {@link CssGroupImpl} and
+     * defaults to an empty map; override to emit a {@code :root \{ … \}}
+     * block of CSS custom properties before the per-class rules.</p>
+     *
+     * @param <TH> the {@link Theme} this impl realizes
+     */
+    public interface Impl<TH extends Theme> extends CssGroupImpl<StudioStyles, TH> {
+
+        @Override default StudioStyles group() { return INSTANCE; }
+
+        // {@link CssGroupImpl#globalRules()} is the home for non-class-keyed rules
+        // (html/body resets, pseudo-classes, descendants, media queries) — override there.
+
+        // -- structure --
+        CssBlock<st_root> st_root();
+        CssBlock<st_header> st_header();
+        CssBlock<st_nav> st_nav();
+        CssBlock<st_brand> st_brand();
+        CssBlock<st_brand_dot> st_brand_dot();
+        CssBlock<st_brand_word> st_brand_word();
+        CssBlock<st_breadcrumbs> st_breadcrumbs();
+        CssBlock<st_crumb> st_crumb();
+        CssBlock<st_crumb_sep> st_crumb_sep();
+        CssBlock<st_main> st_main();
+        CssBlock<st_kicker> st_kicker();
+        CssBlock<st_title> st_title();
+        CssBlock<st_subtitle> st_subtitle();
+        CssBlock<st_section> st_section();
+        CssBlock<st_section_title> st_section_title();
+        CssBlock<st_grid> st_grid();
+        CssBlock<st_card> st_card();
+        CssBlock<st_card_featured> st_card_featured();
+        CssBlock<st_card_title> st_card_title();
+        CssBlock<st_card_summary> st_card_summary();
+        CssBlock<st_card_meta> st_card_meta();
+        CssBlock<st_card_link> st_card_link();
+
+        // -- badges --
+        CssBlock<st_badge> st_badge();
+        CssBlock<st_badge_whitepaper> st_badge_whitepaper();
+        CssBlock<st_badge_brochure> st_badge_brochure();
+        CssBlock<st_badge_rfc> st_badge_rfc();
+        CssBlock<st_badge_brand> st_badge_brand();
+        CssBlock<st_badge_session> st_badge_session();
+        CssBlock<st_badge_reference> st_badge_reference();
+        CssBlock<st_badge_rename> st_badge_rename();
+
+        // -- doc browser controls --
+        CssBlock<st_search_wrap> st_search_wrap();
+        CssBlock<st_search> st_search();
+        CssBlock<st_filter> st_filter();
+        CssBlock<st_filter_btn> st_filter_btn();
+        CssBlock<st_filter_btn_active> st_filter_btn_active();
+
+        // -- doc reader layout --
+        CssBlock<st_layout> st_layout();
+        CssBlock<st_sidebar> st_sidebar();
+        CssBlock<st_sidebar_title> st_sidebar_title();
+        CssBlock<st_toc> st_toc();
+        CssBlock<st_toc_item> st_toc_item();
+        CssBlock<st_toc_h1> st_toc_h1();
+        CssBlock<st_toc_h2> st_toc_h2();
+        CssBlock<st_toc_h3> st_toc_h3();
+        CssBlock<st_toc_active> st_toc_active();
+        CssBlock<st_doc> st_doc();
+        CssBlock<st_doc_meta> st_doc_meta();
+
+        // -- shared --
+        CssBlock<st_loading> st_loading();
+        CssBlock<st_error> st_error();
+        CssBlock<st_footer> st_footer();
+
+        // -- catalogue tiles --
+        CssBlock<st_app_pill> st_app_pill();
+        CssBlock<st_app_pill_dark> st_app_pill_dark();
+        CssBlock<st_app_pill_icon> st_app_pill_icon();
+        CssBlock<st_app_pill_label> st_app_pill_label();
+        CssBlock<st_app_pill_desc> st_app_pill_desc();
+
+        // -- RFC implementation tracker --
+        CssBlock<st_overall_progress> st_overall_progress();
+        CssBlock<st_overall_bar> st_overall_bar();
+        CssBlock<st_overall_fill> st_overall_fill();
+        CssBlock<st_overall_pct> st_overall_pct();
+        CssBlock<st_step_card> st_step_card();
+        CssBlock<st_step_head> st_step_head();
+        CssBlock<st_step_id> st_step_id();
+        CssBlock<st_step_label> st_step_label();
+        CssBlock<st_step_summary> st_step_summary();
+        CssBlock<st_step_progress> st_step_progress();
+        CssBlock<st_step_progress_bar> st_step_progress_bar();
+        CssBlock<st_step_progress_fill> st_step_progress_fill();
+        CssBlock<st_step_meta> st_step_meta();
+        CssBlock<st_status_badge> st_status_badge();
+        CssBlock<st_status_not_started> st_status_not_started();
+        CssBlock<st_status_in_progress> st_status_in_progress();
+        CssBlock<st_status_blocked> st_status_blocked();
+        CssBlock<st_status_done> st_status_done();
+        CssBlock<st_panel> st_panel();
+        CssBlock<st_panel_title> st_panel_title();
+        CssBlock<st_task_list> st_task_list();
+        CssBlock<st_task_item> st_task_item();
+        CssBlock<st_task_done> st_task_done();
+        CssBlock<st_task_box> st_task_box();
+        CssBlock<st_dep> st_dep();
+        CssBlock<st_acceptance> st_acceptance();
+        CssBlock<st_effort> st_effort();
+    }
 
     @Override
     public CssImportsFor<StudioStyles> cssImports() {

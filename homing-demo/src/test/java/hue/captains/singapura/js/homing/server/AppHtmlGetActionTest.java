@@ -36,8 +36,11 @@ class AppHtmlGetActionTest {
         assertTrue(result.body().contains("/module?class=" + WonderlandDemo.class.getCanonicalName()));
         assertTrue(result.body().contains("await import(moduleUrl)"));
         assertTrue(result.body().contains("appMain(document.getElementById(\"app\"))"));
-        assertTrue(result.body().contains("colorScheme"), "Should set color-scheme from theme");
-        assertTrue(result.body().contains("matchMedia"), "Should detect system theme preference");
+        // RFC 0002: themes are explicit. With no ?theme= in the request, the
+        // bootstrap forwards no theme (server resolves to its registered default)
+        // and does NOT auto-detect from prefers-color-scheme.
+        assertFalse(result.body().contains("matchMedia"), "Should not auto-detect system theme preference");
+        assertFalse(result.body().contains("\"light\""), "Should not hard-code 'light' as a fallback theme");
     }
 
     @Test

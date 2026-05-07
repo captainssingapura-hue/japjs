@@ -12,7 +12,6 @@ import hue.captains.singapura.js.homing.demo.es.PitchDeck;
 import hue.captains.singapura.js.homing.demo.es.SpinningAnimals;
 import hue.captains.singapura.js.homing.demo.es.TurtleDemo;
 import hue.captains.singapura.js.homing.demo.es.WonderlandDemo;
-import hue.captains.singapura.js.homing.server.HomingActionRegistry;
 import hue.captains.singapura.js.homing.server.QueryParamResolver;
 import hue.captains.singapura.tao.http.vertx.VertxActionHost;
 
@@ -29,7 +28,7 @@ public class WonderlandDemoServer {
         ));
 
         var nameResolver = new QueryParamResolver();
-        var registry = new HomingActionRegistry(nameResolver, appResolver);
+        var registry = new DemoActionRegistry(nameResolver, appResolver);
         var host = new VertxActionHost(registry, 8080);
 
         host.start().onSuccess(server -> {

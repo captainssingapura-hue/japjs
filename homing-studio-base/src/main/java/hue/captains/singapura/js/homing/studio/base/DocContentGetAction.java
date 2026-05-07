@@ -1,4 +1,4 @@
-package hue.captains.singapura.js.homing.studio;
+package hue.captains.singapura.js.homing.studio.base;
 
 import hue.captains.singapura.js.homing.server.EmptyParam;
 import hue.captains.singapura.js.homing.server.ResourceNotFound;

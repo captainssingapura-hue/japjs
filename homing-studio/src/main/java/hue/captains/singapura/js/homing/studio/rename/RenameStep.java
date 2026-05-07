@@ -1,10 +1,11 @@
 package hue.captains.singapura.js.homing.studio.rename;
 
 import hue.captains.singapura.js.homing.core.*;
-import hue.captains.singapura.js.homing.studio.css.StudioStyles;
+import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
 import hue.captains.singapura.js.homing.studio.es.DocReader;
 import hue.captains.singapura.js.homing.libs.MarkedJs;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
+import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ public record RenameStep() implements AppModule<RenameStep> {
     public ImportsFor<RenameStep> imports() {
         return ImportsFor.<RenameStep>builder()
                 .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new JourneysCatalogue.link()), JourneysCatalogue.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RenamePlan.link()),       RenamePlan.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RenameStep.link()),       RenameStep.INSTANCE))  // self-link for prev/next
                 .add(new ModuleImports<>(List.of(new DocReader.link()),        DocReader.INSTANCE))

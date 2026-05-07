@@ -2,7 +2,7 @@ package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.core.*;
 import hue.captains.singapura.js.homing.libs.MarkedJs;
-import hue.captains.singapura.js.homing.studio.css.StudioStyles;
+import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
 
 import java.util.List;
 

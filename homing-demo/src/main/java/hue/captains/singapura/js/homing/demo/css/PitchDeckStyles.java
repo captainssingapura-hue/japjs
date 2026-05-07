@@ -1,8 +1,11 @@
 package hue.captains.singapura.js.homing.demo.css;
 
+import hue.captains.singapura.js.homing.core.CssBlock;
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
+import hue.captains.singapura.js.homing.core.CssGroupImpl;
 import hue.captains.singapura.js.homing.core.CssImportsFor;
+import hue.captains.singapura.js.homing.core.Theme;
 
 import java.util.List;
 
@@ -79,6 +82,82 @@ public record PitchDeckStyles() implements CssGroup<PitchDeckStyles> {
 
     public record pd_toast() implements CssClass<PitchDeckStyles> {}
     public record pd_toast_show() implements CssClass<PitchDeckStyles> {}
+
+    /** Per-theme implementation contract for {@link PitchDeckStyles}. */
+    public interface Impl<TH extends Theme> extends CssGroupImpl<PitchDeckStyles, TH> {
+        @Override default PitchDeckStyles group() { return INSTANCE; }
+
+        CssBlock<pd_root> pd_root();
+        CssBlock<pd_stage> pd_stage();
+        CssBlock<pd_slide> pd_slide();
+        CssBlock<pd_slide_active> pd_slide_active();
+        CssBlock<pd_slide_dark> pd_slide_dark();
+        CssBlock<pd_kicker> pd_kicker();
+        CssBlock<pd_title> pd_title();
+        CssBlock<pd_subtitle> pd_subtitle();
+        CssBlock<pd_body> pd_body();
+
+        CssBlock<pd_hero> pd_hero();
+        CssBlock<pd_hero_title> pd_hero_title();
+        CssBlock<pd_hero_tag> pd_hero_tag();
+        CssBlock<pd_hero_sub> pd_hero_sub();
+        CssBlock<pd_hero_press> pd_hero_press();
+
+        CssBlock<pd_nav> pd_nav();
+        CssBlock<pd_btn> pd_btn();
+        CssBlock<pd_btn_primary> pd_btn_primary();
+        CssBlock<pd_btn_ghost> pd_btn_ghost();
+        CssBlock<pd_btn_bgm> pd_btn_bgm();
+        CssBlock<pd_btn_bgm_on> pd_btn_bgm_on();
+
+        CssBlock<pd_progress> pd_progress();
+        CssBlock<pd_progress_fill> pd_progress_fill();
+        CssBlock<pd_dots> pd_dots();
+        CssBlock<pd_dot> pd_dot();
+        CssBlock<pd_dot_active> pd_dot_active();
+
+        CssBlock<pd_grid2> pd_grid2();
+        CssBlock<pd_grid3> pd_grid3();
+        CssBlock<pd_grid4> pd_grid4();
+        CssBlock<pd_card> pd_card();
+        CssBlock<pd_card_dark> pd_card_dark();
+        CssBlock<pd_card_accent> pd_card_accent();
+        CssBlock<pd_card_head> pd_card_head();
+        CssBlock<pd_card_body> pd_card_body();
+
+        CssBlock<pd_stat> pd_stat();
+        CssBlock<pd_stat_num> pd_stat_num();
+        CssBlock<pd_stat_label> pd_stat_label();
+
+        CssBlock<pd_row> pd_row();
+        CssBlock<pd_row_head> pd_row_head();
+        CssBlock<pd_row_body> pd_row_body();
+
+        CssBlock<pd_diagram> pd_diagram();
+        CssBlock<pd_diagram_svg> pd_diagram_svg();
+
+        CssBlock<pd_table> pd_table();
+        CssBlock<pd_table_header> pd_table_header();
+        CssBlock<pd_table_row> pd_table_row();
+        CssBlock<pd_table_row_featured> pd_table_row_featured();
+        CssBlock<pd_table_cell> pd_table_cell();
+
+        CssBlock<pd_badge_built> pd_badge_built();
+        CssBlock<pd_badge_designed> pd_badge_designed();
+
+        CssBlock<pd_check> pd_check();
+        CssBlock<pd_cross> pd_cross();
+
+        CssBlock<pd_hint> pd_hint();
+        CssBlock<pd_accent> pd_accent();
+        CssBlock<pd_mono> pd_mono();
+
+        CssBlock<pd_quote> pd_quote();
+        CssBlock<pd_cta> pd_cta();
+
+        CssBlock<pd_toast> pd_toast();
+        CssBlock<pd_toast_show> pd_toast_show();
+    }
 
     @Override
     public CssImportsFor<PitchDeckStyles> cssImports() {

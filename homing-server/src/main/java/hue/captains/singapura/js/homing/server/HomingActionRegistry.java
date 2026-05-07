@@ -8,6 +8,7 @@ import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.PostAction;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
@@ -35,7 +36,11 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
         this.appAction = new AppHtmlGetAction(nameResolver, appResolver);
         this.moduleAction = new EsModuleGetAction(nameResolver, resourceReader);
         this.cssAction = new CssGetAction();
-        this.cssContentAction = new CssContentGetAction(resourceReader);
+        // Base registry serves a typed-only CssContentGetAction with no impls
+        // and no default theme — every /css-content request 404s unless an
+        // outer registry (e.g. StudioActionRegistry) overrides this route with
+        // its own typed-impl-aware action. RFC 0002 §3.6 (hard cut, no file-based fallback).
+        this.cssContentAction = new CssContentGetAction(List.of(), null);
     }
 
     /** Backwards-compatible constructor for callers that don't yet use {@code SimpleAppResolver}. */
