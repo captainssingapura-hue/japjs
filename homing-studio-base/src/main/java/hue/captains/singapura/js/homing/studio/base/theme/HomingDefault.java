@@ -14,16 +14,16 @@ import java.util.Map;
  *
  * <p>RFC 0002-ext1 Phase 10 — restructured into identity record + nested
  * {@link Vars} and {@link Globals} singletons. The framework serves these
- * at independently-cacheable routes ({@code /theme-vars?theme=homing-default},
- * {@code /theme-globals?theme=homing-default}); per-CssGroup CSS files served
+ * at independently-cacheable routes ({@code /theme-vars?theme=default},
+ * {@code /theme-globals?theme=default}); per-CssGroup CSS files served
  * by {@code /css-content} no longer carry the cascade.</p>
  */
 public record HomingDefault() implements Theme {
 
     public static final HomingDefault INSTANCE = new HomingDefault();
 
-    @Override public String slug()  { return "homing-default"; }
-    @Override public String label() { return "Homing default"; }
+    @Override public String slug()  { return "default"; }
+    @Override public String label() { return "Default"; }
 
     // -------------------------------------------------------------------
     // Vars — the variable values for this theme. Served at /theme-vars.

@@ -16,14 +16,14 @@ import java.util.Map;
  * mode primitives in {@link Vars}, dark-mode {@code @media} override in
  * {@link Globals}.</p>
  *
- * <p>Activate via {@code ?theme=homing-forest} on any studio URL.</p>
+ * <p>Activate via {@code ?theme=forest} on any studio URL.</p>
  */
 public record HomingForest() implements Theme {
 
     public static final HomingForest INSTANCE = new HomingForest();
 
-    @Override public String slug()  { return "homing-forest"; }
-    @Override public String label() { return "Homing forest"; }
+    @Override public String slug()  { return "forest"; }
+    @Override public String label() { return "Forest"; }
 
     public record Vars() implements ThemeVariables<HomingForest> {
         public static final Vars INSTANCE = new Vars();

@@ -93,22 +93,14 @@ const CssClassManagerInstance = (() => {
 
         const key = cssBeing + (theme ? ":" + theme : "");
         if (loaded.has(key)) return;
+        loaded.add(key);
 
-        let url = "/css?class=" + encodeURIComponent(cssBeing);
-        if (theme) url += "&theme=" + encodeURIComponent(theme);
-
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error("Failed to resolve CSS for " + cssBeing + ": " + resp.status);
-
-        const entries = await resp.json();
-        const promises = [];
-        for (const entry of entries) {
-            const entryKey = entry.name + (theme ? ":" + theme : "");
-            if (loaded.has(entryKey)) continue;
-            loaded.add(entryKey);
-            promises.push(appendLink(entry.href));
-        }
-        await Promise.all(promises);
+        // Each module emits one loadCss(group) call per group it imports,
+        // so transitive dependencies are already resolved at module-link
+        // time — no need for a separate /css JSON resolver round-trip.
+        let href = "/css-content?class=" + encodeURIComponent(cssBeing);
+        if (theme) href += "&theme=" + encodeURIComponent(theme);
+        await appendLink(href);
     }
 
     function appendLink(href) {

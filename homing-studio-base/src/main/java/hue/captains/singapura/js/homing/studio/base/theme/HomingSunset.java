@@ -16,14 +16,14 @@ import java.util.Map;
  * {@code @media} override in {@link Globals}. Structural CSS reused from
  * {@link HomingDefault#STRUCTURAL_CSS}.</p>
  *
- * <p>Activate via {@code ?theme=homing-sunset} on any studio URL.</p>
+ * <p>Activate via {@code ?theme=sunset} on any studio URL.</p>
  */
 public record HomingSunset() implements Theme {
 
     public static final HomingSunset INSTANCE = new HomingSunset();
 
-    @Override public String slug()  { return "homing-sunset"; }
-    @Override public String label() { return "Homing sunset"; }
+    @Override public String slug()  { return "sunset"; }
+    @Override public String label() { return "Sunset"; }
 
     public record Vars() implements ThemeVariables<HomingSunset> {
         public static final Vars INSTANCE = new Vars();
