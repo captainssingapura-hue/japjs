@@ -99,10 +99,20 @@ public class AppHtmlGetAction
             return CompletableFuture.failedFuture(ResourceNotFound.forClass(resource, e));
         }
 
+        // If the URL didn't carry ?theme=, fall back to the first theme in
+        // the registry so downstream (theme-vars / theme-globals fetches,
+        // module URLs, the picker's selected option) all see a concrete
+        // slug instead of null. The URL itself is untouched — the default
+        // is applied in-flight, transparently.
+        String effectiveTheme = query.theme();
+        if (effectiveTheme == null && !themeRegistry.themes().isEmpty()) {
+            effectiveTheme = themeRegistry.themes().get(0).slug();
+        }
+
         String baseModuleUrl = nameResolver.resolve(app).basePath();
-        String themeJs  = query.theme()  != null ? "\"" + query.theme()  + "\"" : "null";
+        String themeJs  = effectiveTheme != null ? "\"" + effectiveTheme + "\"" : "null";
         String localeJs = query.locale() != null ? "\"" + query.locale() + "\"" : "null";
-        String themePickerHtml = renderThemePicker(query.theme());
+        String themePickerHtml = renderThemePicker(effectiveTheme);
 
         String html = """
                 <!DOCTYPE html>
@@ -153,13 +163,25 @@ public class AppHtmlGetAction
                    .append(">").append(htmlEscape(label)).append("</option>");
         }
 
+        // Styled with semantic CSS tokens so the picker adapts per-theme +
+        // per-mode (light/dark) rather than locking to a hardcoded palette.
+        // Explicit background + color on the <select> itself (not just the
+        // wrapper) so the OS-rendered drop-down list of <option>s inherits
+        // theme colors — `background: transparent` would have leaked the
+        // browser's default white through the popup.
         return """
-                <div style="position:fixed; top:12px; right:12px; z-index:9999; background:rgba(255,255,255,0.92); border:1px solid rgba(0,0,0,0.12); border-radius:6px; padding:6px 10px; font:13px system-ui,sans-serif; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-                    <label style="color:#666; margin-right:6px;">Theme:</label>
-                    <select id="__theme_picker__" style="font:inherit; border:none; background:transparent; cursor:pointer; padding:2px 4px;">
+                <div style="position:fixed; top:12px; right:12px; z-index:9999; background:var(--color-surface-raised); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px; padding:6px 10px; font:13px system-ui,sans-serif; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                    <label style="color:var(--color-text-muted); margin-right:6px;">Theme:</label>
+                    <select id="__theme_picker__" style="font:inherit; border:none; background:var(--color-surface-raised); color:var(--color-text-primary); cursor:pointer; padding:2px 4px;">
                         %s
                     </select>
                 </div>
+                <style>
+                    #__theme_picker__ option {
+                        background: var(--color-surface-raised);
+                        color: var(--color-text-primary);
+                    }
+                </style>
                 <script>
                     (function () {
                         var sel = document.getElementById('__theme_picker__');

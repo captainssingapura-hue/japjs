@@ -15,7 +15,6 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
 
     private final AppHtmlGetAction appAction;
     private final EsModuleGetAction moduleAction;
-    private final CssGetAction cssAction;
     private final CssContentGetAction cssContentAction;
     private final ThemeVarsGetAction themeVarsAction;
     private final ThemeGlobalsGetAction themeGlobalsAction;
@@ -45,7 +44,6 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
         if (themeRegistry == null) themeRegistry = ThemeRegistry.EMPTY;
         this.appAction = new AppHtmlGetAction(nameResolver, appResolver, themeRegistry);
         this.moduleAction = new EsModuleGetAction(nameResolver, resourceReader);
-        this.cssAction = new CssGetAction();
         // Base registry serves a typed-only CssContentGetAction with no impls
         // and no default theme — every /css-content request 404s unless an
         // outer registry (e.g. StudioActionRegistry) overrides this route with
@@ -65,7 +63,6 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
         return Map.of(
                 "/app", appAction,
                 "/module", moduleAction,
-                "/css", cssAction,
                 "/css-content", cssContentAction,
                 "/theme-vars", themeVarsAction,
                 "/theme-globals", themeGlobalsAction

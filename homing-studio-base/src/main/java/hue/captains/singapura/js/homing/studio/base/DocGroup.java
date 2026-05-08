@@ -60,11 +60,16 @@ public interface DocGroup<D extends DocGroup<D>>
         List<String> lines = new ArrayList<>();
         lines.add("import { DocManagerInstance as _docs } from \"" + managerPath + "\";");
         for (Doc<D> doc : docs()) {
+            // RFC 0002-ext2: contentType + fileExtension travel with the JS
+            // handle so DocManager can dispatch viewers by kind (markdown
+            // renderer for .md, raw <pre> for .txt, inline iframe for .html, etc.)
             lines.add("const " + doc.getClass().getSimpleName() + " = _docs.doc("
-                    + jstr(doc.path())     + ", "
-                    + jstr(doc.title())    + ", "
-                    + jstr(doc.summary())  + ", "
-                    + jstr(doc.category()) + ");");
+                    + jstr(doc.path())          + ", "
+                    + jstr(doc.title())         + ", "
+                    + jstr(doc.summary())       + ", "
+                    + jstr(doc.category())      + ", "
+                    + jstr(doc.contentType())   + ", "
+                    + jstr(doc.fileExtension()) + ");");
         }
         return lines;
     }

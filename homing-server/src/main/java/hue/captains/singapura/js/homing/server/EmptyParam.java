@@ -7,4 +7,6 @@ public final class EmptyParam {
     private EmptyParam() {}
 
     public record NoHeaders() implements Param._Header {}
+
+    public record NoQuery() implements Param._QueryString {}
 }
