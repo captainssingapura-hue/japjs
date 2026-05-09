@@ -26,7 +26,6 @@ public record DemoCatalogue() implements AppModule<DemoCatalogue> {
                 // import causes the writer to add an entry to the generated
                 // `nav` const, AND causes the resolver to register the target
                 // app transitively at server boot.
-                .add(new ModuleImports<>(List.of(new PitchDeck.link()),         PitchDeck.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WonderlandDemo.link()),    WonderlandDemo.INSTANCE))
                 .add(new ModuleImports<>(List.of(new DancingAnimals.link()),    DancingAnimals.INSTANCE))
                 .add(new ModuleImports<>(List.of(new SpinningAnimals.link()),   SpinningAnimals.INSTANCE))

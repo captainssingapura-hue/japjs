@@ -7,14 +7,12 @@ import hue.captains.singapura.js.homing.demo.es.BobModule;
 import hue.captains.singapura.js.homing.demo.es.DancingAnimals;
 import hue.captains.singapura.js.homing.demo.es.DemoCatalogue;
 import hue.captains.singapura.js.homing.demo.es.MovingAnimal;
-import hue.captains.singapura.js.homing.demo.es.PitchDeck;
-import hue.captains.singapura.js.homing.demo.es.PitchDeckBgm;
 import hue.captains.singapura.js.homing.demo.es.PlatformerBgm;
 import hue.captains.singapura.js.homing.demo.es.SpinningAnimals;
 import hue.captains.singapura.js.homing.demo.es.TurtleDemo;
 import hue.captains.singapura.js.homing.demo.es.WonderlandDemo;
 import hue.captains.singapura.js.homing.demo.theme.DemoCssGroupImplRegistry;
-import hue.captains.singapura.js.homing.demo.theme.DemoDefault;
+import hue.captains.singapura.js.homing.demo.theme.Navy;
 
 import java.util.List;
 
@@ -36,14 +34,12 @@ class DemoCssGroupImplConsistencyTest extends CssGroupImplConsistencyTest {
                 TurtleDemo.INSTANCE,
                 WonderlandDemo.INSTANCE,
                 PlatformerBgm.INSTANCE,
-                PitchDeck.INSTANCE,
-                PitchDeckBgm.INSTANCE,
                 DemoCatalogue.INSTANCE
         );
     }
 
     @Override
     protected String defaultThemeSlug() {
-        return DemoDefault.INSTANCE.slug();
+        return Navy.INSTANCE.slug();
     }
 }

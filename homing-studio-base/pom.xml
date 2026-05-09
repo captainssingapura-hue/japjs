@@ -31,6 +31,14 @@
             <artifactId>homing-server</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- DocReader uses MarkedJs to render markdown; transitively gives every
+             downstream studio access to the bundled libs (marked, three, tone)
+             without needing a separate import. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-libs</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

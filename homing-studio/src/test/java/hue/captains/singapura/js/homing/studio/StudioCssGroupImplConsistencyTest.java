@@ -6,7 +6,8 @@ import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.studio.base.theme.CssGroupImplRegistry;
 import hue.captains.singapura.js.homing.studio.base.theme.HomingDefault;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
-import hue.captains.singapura.js.homing.studio.es.DocReader;
+import hue.captains.singapura.js.homing.studio.base.app.DocReader;
+import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
 import hue.captains.singapura.js.homing.studio.rename.RenamePlan;
@@ -32,6 +33,7 @@ class StudioCssGroupImplConsistencyTest extends CssGroupImplConsistencyTest {
         return List.of(
                 StudioCatalogue.INSTANCE,
                 JourneysCatalogue.INSTANCE,
+                BuildingBlocksCatalogue.INSTANCE,
                 DocBrowser.INSTANCE,
                 DocReader.INSTANCE,
                 Rfc0001Plan.INSTANCE,

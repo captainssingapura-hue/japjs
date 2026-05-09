@@ -84,7 +84,7 @@ fine.
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <homing.version>1.0-SNAPSHOT</homing.version>
+        <homing.version>0.0.1</homing.version>
     </properties>
 
     <modules>
@@ -239,8 +239,9 @@ public record MyHome() implements AppModule<MyHome> {
 ### `MyHome.js`
 
 `studio-main/src/main/resources/homing/js/<pkg>/MyHome.js` — path mirrors
-the Java package exactly. Uses ES5-flavoured JS (no top-level `import`s —
-the framework prepends them):
+the Java package exactly. Plain ES6: the framework prepends every `import`
+itself (typed CSS classes, nav, params, doc handles, libs), so the file
+contains only the `appMain` function body and any helpers it needs:
 
 ```js
 function appMain(rootElement) {

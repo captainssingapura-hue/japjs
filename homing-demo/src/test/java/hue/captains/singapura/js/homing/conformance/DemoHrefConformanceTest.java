@@ -22,8 +22,6 @@ class DemoHrefConformanceTest extends HrefConformanceTest {
                 ExtrudedSvgDemo.INSTANCE,
                 WonderlandDemo.INSTANCE,
                 PlatformerBgm.INSTANCE,
-                PitchDeck.INSTANCE,
-                PitchDeckBgm.INSTANCE,
                 DemoCatalogue.INSTANCE
         );
     }

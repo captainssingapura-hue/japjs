@@ -1,0 +1,4 @@
+package hue.captains.singapura.js.homing.studio.base.tracker;
+
+/** A single task inside a {@link Phase}. */
+public record Task(String description, boolean done) {}

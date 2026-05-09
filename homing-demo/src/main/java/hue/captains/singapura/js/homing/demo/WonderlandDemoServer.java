@@ -8,7 +8,6 @@ import hue.captains.singapura.js.homing.demo.es.DemoCatalogue;
 import hue.captains.singapura.js.homing.demo.es.ExtrudedSvgDemo;
 import hue.captains.singapura.js.homing.demo.es.ExtrudedTurtleDemo;
 import hue.captains.singapura.js.homing.demo.es.MovingAnimal;
-import hue.captains.singapura.js.homing.demo.es.PitchDeck;
 import hue.captains.singapura.js.homing.demo.es.SpinningAnimals;
 import hue.captains.singapura.js.homing.demo.es.TurtleDemo;
 import hue.captains.singapura.js.homing.demo.es.WonderlandDemo;

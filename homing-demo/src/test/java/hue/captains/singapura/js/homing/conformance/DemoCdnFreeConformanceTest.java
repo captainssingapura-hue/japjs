@@ -24,8 +24,6 @@ class DemoCdnFreeConformanceTest extends CdnFreeConformanceTest {
                 TurtleDemo.INSTANCE,
                 WonderlandDemo.INSTANCE,
                 PlatformerBgm.INSTANCE,
-                PitchDeck.INSTANCE,
-                PitchDeckBgm.INSTANCE,
                 ExtrudedTurtleDemo.INSTANCE,
                 DecomposedSvgDemo.INSTANCE,
                 ExtrudedSvgDemo.INSTANCE,

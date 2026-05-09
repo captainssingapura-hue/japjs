@@ -177,14 +177,12 @@ function appMain(rootElement) {
 
     // --- Theme switcher ---
     var themes = [
-        { key: "light", label: "Light" },
-        { key: "dark", label: "Dark" },
-        { key: "beach", label: "Beach" },
-        { key: "dracula", label: "Dracula\u2019s Castle" },
-        { key: "alpine", label: "Alpine Mountain" }
+        { key: "navy",      label: "Navy" },
+        { key: "air-force", label: "Air Force" },
+        { key: "army",      label: "Army" }
     ];
 
-    var currentTheme = new URLSearchParams(window.location.search).get("theme") || "light";
+    var currentTheme = new URLSearchParams(window.location.search).get("theme") || "navy";
 
     var themeSwitcher = document.createElement("div");
     css.setClass(themeSwitcher, pg_theme_switcher);
@@ -311,6 +309,14 @@ function appMain(rootElement) {
                 el = document.createElement("div");
                 css.setClass(el, pg_platform);
                 el.style.height = PLATFORM_H + "px";
+                // Vehicle silhouette sits on top of the platform line.
+                // Variant class picks the active theme's vehicle 1/2/3.
+                var vehicleEl = document.createElement("div");
+                var vehicleVariant = (p.vehicle === 2) ? pg_vehicle_v2
+                                   : (p.vehicle === 3) ? pg_vehicle_v3
+                                                       : pg_vehicle_v1;
+                css.setClass(vehicleEl, pg_vehicle, vehicleVariant);
+                el.appendChild(vehicleEl);
                 world.appendChild(el);
                 platformEls.set(p, el);
             }

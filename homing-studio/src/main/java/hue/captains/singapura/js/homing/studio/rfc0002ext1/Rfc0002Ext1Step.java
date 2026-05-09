@@ -1,72 +1,45 @@
 package hue.captains.singapura.js.homing.studio.rfc0002ext1;
 
-import hue.captains.singapura.js.homing.core.*;
-import hue.captains.singapura.js.homing.libs.MarkedJs;
-import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
-import hue.captains.singapura.js.homing.studio.base.css.Util;
-import hue.captains.singapura.js.homing.studio.es.DocReader;
-import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
+import hue.captains.singapura.js.homing.core.AppLink;
+import hue.captains.singapura.js.homing.core.AppModule;
+import hue.captains.singapura.js.homing.core.ExportsOf;
+import hue.captains.singapura.js.homing.core.ImportsFor;
+import hue.captains.singapura.js.homing.core.ModuleImports;
+import hue.captains.singapura.js.homing.studio.base.app.DocReader;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
+import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
+import hue.captains.singapura.js.homing.studio.base.tracker.PlanRenderer;
+import hue.captains.singapura.js.homing.studio.base.tracker.PlanStepAppModule;
 
 import java.util.List;
 
-/**
- * Detail view for a single RFC 0002-ext1 phase. {@code ?phase=03} URL parameter
- * selects which phase to render.
- */
-public record Rfc0002Ext1Step() implements AppModule<Rfc0002Ext1Step> {
+/** Per-phase detail page for the RFC 0002-ext1 tracker. */
+public record Rfc0002Ext1Step() implements PlanStepAppModule<Rfc0002Ext1Step> {
 
     record appMain() implements AppModule._AppMain<Rfc0002Ext1Step> {}
 
     public record link() implements AppLink<Rfc0002Ext1Step> {}
 
-    /** Typed query parameter — which phase id to render. */
     public record Params(String phase) {}
 
     public static final Rfc0002Ext1Step INSTANCE = new Rfc0002Ext1Step();
 
-    @Override
-    public String title() {
-        return "Homing · studio · RFC 0002-ext1 phase";
-    }
+    @Override public Class<?> paramsType() { return Params.class; }
 
-    @Override
-    public Class<?> paramsType() {
-        return Params.class;
-    }
+    @Override public Plan   plan()              { return Rfc0002Ext1PlanData.INSTANCE; }
+    @Override public String planAppSimpleName() { return Rfc0002Ext1Plan.INSTANCE.simpleName(); }
+    @Override public String stepAppSimpleName() { return INSTANCE.simpleName(); }
 
     @Override
     public ImportsFor<Rfc0002Ext1Step> imports() {
         return ImportsFor.<Rfc0002Ext1Step>builder()
-                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()), StudioCatalogue.INSTANCE))
-                .add(new ModuleImports<>(List.of(new JourneysCatalogue.link()), JourneysCatalogue.INSTANCE))
-                .add(new ModuleImports<>(List.of(new Rfc0002Ext1Plan.link()), Rfc0002Ext1Plan.INSTANCE))
-                .add(new ModuleImports<>(List.of(new Rfc0002Ext1Step.link()), Rfc0002Ext1Step.INSTANCE))   // self-link for prev/next
-                .add(new ModuleImports<>(List.of(new DocReader.link()),       DocReader.INSTANCE))
-                .add(new ModuleImports<>(List.of(new MarkedJs.marked()),      MarkedJs.INSTANCE))
-                .add(new ModuleImports<>(List.of(
-                        new StudioStyles.st_root(), new StudioStyles.st_header(),
-                        new StudioStyles.st_brand(), new StudioStyles.st_brand_dot(), new StudioStyles.st_brand_word(),
-                        new StudioStyles.st_breadcrumbs(), new StudioStyles.st_crumb(), new StudioStyles.st_crumb_sep(),
-                        new StudioStyles.st_main(), new StudioStyles.st_kicker(), new StudioStyles.st_title(), new StudioStyles.st_subtitle(),
-                        new StudioStyles.st_section(), new StudioStyles.st_section_title(),
-                        new StudioStyles.st_step_id(),
-                        new StudioStyles.st_step_progress(), new StudioStyles.st_step_progress_bar(), new StudioStyles.st_step_progress_fill(),
-                        new StudioStyles.st_status_badge(),
-                        new StudioStyles.st_status_not_started(), new StudioStyles.st_status_in_progress(),
-                        new StudioStyles.st_status_blocked(), new StudioStyles.st_status_done(),
-                        new StudioStyles.st_panel(), new StudioStyles.st_panel_title(),
-                        new StudioStyles.st_task_list(), new StudioStyles.st_task_item(),
-                        new StudioStyles.st_task_done(), new StudioStyles.st_task_box(),
-                        new StudioStyles.st_dep(), new StudioStyles.st_acceptance(), new StudioStyles.st_effort(),
-                        new StudioStyles.st_doc(),
-                        new StudioStyles.st_loading(), new StudioStyles.st_error()
-                ), StudioStyles.INSTANCE))
-                .add(new ModuleImports<>(List.of(
-                        // RFC 0002-ext1 Phase 08: import Util base utility for `cn(st_dep, border_emphasis.hover)`
-                        // call shape. The .hover variant property is auto-generated on the JS side from the base.
-                        new Util.border_emphasis()
-                ), Util.INSTANCE))
+                .add(new ModuleImports<>(List.of(new StudioCatalogue.link()),    StudioCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new JourneysCatalogue.link()),  JourneysCatalogue.INSTANCE))
+                .add(new ModuleImports<>(List.of(new Rfc0002Ext1Plan.link()),    Rfc0002Ext1Plan.INSTANCE))
+                .add(new ModuleImports<>(List.of(new Rfc0002Ext1Step.link()),    Rfc0002Ext1Step.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DocReader.link()),          DocReader.INSTANCE))
+                .add(new ModuleImports<>(List.of(new PlanRenderer.renderStep()), PlanRenderer.INSTANCE))
                 .build();
     }
 

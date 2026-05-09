@@ -13,8 +13,16 @@ function createPlatformEngine(config) {
 
     var MIN_GAP = 60;
     var MAX_GAP = 140;
-    var MIN_WIDTH = 80;
-    var MAX_WIDTH = 160;
+    // Width bands per vehicle variant: v1 = largest (tank, carrier, A-10),
+    // v2 = medium (truck, destroyer, fighter), v3 = smallest (Humvee, sub,
+    // Apache). The platform's footprint matches the vehicle silhouette
+    // visually, so notably-different widths read as notably-different
+    // vehicles in the playground.
+    var WIDTH_BANDS = {
+        1: { min: 140, max: 175 },
+        2: { min: 105, max: 135 },
+        3: { min: 75,  max: 100 }
+    };
     var groundZone = viewportH - lavaH;
     var MIN_Y = Math.floor(groundZone * 0.55);
     var MAX_Y = groundZone - platformH - 20;
@@ -31,7 +39,8 @@ function createPlatformEngine(config) {
         init: function (startX, startY) {
             platforms.length = 0;
             var startPlatY = Math.floor((MIN_Y + MAX_Y) / 2);
-            var startPlat = { x: startX - 40, y: startPlatY, w: 200 };
+            // Starting platform is always vehicle variant 1 (deterministic for replay).
+            var startPlat = { x: startX - 40, y: startPlatY, w: 200, vehicle: 1 };
             platforms.push(startPlat);
             lastPlatRight = startPlat.x + startPlat.w;
             lastPlatY = startPlat.y;
@@ -43,8 +52,13 @@ function createPlatformEngine(config) {
                 var newX = lastPlatRight + gap;
                 var deltaY = DELTA_Y_UP + Math.random() * (DELTA_Y_DOWN - DELTA_Y_UP);
                 var newY = clampY(lastPlatY + deltaY);
-                var w = MIN_WIDTH + Math.random() * (MAX_WIDTH - MIN_WIDTH);
-                var plat = { x: newX, y: newY, w: w };
+                // Theme-keyed vehicle variant — 1 / 2 / 3 picked at random per
+                // platform. CSS resolves the variant class to the active
+                // theme's silhouette via --pg-vehicle-{1|2|3}-bg.
+                var vehicle = 1 + Math.floor(Math.random() * 3);
+                var band = WIDTH_BANDS[vehicle];
+                var w = band.min + Math.random() * (band.max - band.min);
+                var plat = { x: newX, y: newY, w: w, vehicle: vehicle };
                 platforms.push(plat);
                 lastPlatRight = newX + w;
                 lastPlatY = newY;

@@ -4,7 +4,7 @@ import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.SimpleAppResolver;
 import hue.captains.singapura.js.homing.server.QueryParamResolver;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
-import hue.captains.singapura.js.homing.studio.es.DocReader;
+import hue.captains.singapura.js.homing.studio.base.app.DocReader;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
 import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001Plan;
 import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001Step;
