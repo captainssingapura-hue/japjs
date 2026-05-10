@@ -135,23 +135,57 @@ public record PlaygroundStyles() implements CssGroup<PlaygroundStyles> {
                 """;
         }
     }
+    /**
+     * Platform — invisible collision footprint. The visible "platform" is the
+     * vehicle silhouette ({@link pg_vehicle}) which is the platform's only
+     * child. {@code overflow:visible} so the vehicle div (taller than the
+     * 16px collision rect) is not clipped.
+     */
     public record pg_platform() implements CssClass<PlaygroundStyles> {
         @Override public String body() { return """
                 position: absolute;
-                background: var(--pg-platform-bg);
-                border-radius: var(--pg-platform-radius);
-                border-top: var(--pg-platform-border-top);
-                transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+                overflow: visible;
+                transition: filter 0.15s;
                 """;
         }
     }
+    /**
+     * Active platform — applies a drop-shadow to the platform's subtree, which
+     * outlines the vehicle silhouette in the theme's accent glow colour.
+     */
     public record pg_platform_active() implements CssClass<PlaygroundStyles> {
         @Override public String body() { return """
-                background: var(--pg-platform-active-bg);
-                border-top-color: var(--pg-platform-active-border);
-                box-shadow: var(--pg-platform-active-shadow);
+                filter: drop-shadow(0 0 8px var(--pg-platform-active-glow));
                 """;
         }
+    }
+    /**
+     * Vehicle silhouette — IS the visible platform. Top edge of the SVG is
+     * the standable line (where the animal lands). Sits at the platform's
+     * top edge and extends downward.
+     */
+    public record pg_vehicle() implements CssClass<PlaygroundStyles> {
+        @Override public String body() { return """
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 32px;
+                background-position: center top;
+                background-repeat: no-repeat;
+                background-size: 100% 100%;
+                pointer-events: none;
+                """;
+        }
+    }
+    public record pg_vehicle_v1() implements CssClass<PlaygroundStyles> {
+        @Override public String body() { return "background-image: var(--pg-vehicle-1-bg);"; }
+    }
+    public record pg_vehicle_v2() implements CssClass<PlaygroundStyles> {
+        @Override public String body() { return "background-image: var(--pg-vehicle-2-bg);"; }
+    }
+    public record pg_vehicle_v3() implements CssClass<PlaygroundStyles> {
+        @Override public String body() { return "background-image: var(--pg-vehicle-3-bg);"; }
     }
     public record pg_lava() implements CssClass<PlaygroundStyles> {
         @Override public String body() { return """
@@ -204,7 +238,9 @@ public record PlaygroundStyles() implements CssGroup<PlaygroundStyles> {
                 new pg_title(), new pg_hint(), new pg_controls(), new pg_size_display(),
                 new pg_theme_switcher(), new pg_theme_label(), new pg_theme_btn(), new pg_theme_btn_active(),
                 new pg_playground(), new pg_sky(), new pg_world(), new pg_animal(),
-                new pg_platform(), new pg_platform_active(), new pg_lava(), new pg_score(),
+                new pg_platform(), new pg_platform_active(),
+                new pg_vehicle(), new pg_vehicle_v1(), new pg_vehicle_v2(), new pg_vehicle_v3(),
+                new pg_lava(), new pg_score(),
                 new pg_gameover(), new pg_final_score()
         );
     }

@@ -8,7 +8,7 @@ public record EsModuleWriter<M extends EsModule<M>>(M module, ContentProvider<M>
     public List<String> writeModule(){
         var allImports = module.imports().getAllImports();
         // RFC 0001 Step 06: only AppModules carry a Params type.
-        Class<?> paramsType = (module instanceof AppModule<?> app) ? app.paramsType() : Void.class;
+        Class<?> paramsType = (module instanceof AppModule<?, ?> app) ? app.paramsType() : Void.class;
         return Stream.of(
                 // ES module imports — only for EsModule sources (Linkable sources go to nav).
                 // SingleModuleImportWriter filters out AppLink<?> members; if all members of an

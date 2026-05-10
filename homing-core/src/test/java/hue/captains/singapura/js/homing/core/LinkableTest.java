@@ -64,9 +64,9 @@ class LinkableTest {
     }
 
     @Test
-    @DisplayName("AppModule.paramsType() defaults to Void.class")
+    @DisplayName("AppModule.paramsType() defaults to AppModule._None.class")
     void appModuleDefaultParamsType() {
-        assertEquals(Void.class, new SampleClasses.SampleApp().paramsType());
+        assertEquals(AppModule._None.class, new SampleClasses.SampleApp().paramsType());
     }
 
     @Test
@@ -105,14 +105,14 @@ class LinkableTest {
         static class API2 {}
         static class V2Handler {}
 
-        public record SampleApp() implements AppModule<SampleApp> {
+        public record SampleApp() implements AppModule<AppModule._None, SampleApp> {
             public record link() implements AppLink<SampleApp> {}
             @Override public String title() { return "Sample"; }
             @Override public ImportsFor<SampleApp> imports() { return ImportsFor.noImports(); }
             @Override public ExportsOf<SampleApp> exports() { return new ExportsOf<>(this, java.util.List.of()); }
         }
 
-        public record RenamedApp() implements AppModule<RenamedApp> {
+        public record RenamedApp() implements AppModule<AppModule._None, RenamedApp> {
             @Override public String simpleName() { return "custom"; }
             @Override public String title() { return "Renamed"; }
             @Override public ImportsFor<RenamedApp> imports() { return ImportsFor.noImports(); }

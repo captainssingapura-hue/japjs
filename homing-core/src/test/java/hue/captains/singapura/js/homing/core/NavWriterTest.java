@@ -12,7 +12,7 @@ class NavWriterTest {
 
     // ---- Fixtures --------------------------------------------------------
 
-    record TargetA() implements AppModule<TargetA> {
+    record TargetA() implements AppModule<AppModule._None, TargetA> {
         public record link() implements AppLink<TargetA> {}
         static final TargetA INSTANCE = new TargetA();
         @Override public String title() { return "A"; }
@@ -20,7 +20,7 @@ class NavWriterTest {
         @Override public ExportsOf<TargetA> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record TargetB() implements AppModule<TargetB> {
+    record TargetB() implements AppModule<AppModule._None, TargetB> {
         public record link() implements AppLink<TargetB> {}
         static final TargetB INSTANCE = new TargetB();
         @Override public String simpleName() { return "custom-b"; }
@@ -29,16 +29,16 @@ class NavWriterTest {
         @Override public ExportsOf<TargetB> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record GitHubProxy() implements ProxyApp<GitHubProxy> {
+    record GitHubProxy() implements ProxyApp<GitHubProxy.Params, GitHubProxy> {
         public record link() implements AppLink<GitHubProxy> {}
-        public record Params(String repo, Optional<String> path) {}
+        public record Params(String repo, Optional<String> path) implements AppModule._Param {}
         static final GitHubProxy INSTANCE = new GitHubProxy();
         @Override public String simpleName() { return "github"; }
-        @Override public Class<?> paramsType() { return Params.class; }
+        @Override public Class<Params> paramsType() { return Params.class; }
         @Override public String urlTemplate() { return "https://github.com/{repo}/{path?}"; }
     }
 
-    record StaticProxy() implements ProxyApp<StaticProxy> {
+    record StaticProxy() implements ProxyApp<AppModule._None, StaticProxy> {
         public record link() implements AppLink<StaticProxy> {}
         static final StaticProxy INSTANCE = new StaticProxy();
         @Override public String simpleName() { return "static"; }

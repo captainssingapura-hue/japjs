@@ -5,9 +5,9 @@ import hue.captains.singapura.js.homing.demo.css.SubwayStyles;
 
 import java.util.List;
 
-public record DancingAnimals() implements AppModule<DancingAnimals> {
+public record DancingAnimals() implements AppModule<AppModule._None, DancingAnimals> {
 
-    record appMain() implements AppModule._AppMain<DancingAnimals> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, DancingAnimals> {}
 
     public record link() implements AppLink<DancingAnimals> {}
 

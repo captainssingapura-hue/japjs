@@ -23,6 +23,14 @@
             <artifactId>homing-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- RFC 0004: DocConformanceTest references Doc / DocProvider / DocRegistry from studio-base.
+             Every downstream studio that subclasses any conformance base also depends on studio-base,
+             so this dependency is not net-new at the deployment level. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-studio-base</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

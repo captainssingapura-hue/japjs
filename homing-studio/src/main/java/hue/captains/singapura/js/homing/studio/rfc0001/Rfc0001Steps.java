@@ -10,8 +10,10 @@ import java.util.List;
  * note to the discussion log. Recompile, refresh the studio, the new state
  * appears in the plan and step views. Git history is the change log.</p>
  *
- * <p>This file is the single source of truth. The JS view layer fetches it via
- * {@code /step-data?rfc=0001} and renders read-only.</p>
+ * <p>This file is the single source of truth. {@code Rfc0001PlanData} adapts
+ * it to the shared {@link hue.captains.singapura.js.homing.studio.base.tracker.Plan}
+ * shape; {@code Rfc0001Plan} / {@code Rfc0001Step} embed the serialised data
+ * in their auto-generated JS via the tracker kit (no separate data endpoint).</p>
  */
 public final class Rfc0001Steps {
 

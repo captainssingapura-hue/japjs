@@ -12,7 +12,7 @@ class UrlTemplateTest {
 
     // ---- Sample Params records used by tests ----
 
-    record GitHub(String repo, Optional<String> path) {}
+    record GitHub(String repo, Optional<String> path) implements AppModule._Param {}
     record OneRequired(String tab) {}
     record OneOptional(Optional<String> q) {}
     record TwoRequired(String org, String repo) {}
@@ -170,10 +170,10 @@ class UrlTemplateTest {
 
     // ---- ProxyApp integration -------------------------------------------
 
-    record GitHubProxy() implements ProxyApp<GitHubProxy> {
+    record GitHubProxy() implements ProxyApp<GitHub, GitHubProxy> {
         public record link() implements AppLink<GitHubProxy> {}
         @Override public String simpleName() { return "github"; }
-        @Override public Class<?> paramsType() { return GitHub.class; }
+        @Override public Class<GitHub> paramsType() { return GitHub.class; }
         @Override public String urlTemplate() { return "https://github.com/{repo}/{path?}"; }
     }
 
@@ -190,8 +190,7 @@ class UrlTemplateTest {
     @Test
     @DisplayName("ProxyApp default simpleName uses kebab-case")
     void proxyAppDefaultSimpleName() {
-        record DocsProxy() implements ProxyApp<DocsProxy> {
-            @Override public Class<?> paramsType() { return Void.class; }
+        record DocsProxy() implements ProxyApp<AppModule._None, DocsProxy> {
             @Override public String urlTemplate() { return "https://docs.example.com/"; }
         }
         assertEquals("docs-proxy", new DocsProxy().simpleName());

@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.core.proxies;
 
 import hue.captains.singapura.js.homing.core.AppLink;
+import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.ProxyApp;
 
 import java.util.Optional;
@@ -18,14 +19,14 @@ import java.util.Optional;
  *
  * <p>Introduced in RFC 0001 Step 08.</p>
  */
-public record Sms() implements ProxyApp<Sms> {
+public record Sms() implements ProxyApp<Sms.Params, Sms> {
 
     public static final Sms INSTANCE = new Sms();
 
-    public record Params(String number, Optional<String> body) {}
+    public record Params(String number, Optional<String> body) implements AppModule._Param {}
     public record link() implements AppLink<Sms> {}
 
     @Override public String simpleName()  { return "sms"; }
-    @Override public Class<?> paramsType() { return Params.class; }
+    @Override public Class<Params> paramsType() { return Params.class; }
     @Override public String urlTemplate() { return "sms:{number}?body={body?}"; }
 }

@@ -19,8 +19,6 @@ class DemoCssConformanceTest extends CssConformanceTest {
                 TurtleDemo.INSTANCE,
                 WonderlandDemo.INSTANCE,
                 PlatformerBgm.INSTANCE,
-                PitchDeck.INSTANCE,
-                PitchDeckBgm.INSTANCE,
                 DemoCatalogue.INSTANCE
         );
     }

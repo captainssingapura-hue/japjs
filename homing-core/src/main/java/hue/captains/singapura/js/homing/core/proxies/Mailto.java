@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.core.proxies;
 
 import hue.captains.singapura.js.homing.core.AppLink;
+import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.ProxyApp;
 
 import java.util.Optional;
@@ -25,7 +26,7 @@ import java.util.Optional;
  *
  * <p>Introduced in RFC 0001 Step 08.</p>
  */
-public record Mailto() implements ProxyApp<Mailto> {
+public record Mailto() implements ProxyApp<Mailto.Params, Mailto> {
 
     public static final Mailto INSTANCE = new Mailto();
 
@@ -34,12 +35,12 @@ public record Mailto() implements ProxyApp<Mailto> {
             Optional<String> subject,
             Optional<String> body,
             Optional<String> cc,
-            Optional<String> bcc) {}
+            Optional<String> bcc) implements AppModule._Param {}
 
     public record link() implements AppLink<Mailto> {}
 
     @Override public String simpleName()  { return "mailto"; }
-    @Override public Class<?> paramsType() { return Params.class; }
+    @Override public Class<Params> paramsType() { return Params.class; }
     @Override public String urlTemplate() {
         return "mailto:{to}?subject={subject?}&body={body?}&cc={cc?}&bcc={bcc?}";
     }

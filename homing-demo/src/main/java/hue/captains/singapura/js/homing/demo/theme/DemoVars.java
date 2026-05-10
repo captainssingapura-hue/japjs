@@ -15,8 +15,8 @@ import java.util.Set;
  * For composite values (e.g. a sky gradient stack), the entire CSS property value
  * lives behind one var.</p>
  *
- * <p>CatalogueStyles and PitchDeckStyles ship only with DemoDefault — their
- * bodies use literal values directly and need no tokens here.</p>
+ * <p>CatalogueStyles ships theme-agnostic — its body uses literal values
+ * directly and needs no tokens here.</p>
  */
 public final class DemoVars {
 
@@ -54,6 +54,13 @@ public final class DemoVars {
     public static final CssVar PG_PLATFORM_ACTIVE_BG     = new CssVar("--pg-platform-active-bg");
     public static final CssVar PG_PLATFORM_ACTIVE_BORDER = new CssVar("--pg-platform-active-border");
     public static final CssVar PG_PLATFORM_ACTIVE_SHADOW = new CssVar("--pg-platform-active-shadow");
+    /** Drop-shadow colour applied to the active platform's vehicle silhouette. */
+    public static final CssVar PG_PLATFORM_ACTIVE_GLOW   = new CssVar("--pg-platform-active-glow");
+    /** Vehicle silhouette per platform variant (1/2/3) — themed.
+     *  Each value is a complete CSS background-image url(...) with a data-URI SVG. */
+    public static final CssVar PG_VEHICLE_1_BG = new CssVar("--pg-vehicle-1-bg");
+    public static final CssVar PG_VEHICLE_2_BG = new CssVar("--pg-vehicle-2-bg");
+    public static final CssVar PG_VEHICLE_3_BG = new CssVar("--pg-vehicle-3-bg");
     public static final CssVar PG_LAVA_BG            = new CssVar("--pg-lava-bg");
     public static final CssVar PG_SCORE_COLOR        = new CssVar("--pg-score-color");
     public static final CssVar PG_GAMEOVER_BG        = new CssVar("--pg-gameover-bg");
@@ -88,6 +95,8 @@ public final class DemoVars {
             PG_SKY_BG, PG_SKY_BG_REPEAT, PG_SKY_BG_POSITION, PG_SKY_BG_SIZE,
             PG_PLATFORM_BG, PG_PLATFORM_RADIUS, PG_PLATFORM_BORDER_TOP,
             PG_PLATFORM_ACTIVE_BG, PG_PLATFORM_ACTIVE_BORDER, PG_PLATFORM_ACTIVE_SHADOW,
+            PG_PLATFORM_ACTIVE_GLOW,
+            PG_VEHICLE_1_BG, PG_VEHICLE_2_BG, PG_VEHICLE_3_BG,
             PG_LAVA_BG, PG_SCORE_COLOR, PG_GAMEOVER_BG, PG_FINAL_SCORE_COLOR,
             SPIN_TITLE_COLOR, SPIN_TITLE_TEXT_SHADOW, SPIN_HINT_COLOR,
             SPIN_CELL_BG, SPIN_CELL_BORDER,

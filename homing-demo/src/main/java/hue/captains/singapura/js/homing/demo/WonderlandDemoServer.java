@@ -8,7 +8,6 @@ import hue.captains.singapura.js.homing.demo.es.DemoCatalogue;
 import hue.captains.singapura.js.homing.demo.es.ExtrudedSvgDemo;
 import hue.captains.singapura.js.homing.demo.es.ExtrudedTurtleDemo;
 import hue.captains.singapura.js.homing.demo.es.MovingAnimal;
-import hue.captains.singapura.js.homing.demo.es.PitchDeck;
 import hue.captains.singapura.js.homing.demo.es.SpinningAnimals;
 import hue.captains.singapura.js.homing.demo.es.TurtleDemo;
 import hue.captains.singapura.js.homing.demo.es.WonderlandDemo;
@@ -23,7 +22,7 @@ public class WonderlandDemoServer {
         // RFC 0001 Step 11: single entry app — DemoCatalogue links to every other
         // demo via typed AppLink imports, so the resolver discovers the whole
         // graph transitively. (Pre-Step-11 we had to enumerate every app.)
-        var appResolver = new SimpleAppResolver(List.<AppModule<?>>of(
+        var appResolver = new SimpleAppResolver(List.<AppModule<?, ?>>of(
                 DemoCatalogue.INSTANCE
         ));
 

@@ -3,8 +3,8 @@ package hue.captains.singapura.js.homing.demo;
 import hue.captains.singapura.js.homing.core.ModuleNameResolver;
 import hue.captains.singapura.js.homing.core.SimpleAppResolver;
 import hue.captains.singapura.js.homing.demo.theme.DemoCssGroupImplRegistry;
-import hue.captains.singapura.js.homing.demo.theme.DemoDefault;
 import hue.captains.singapura.js.homing.demo.theme.DemoThemeRegistry;
+import hue.captains.singapura.js.homing.demo.theme.Navy;
 import hue.captains.singapura.js.homing.server.CssContentGetAction;
 import hue.captains.singapura.js.homing.server.HomingActionRegistry;
 import hue.captains.singapura.js.homing.server.ThemeGlobalsGetAction;
@@ -41,9 +41,9 @@ public class DemoActionRegistry implements ActionRegistry<RoutingContext> {
                 DemoThemeRegistry.INSTANCE);
         this.cssContentAction = new CssContentGetAction(
                 DemoCssGroupImplRegistry.ALL,
-                DemoDefault.INSTANCE);
-        this.themeVarsAction    = new ThemeVarsGetAction(DemoThemeRegistry.INSTANCE, DemoDefault.INSTANCE);
-        this.themeGlobalsAction = new ThemeGlobalsGetAction(DemoThemeRegistry.INSTANCE, DemoDefault.INSTANCE);
+                Navy.INSTANCE);
+        this.themeVarsAction    = new ThemeVarsGetAction(DemoThemeRegistry.INSTANCE, Navy.INSTANCE);
+        this.themeGlobalsAction = new ThemeGlobalsGetAction(DemoThemeRegistry.INSTANCE, Navy.INSTANCE);
     }
 
     @Override

@@ -8,11 +8,9 @@ import hue.captains.singapura.js.homing.server.ThemeRegistry;
 import java.util.List;
 
 /**
- * RFC 0002-ext1 Phase 11 — registry of theme artifacts shipped by homing-demo.
- *
- * <p>Mirrors {@code StudioThemeRegistry}. Adding a new theme: implement
- * {@link Theme} + nested {@code Vars} + nested {@code Globals}, then append
- * all three singletons to the lists below.</p>
+ * Registry of theme artifacts shipped by homing-demo. Three military themes,
+ * each turning the moving-animal demo's platforms into a different vehicle
+ * silhouette set. Navy is the default (first in the list).
  */
 public final class DemoThemeRegistry implements ThemeRegistry {
 
@@ -20,25 +18,22 @@ public final class DemoThemeRegistry implements ThemeRegistry {
 
     @Override public List<Theme> themes() {
         return List.of(
-                DemoDefault.INSTANCE,
-                Beach.INSTANCE,
-                Alpine.INSTANCE,
-                Dracula.INSTANCE);
+                Navy.INSTANCE,
+                AirForce.INSTANCE,
+                Army.INSTANCE);
     }
 
     @Override public List<ThemeVariables<?>> variables() {
         return List.of(
-                DemoDefault.Vars.INSTANCE,
-                Beach.Vars.INSTANCE,
-                Alpine.Vars.INSTANCE,
-                Dracula.Vars.INSTANCE);
+                Navy.Vars.INSTANCE,
+                AirForce.Vars.INSTANCE,
+                Army.Vars.INSTANCE);
     }
 
     @Override public List<ThemeGlobals<?>> globals() {
         return List.of(
-                DemoDefault.Globals.INSTANCE,
-                Beach.Globals.INSTANCE,
-                Alpine.Globals.INSTANCE,
-                Dracula.Globals.INSTANCE);
+                Navy.Globals.INSTANCE,
+                AirForce.Globals.INSTANCE,
+                Army.Globals.INSTANCE);
     }
 }

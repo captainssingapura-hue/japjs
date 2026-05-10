@@ -26,6 +26,9 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             align-items: center;
             gap: 24px;
             flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 50;
             """;
         }
     }
@@ -53,6 +56,27 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             width: 12px;
             height: 12px;
             background: var(--color-accent);
+            """;
+        }
+    }
+    /** Wrapper for a typed SVG logo (StudioBrand.logo). Fixed 22×22 box; the
+     *  child SVG is sized to fill the box — no per-app sizing required.
+     *  {@code overflow:hidden} is the safety net: if a consumer ships an SVG
+     *  without width/height attrs (browsers default it to 300×150) the
+     *  wrapper still clips to 22×22 and won't blow out the header layout.
+     *  The transition pairs with the {@code .st-brand-logo:hover} rule in
+     *  STRUCTURAL_CSS for a small playful enlarge-on-hover. */
+    public record st_brand_logo() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            transform-origin: center;
+            transition: transform 160ms ease;
             """;
         }
     }
@@ -163,6 +187,73 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             """;
         }
     }
+    // Vertical-list layout — used for prose-like rows (objectives, acceptance,
+    // decisions). Counterpart to st-grid (which lays out card tiles).
+    public record st_list() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            """;
+        }
+    }
+    public record st_list_item() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-left: 3px solid var(--color-border-emphasis);
+            border-radius: 4px;
+            padding: 12px 16px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            text-decoration: none;
+            color: inherit;
+            """;
+        }
+    }
+    public record st_list_item_marker() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            min-height: 24px;
+            """;
+        }
+    }
+    public record st_list_item_body() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            flex: 1;
+            min-width: 0;
+            """;
+        }
+    }
+    public record st_list_item_label() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-family: "Georgia", serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-text-link);
+            margin: 0 0 4px 0;
+            line-height: 1.3;
+            """;
+        }
+    }
+    public record st_list_item_desc() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            font-size: 13px;
+            color: var(--color-text-muted);
+            line-height: 1.5;
+            margin: 0;
+            """;
+        }
+    }
+    public record st_list_item_met() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            color: #4a7c4a;
+            """;
+        }
+    }
     public record st_card() implements CssClass<StudioStyles> {
         @Override public String body() { return """
             background: var(--color-surface-raised);
@@ -175,7 +266,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             color: inherit;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.04);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-link) 4%, transparent);
             transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
             min-height: 150px;
             """;
@@ -466,7 +557,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             display: flex;
             align-items: center;
             gap: 18px;
-            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.05);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-link) 5%, transparent);
             transition: all 160ms ease;
             """;
         }
@@ -535,7 +626,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
         @Override public String body() { return """
             flex: 1;
             height: 12px;
-            background: rgba(202, 220, 252, 0.18);
+            background: color-mix(in srgb, var(--color-text-link) 12%, transparent);
             border-radius: 6px;
             overflow: hidden;
             """;
@@ -570,7 +661,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             text-decoration: none;
             color: inherit;
             display: block;
-            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.04);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-link) 4%, transparent);
             transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
             """;
         }
@@ -685,7 +776,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             border-radius: 4px;
             padding: 18px 22px;
             margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(30, 39, 97, 0.04);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-link) 4%, transparent);
             """;
         }
     }
@@ -786,11 +877,15 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
     public List<CssClass<StudioStyles>> cssClasses() {
         return List.of(
                 new st_root(), new st_header(), new st_nav(),
-                new st_brand(), new st_brand_dot(), new st_brand_word(),
+                new st_brand(), new st_brand_dot(), new st_brand_logo(), new st_brand_word(),
                 new st_breadcrumbs(), new st_crumb(), new st_crumb_sep(),
                 new st_main(), new st_kicker(), new st_title(), new st_subtitle(),
                 new st_section(), new st_section_title(),
-                new st_grid(), new st_card(), new st_card_featured(),
+                new st_grid(),
+                new st_list(), new st_list_item(), new st_list_item_marker(),
+                new st_list_item_body(), new st_list_item_label(), new st_list_item_desc(),
+                new st_list_item_met(),
+                new st_card(), new st_card_featured(),
                 new st_card_title(), new st_card_summary(), new st_card_meta(), new st_card_link(),
                 new st_badge(),
                 new st_badge_whitepaper(), new st_badge_brochure(), new st_badge_rfc(),
