@@ -17,21 +17,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <build>
-        <resources>
-            <!-- Studio docs: serve the repo-root /docs/ tree as classpath
-                 resources so DocGetAction (/doc) — which uses
-                 ResourceReader.fromSystemProperty() falling back to the
-                 classpath — resolves paths like "blocks/atoms.md" or
-                 "whitepaper/homing-whitepaper.md" without the legacy
-                 filesystem-rooted /doc-content. -->
-            <resource>
-                <directory>${project.basedir}/../docs</directory>
-                <targetPath>.</targetPath>
-            </resource>
-        </resources>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>

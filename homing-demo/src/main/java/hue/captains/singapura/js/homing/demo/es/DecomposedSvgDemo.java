@@ -5,9 +5,9 @@ import hue.captains.singapura.js.homing.libs.ThreeJs;
 
 import java.util.List;
 
-public record DecomposedSvgDemo() implements AppModule<DecomposedSvgDemo> {
+public record DecomposedSvgDemo() implements AppModule<AppModule._None, DecomposedSvgDemo> {
 
-    record appMain() implements AppModule._AppMain<DecomposedSvgDemo> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, DecomposedSvgDemo> {}
 
     public record link() implements AppLink<DecomposedSvgDemo> {}
 

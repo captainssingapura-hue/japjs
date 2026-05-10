@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.studio.rename;
 
+import hue.captains.singapura.js.homing.studio.base.tracker.Acceptance;
 import hue.captains.singapura.js.homing.studio.base.tracker.Decision;
 import hue.captains.singapura.js.homing.studio.base.tracker.DecisionStatus;
 import hue.captains.singapura.js.homing.studio.base.tracker.Dependency;
@@ -23,7 +24,7 @@ public final class RenamePlanData implements Plan {
     private RenamePlanData() {}
 
     @Override public String kicker()        { return "project rename"; }
-    @Override public String title()         { return RenameSteps.OLD_NAME + " → " + RenameSteps.NEW_NAME; }
+    @Override public String name()          { return RenameSteps.OLD_NAME + " → " + RenameSteps.NEW_NAME; }
     @Override public String subtitle() {
         return "Source of truth: RenameSteps.java. Edit, recompile, refresh — phases and decisions update live.";
     }
@@ -40,6 +41,11 @@ public final class RenamePlanData implements Plan {
     @Override
     public List<Decision> decisions() {
         return RenameSteps.DECISIONS.stream().map(RenamePlanData::adaptDecision).toList();
+    }
+
+    @Override
+    public List<Acceptance> acceptance() {
+        return List.of();   // TODO: populate per-tracker; v1 falls back to per-phase outcomes only.
     }
 
     private static Phase adaptPhase(RenameSteps.Phase p) {

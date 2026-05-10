@@ -5,9 +5,9 @@ import hue.captains.singapura.js.homing.libs.ThreeJs;
 
 import java.util.List;
 
-public record ExtrudedSvgDemo() implements AppModule<ExtrudedSvgDemo> {
+public record ExtrudedSvgDemo() implements AppModule<AppModule._None, ExtrudedSvgDemo> {
 
-    record appMain() implements AppModule._AppMain<ExtrudedSvgDemo> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, ExtrudedSvgDemo> {}
 
     public record link() implements AppLink<ExtrudedSvgDemo> {}
 

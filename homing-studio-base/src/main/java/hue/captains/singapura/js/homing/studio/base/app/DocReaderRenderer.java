@@ -14,8 +14,10 @@ import java.util.List;
 
 /**
  * Shared JS renderer for {@link DocReader}. Fetches the markdown via
- * {@code /doc?path=…} (typed asset, served by {@code DocGetAction}), renders
- * with marked.js, and builds a TOC sidebar from the document's headings.
+ * {@code /doc?id=<uuid>} and the typed References list via {@code /doc-refs?id=<uuid>}
+ * (RFC 0004-ext1), renders with marked.js, builds a TOC sidebar from the document's headings,
+ * and emits a "References" section beneath the body with stable {@code id="ref:<name>"}
+ * anchors so markdown citations like {@code [label](#ref:<name>)} navigate natively.
  */
 public record DocReaderRenderer() implements DomModule<DocReaderRenderer> {
 
@@ -46,6 +48,12 @@ public record DocReaderRenderer() implements DomModule<DocReaderRenderer> {
                         new StudioStyles.st_toc_active(),
                         new StudioStyles.st_doc(),
                         new StudioStyles.st_doc_meta(),
+                        new StudioStyles.st_section(),
+                        new StudioStyles.st_section_title(),
+                        new StudioStyles.st_card(),
+                        new StudioStyles.st_card_title(),
+                        new StudioStyles.st_card_summary(),
+                        new StudioStyles.st_card_link(),
                         new StudioStyles.st_loading(),
                         new StudioStyles.st_error()
                 ), StudioStyles.INSTANCE))

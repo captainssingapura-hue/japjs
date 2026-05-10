@@ -1,0 +1,331 @@
+// =============================================================================
+// PlanHostRenderer — shared renderer for PlanAppHost (RFC 0005-ext1).
+//
+// renderPlanHost({ planId, phase }) → Node
+//
+// Fetches /plan?id=<planId> for the full plan payload, then dispatches:
+//   - phase param present → step-detail view for that phase
+//   - phase param absent  → index view (all phases / decisions / acceptance)
+//
+// Server pre-resolves brand + URLs; renderer constructs no URLs of its own
+// beyond plan-internal navigation (next/prev phase, back to index).
+// =============================================================================
+
+// `href` is auto-injected by the AppLink import (DocReader.link); no manual
+// `var href = HrefManagerInstance;` needed here. Declaring it would duplicate
+// the framework's auto-injection and throw a SyntaxError at load time.
+// Pinned by ManagerInjectionConformanceTest.
+
+function renderPlanHost(props) {
+    var planId = props.planId;
+    var phase  = props.phase;
+
+    var root = document.createElement("div");
+    css.addClass(root, st_root);
+
+    var loading = document.createElement("div");
+    css.addClass(loading, st_loading);
+    loading.textContent = "Loading…";
+    loading.style.cssText = "padding:24px;";
+    root.appendChild(loading);
+
+    if (!planId) {
+        var errMsg = document.createElement("div");
+        css.addClass(errMsg, st_error);
+        errMsg.appendChild(document.createTextNode("No plan specified. Use "));
+        var errCode = document.createElement("code"); errCode.textContent = "?id=<class-fqn>";
+        errMsg.appendChild(errCode);
+        errMsg.appendChild(document.createTextNode("."));
+        root.replaceChildren(errMsg);
+        return root;
+    }
+
+    fetch("/plan?id=" + encodeURIComponent(planId))
+        .then(function(r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+        })
+        .then(function(data) {
+            if (phase) {
+                _renderStep(root, data, planId, phase);
+            } else {
+                _renderIndex(root, data, planId);
+            }
+        })
+        .catch(function(err) {
+            var errEl = document.createElement("div");
+            css.addClass(errEl, st_error);
+            errEl.appendChild(document.createTextNode("Failed to load plan: " + err.message));
+            root.replaceChildren(errEl);
+        });
+
+    return root;
+}
+
+function _planUrl(planId)               { return "/app?app=plan&id=" + encodeURIComponent(planId); }
+function _phaseUrl(planId, phaseId)     { return _planUrl(planId) + "&phase=" + encodeURIComponent(phaseId); }
+
+function _brandHeader(data, crumbsAfter) {
+    var brand = data.brand || { label: "studio", homeUrl: "/" };
+    var crumbs = [
+        { text: brand.label,       href: brand.homeUrl },
+        { text: data.name }
+    ];
+    if (crumbsAfter && crumbsAfter.length) {
+        crumbs[crumbs.length - 1].href = crumbsAfter[0].selfUrl;
+        for (var i = 0; i < crumbsAfter.length; i++) crumbs.push({ text: crumbsAfter[i].text });
+    }
+    return Header({
+        brand:  { href: brand.homeUrl, label: brand.label, logo: brand.logo },
+        crumbs: crumbs
+    });
+}
+
+function _renderIndex(root, data, planId) {
+    var children = [];
+    children.push(_brandHeader(data, null));
+
+    var main = document.createElement("div");
+    css.addClass(main, st_main);
+
+    if (data.kicker) {
+        var kicker = document.createElement("div");
+        css.addClass(kicker, st_kicker);
+        kicker.textContent = data.kicker;
+        main.appendChild(kicker);
+    }
+
+    var title = document.createElement("h1");
+    css.addClass(title, st_title);
+    title.textContent = data.name;
+    main.appendChild(title);
+
+    if (data.subtitle) {
+        var subtitle = document.createElement("p");
+        css.addClass(subtitle, st_subtitle);
+        subtitle.textContent = data.subtitle;
+        main.appendChild(subtitle);
+    }
+
+    // Overall progress at the very top of the main area — instant ship-status
+    // signal before the reader scrolls into objectives / decisions / phases.
+    main.appendChild(OverallProgress({ percent: data.totalProgress }));
+
+    // Objectives section — optional 4th pillar; rendered just below the
+    // progress bar so a reader sees the "why" before the "what". Hidden
+    // when the list is empty.
+    if (data.objectives && data.objectives.length) {
+        var objectiveItems = data.objectives.map(function(o) {
+            return ListItem({ label: o.label, description: o.description });
+        });
+        main.appendChild(Listing({ title: "Objectives", children: objectiveItems }));
+    }
+
+    // Decisions section — list rows with status badge as marker.
+    if (data.decisions && data.decisions.length) {
+        var decisionItems = data.decisions.map(function(d) {
+            return ListItem({
+                marker:      StatusBadge({ statusSlug: (d.status || "").toLowerCase(), statusLabel: d.status || "" }),
+                label:       d.question,
+                description: _decisionBody(d)
+            });
+        });
+        main.appendChild(Listing({ title: "Open decisions (" + data.openDecisions + ")", children: decisionItems }));
+    }
+
+    // Acceptance section (RFC 0005-ext1 third pillar) — list rows with ✓/○ marker.
+    if (data.acceptance && data.acceptance.length) {
+        var acceptanceItems = data.acceptance.map(function(a) {
+            return ListItem({
+                marker:      a.met ? "✓" : "○",
+                met:         a.met,
+                label:       a.label,
+                description: a.description
+            });
+        });
+        main.appendChild(Listing({ title: "Acceptance (" + data.acceptanceMet + " of " + data.acceptance.length + " met)",
+                                   children: acceptanceItems }));
+    }
+
+    // Phases section — uniform list format, matching Objectives / Decisions /
+    // Acceptance. Each row: status badge as marker, "id — label" as the
+    // headline, summary as the description, click-through to the per-phase
+    // detail view. Per-phase progress percent is rolled into the marker
+    // column beneath the badge.
+    var phaseItems = data.phases.map(function(p) {
+        return ListItem({
+            href:        _phaseUrl(planId, p.id),
+            marker:      _phaseMarker(p),
+            met:         (p.status || "").toLowerCase() === "done",
+            label:       p.id + " — " + p.label,
+            description: p.summary
+        });
+    });
+    main.appendChild(Listing({ title: "Phases", children: phaseItems }));
+
+    // Footer with executionDoc/dossierDoc links.
+    var footerChildren = [];
+    if (data.executionDoc) {
+        var execA = document.createElement("a");
+        href.set(execA, "/app?app=doc-reader&doc=" + encodeURIComponent(data.executionDoc));
+        execA.textContent = "Execution Plan (prose)";
+        footerChildren.push(execA);
+    }
+    if (data.dossierDoc) {
+        var dosA = document.createElement("a");
+        href.set(dosA, "/app?app=doc-reader&doc=" + encodeURIComponent(data.dossierDoc));
+        dosA.textContent = "Dossier";
+        if (footerChildren.length) footerChildren.push(document.createTextNode(" · "));
+        footerChildren.push(dosA);
+    }
+    if (footerChildren.length) main.appendChild(Footer({ children: footerChildren }));
+
+    children.push(main);
+    root.replaceChildren.apply(root, children);
+}
+
+// Marker node for a Phase row — status badge above per-phase progress %.
+// Returned as a Node so ListItem renders it verbatim.
+function _phaseMarker(p) {
+    var box = document.createElement("div");
+    box.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px;";
+    box.appendChild(StatusBadge({
+        statusSlug:  (p.status || "").toLowerCase(),
+        statusLabel: p.status || ""
+    }));
+    var pct = document.createElement("div");
+    pct.style.cssText = "font-size:11px;color:var(--color-text-muted);";
+    pct.textContent = (p.progressPercent || 0) + "%";
+    box.appendChild(pct);
+    return box;
+}
+
+// Rich description node for a Decision row — recommendation prose plus an
+// optional rationale line. Returned as a Node so ListItem renders it
+// verbatim (rather than escaping the line break into a single string).
+function _decisionBody(d) {
+    var box = document.createElement("div");
+    if (d.recommendation) {
+        var p = document.createElement("div");
+        p.textContent = d.recommendation;
+        box.appendChild(p);
+    }
+    if (d.rationale) {
+        var r = document.createElement("div");
+        r.style.cssText = "margin-top:6px;font-style:italic;opacity:0.85;";
+        r.textContent = d.rationale;
+        box.appendChild(r);
+    }
+    return box;
+}
+
+function _renderStep(root, data, planId, phaseId) {
+    var phase = null;
+    var phaseIdx = -1;
+    for (var i = 0; i < data.phases.length; i++) {
+        if (data.phases[i].id === phaseId) { phase = data.phases[i]; phaseIdx = i; break; }
+    }
+    if (!phase) {
+        var errEl = document.createElement("div");
+        css.addClass(errEl, st_error);
+        errEl.textContent = "Phase " + phaseId + " not found in plan " + data.name;
+        root.replaceChildren(errEl);
+        return;
+    }
+
+    var children = [];
+    children.push(_brandHeader(data, [{ selfUrl: _planUrl(planId), text: "Phase " + phase.id }]));
+
+    var main = document.createElement("div");
+    css.addClass(main, st_main);
+
+    var statusRow = document.createElement("div");
+    statusRow.appendChild(StatusBadge({ status: phase.status }));
+    var effort = document.createElement("span");
+    effort.style.cssText = "margin-left:12px; color: var(--st-gray-mid);";
+    effort.textContent = phase.effort;
+    statusRow.appendChild(effort);
+    main.appendChild(statusRow);
+
+    var title = document.createElement("h1");
+    css.addClass(title, st_title);
+    title.textContent = "Phase " + phase.id + ": " + phase.label;
+    main.appendChild(title);
+
+    if (phase.summary) {
+        var summary = document.createElement("p");
+        css.addClass(summary, st_subtitle);
+        summary.textContent = phase.summary;
+        main.appendChild(summary);
+    }
+
+    if (phase.description) {
+        var desc = document.createElement("p");
+        desc.textContent = phase.description;
+        main.appendChild(desc);
+    }
+
+    if (phase.tasks && phase.tasks.length) {
+        main.appendChild(Panel({ title: "Tasks", children: [TodoList({ items: phase.tasks })] }));
+    }
+
+    if (phase.metrics && phase.metrics.length) {
+        main.appendChild(Panel({ title: "Metrics", children: [MetricsTable({ rows: phase.metrics })] }));
+    }
+
+    if (phase.dependsOn && phase.dependsOn.length) {
+        var depsList = document.createElement("ul");
+        for (var di = 0; di < phase.dependsOn.length; di++) {
+            var d = phase.dependsOn[di];
+            var li = document.createElement("li");
+            var a = document.createElement("a");
+            href.set(a, _phaseUrl(planId, d.phaseId));
+            a.textContent = "Phase " + d.phaseId;
+            li.appendChild(a);
+            li.appendChild(document.createTextNode(" — " + d.reason));
+            depsList.appendChild(li);
+        }
+        main.appendChild(Panel({ title: "Dependencies", children: [depsList] }));
+    }
+
+    if (phase.verification) {
+        var verEl = document.createElement("p");
+        verEl.textContent = phase.verification;
+        main.appendChild(Panel({ title: "Verification", children: [verEl] }));
+    }
+
+    if (phase.rollback) {
+        var rbEl = document.createElement("p");
+        rbEl.textContent = phase.rollback;
+        main.appendChild(Panel({ title: "Rollback", children: [rbEl] }));
+    }
+
+    if (phase.notes) {
+        var notesEl = document.createElement("p");
+        notesEl.style.cssText = "white-space: pre-wrap;";
+        notesEl.textContent = phase.notes;
+        main.appendChild(Panel({ title: "Notes", children: [notesEl] }));
+    }
+
+    // Prev / next nav.
+    var navRow = document.createElement("div");
+    navRow.style.cssText = "display:flex; justify-content:space-between; margin-top:24px;";
+    if (phaseIdx > 0) {
+        var prev = document.createElement("a");
+        href.set(prev, _phaseUrl(planId, data.phases[phaseIdx - 1].id));
+        prev.textContent = "← Phase " + data.phases[phaseIdx - 1].id;
+        navRow.appendChild(prev);
+    } else {
+        navRow.appendChild(document.createElement("span"));
+    }
+    if (phaseIdx < data.phases.length - 1) {
+        var next = document.createElement("a");
+        href.set(next, _phaseUrl(planId, data.phases[phaseIdx + 1].id));
+        next.textContent = "Phase " + data.phases[phaseIdx + 1].id + " →";
+        navRow.appendChild(next);
+    }
+    main.appendChild(navRow);
+
+    children.push(main);
+    root.replaceChildren.apply(root, children);
+}

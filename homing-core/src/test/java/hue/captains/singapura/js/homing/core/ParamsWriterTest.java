@@ -253,16 +253,16 @@ class ParamsWriterTest {
     // EsModuleWriter integration — params const appears in output
     // =====================================================================
 
-    record AppWithParams() implements AppModule<AppWithParams> {
-        public record Params(String productId, int quantity) {}
+    record AppWithParams() implements AppModule<AppWithParams.Params, AppWithParams> {
+        public record Params(String productId, int quantity) implements AppModule._Param {}
         static final AppWithParams INSTANCE = new AppWithParams();
         @Override public String title() { return "Sample"; }
-        @Override public Class<?> paramsType() { return Params.class; }
+        @Override public Class<Params> paramsType() { return Params.class; }
         @Override public ImportsFor<AppWithParams> imports() { return ImportsFor.noImports(); }
         @Override public ExportsOf<AppWithParams> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record AppNoParams() implements AppModule<AppNoParams> {
+    record AppNoParams() implements AppModule<AppModule._None, AppNoParams> {
         static final AppNoParams INSTANCE = new AppNoParams();
         @Override public String title() { return "NoParams"; }
         @Override public ImportsFor<AppNoParams> imports() { return ImportsFor.noImports(); }

@@ -1,68 +1,81 @@
 package hue.captains.singapura.js.homing.studio.base;
 
-import hue.captains.singapura.js.homing.core.Exportable;
+import java.util.List;
+import java.util.UUID;
 
 /**
- * A document declared within a {@link DocGroup}.
+ * A typed reference to a document — markdown, HTML, plain text, JSON, or any other
+ * text-based format the studio reader / browser knows how to display.
  *
- * <p>Mirrors {@code CssClass} for {@code CssGroup}: each implementing record is an
- * exportable constant carrying typed metadata about a single document. The
- * framework's import-writer treats the record like any other typed export — user
- * code references docs by their record class, not by string path, so renames are
- * caught at compile time and missing docs surface as missing classes.</p>
+ * <p>Per <a href="../../../../../../../../../../docs/rfcs/0004-typed-docs-and-doc-visibility.md">
+ * RFC 0004</a>, every Doc is identified by a {@link UUID} (the wire identity, stable across
+ * Java renames and file moves) and provides its own bytes via {@link #contents()}. The framework
+ * never reaches outside the Doc to load anything; the Doc owns its sourcing.</p>
  *
- * <p>The {@link #path()} value is the location of the bytes — typically a
- * classpath resource path the {@link DocGetAction} resolves at request time.</p>
+ * <p>Most Docs are static markdown shipped on the classpath next to their record class. Use
+ * {@link ClasspathMarkdownDoc} for the dominant case (zero ceremony — record class location
+ * implies file location). Other static cases:</p>
  *
- * <h2>Doc kinds (RFC 0002-ext2)</h2>
+ * <ul>
+ *   <li>{@link InlineDoc} — contents inlined as a Java text block; no companion file.</li>
+ *   <li>{@link ResourceMarkdownDoc} — classpath-loaded but at an explicit path, when the
+ *       co-located mirror doesn't fit.</li>
+ * </ul>
  *
- * <p>Doc is content-type-agnostic. The default {@link #contentType()} and
- * {@link #fileExtension()} target markdown; convenience sub-interfaces
- * ({@link MarkdownDoc}, {@link HtmlDoc}, {@link PlainTextDoc}, {@link JsonDoc},
- * {@link SvgDoc}) flip the defaults for other text formats. Downstream may
- * implement {@code Doc<D>} directly with custom overrides — the framework
- * doesn't constrain the open set of doc kinds.</p>
+ * <p>For non-static sources (database, network, generated content), implement {@link Doc}
+ * directly and provide a custom {@link #contents()}.</p>
  *
- * <p>Example:</p>
- * <pre>{@code
- * public record HomingWhitepaper() implements MarkdownDoc<HomingDocs> {
- *     @Override public String path()     { return "whitepaper/homing-whitepaper.md"; }
- *     @Override public String title()    { return "Homing — Main White Paper"; }
- *     @Override public String summary()  { return "The full technical design."; }
- *     @Override public String category() { return "WHITEPAPER"; }
- * }
+ * <h2>Identity vs. addressability</h2>
  *
- * public record ArchitectureDiagram() implements SvgDoc<HomingDocs> {
- *     @Override public String path()  { return "diagrams/architecture.svg"; }
- *     @Override public String title() { return "Architecture diagram"; }
- * }
- * }</pre>
+ * <p>The {@link #uuid()} is the only thing that travels on the wire. Java class names,
+ * package, on-disk file path, and even {@link #title()} are all free to change without
+ * breaking external links / bookmarks / API references. Generate a UUID once with
+ * {@code UUID.randomUUID()} (or a JShell session), paste as a {@code static final UUID}
+ * constant, and never edit it again.</p>
  *
- * @param <D> the {@link DocGroup} this doc belongs to
+ * @since RFC 0004
  */
-public interface Doc<D extends DocGroup<D>> extends Exportable._Constant<D> {
+public interface Doc {
 
-    /** Path of the bytes, relative to the docs resolver's root (typically classpath). */
-    String path();
+    /**
+     * Stable surrogate identity for this Doc on the wire. Unique within a {@link DocRegistry}.
+     * Generated once and frozen — must not change across Java renames or file moves.
+     */
+    UUID uuid();
 
     /** Display title shown in browsers and reader headers. */
     String title();
 
-    /** Optional one-line summary. Default empty. */
+    /**
+     * The bytes of this Doc as a UTF-8 string. Source of truth — every server endpoint
+     * calls this. The framework places no constraints on where the content originates.
+     */
+    String contents();
+
+    /** Optional one-line summary shown on browser cards. Default empty. */
     default String summary() { return ""; }
 
-    /** Optional category slug for grouping in browsers. Default empty. */
+    /** Optional category slug used by browsers for filtering / grouping. Default empty. */
     default String category() { return ""; }
 
-    /**
-     * MIME type the action serves this doc as. Default: {@code text/markdown}.
-     * Sub-interfaces override per kind ({@link HtmlDoc}, {@link PlainTextDoc}, etc.).
-     */
+    /** MIME type. Default {@code text/markdown}. */
     default String contentType() { return "text/markdown; charset=utf-8"; }
 
-    /**
-     * Required suffix on {@link #path()} (validated by {@link DocGetAction}).
-     * Default {@code .md}. Sub-interfaces override per kind.
-     */
+    /** File extension matching the content type, used by the classpath-loading subinterfaces. */
     default String fileExtension() { return ".md"; }
+
+    /**
+     * Typed cross-references and external citations declared by this Doc, rendered by the
+     * DocReader as a "References" section beneath the markdown body. Each {@link Reference}
+     * is exposed as a stable in-page anchor (id="ref:&lt;name&gt;"); the markdown body cites
+     * them via normal links of the form {@code [label](#ref:<name>)}.
+     *
+     * <p>Per RFC 0004-ext1, every out-of-document URL in the markdown body must resolve to
+     * a Reference declared here — otherwise the {@code DocConformanceTest}'s reference scan
+     * fails. References declared here that aren't cited inline are valid (they appear in the
+     * References section as "further reading" entries).</p>
+     *
+     * <p>Default: empty.</p>
+     */
+    default List<Reference> references() { return List.of(); }
 }

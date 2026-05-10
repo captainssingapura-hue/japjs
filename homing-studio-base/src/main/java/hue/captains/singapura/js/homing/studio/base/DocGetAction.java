@@ -1,6 +1,5 @@
 package hue.captains.singapura.js.homing.studio.base;
 
-import hue.captains.singapura.js.homing.core.util.ResourceReader;
 import hue.captains.singapura.js.homing.server.EmptyParam;
 import hue.captains.singapura.js.homing.server.ResourceNotFound;
 import hue.captains.singapura.tao.http.action.GetAction;
@@ -8,79 +7,39 @@ import hue.captains.singapura.tao.http.action.Param;
 import hue.captains.singapura.tao.http.action.ParamMarshaller;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * GET /doc?path=&lt;classpath-relative-path&gt;
+ * {@code GET /doc?id=<uuid>} — serves the bytes of a typed {@link Doc} resolved by UUID.
  *
- * <p>Serves the bytes of a typed {@link Doc} from the classpath. The path
- * comes from {@code Doc.path()} on the consumer's typed declaration; the
- * action validates the extension against its allow-list, reads the resource,
- * and returns the body with the matching MIME type.</p>
+ * <p>Per <a href="../../../../../../../../../../docs/rfcs/0004-typed-docs-and-doc-visibility.md">
+ * RFC 0004</a>, the wire identity of a Doc is its {@link UUID}; the action looks up the
+ * registered {@link Doc} in the {@link DocRegistry} and returns {@link Doc#contents()} with
+ * the Doc's declared {@link Doc#contentType()}. The action does no filesystem or classpath
+ * I/O of its own — the Doc owns its sourcing.</p>
  *
- * <h2>Supported doc kinds (RFC 0002-ext2)</h2>
+ * <p><b>Security</b>: user-supplied input never reaches a path. Only Docs registered at
+ * boot are reachable; an unknown UUID is a 404. The path-traversal surface from previous
+ * versions (where {@code ?path=…} was a free-form string) is gone.</p>
  *
- * <p>By default the action accepts text-based extensions covering the
- * sub-interfaces shipped in homing-studio-base:</p>
- *
- * <ul>
- *   <li>{@code .md}    → {@code text/markdown}     (default — see {@link MarkdownDoc})</li>
- *   <li>{@code .html}  → {@code text/html}         ({@link HtmlDoc})</li>
- *   <li>{@code .txt}   → {@code text/plain}        ({@link PlainTextDoc})</li>
- *   <li>{@code .json}  → {@code application/json}  ({@link JsonDoc})</li>
- *   <li>{@code .svg}   → {@code image/svg+xml}     ({@link SvgDoc})</li>
- * </ul>
- *
- * <p>Downstream that needs additional kinds (e.g. {@code .yaml},
- * {@code .csv}) constructs the action with a custom content-type map. The
- * action itself is purely a utility — it doesn't enumerate registered Docs;
- * each request resolves the path against the classpath independently.</p>
- *
- * <p><b>Validation:</b> the path must end with a configured extension, must
- * not contain {@code ..} segments, and must not start with a slash. Anything
- * else is a 404.</p>
+ * @since RFC 0004
  */
 public class DocGetAction
         implements GetAction<RoutingContext, DocGetAction.Query, EmptyParam.NoHeaders, DocContent> {
 
-    public record Query(String path) implements Param._QueryString {}
+    public record Query(String id) implements Param._QueryString {}
 
-    /** Default extension → content-type map covering the sub-interfaces shipped here. */
-    public static final Map<String, String> DEFAULT_CONTENT_TYPES = Map.ofEntries(
-            Map.entry(".md",   "text/markdown; charset=utf-8"),
-            Map.entry(".html", "text/html; charset=utf-8"),
-            Map.entry(".txt",  "text/plain; charset=utf-8"),
-            Map.entry(".json", "application/json; charset=utf-8"),
-            Map.entry(".svg",  "image/svg+xml; charset=utf-8")
-    );
+    private final DocRegistry registry;
 
-    private final ResourceReader resourceReader;
-    private final Map<String, String> extensionToContentType;
-
-    public DocGetAction() {
-        this(ResourceReader.fromSystemProperty(), DEFAULT_CONTENT_TYPES);
-    }
-
-    public DocGetAction(ResourceReader resourceReader) {
-        this(resourceReader, DEFAULT_CONTENT_TYPES);
-    }
-
-    /**
-     * @param resourceReader          how to read classpath bytes (typically system-default)
-     * @param extensionToContentType  allowed extensions (lower-case, including the leading dot)
-     *                                and the MIME types they map to. Downstream may extend
-     *                                this map to add their own kinds.
-     */
-    public DocGetAction(ResourceReader resourceReader, Map<String, String> extensionToContentType) {
-        this.resourceReader = Objects.requireNonNull(resourceReader, "resourceReader");
-        this.extensionToContentType = Map.copyOf(extensionToContentType);
+    public DocGetAction(DocRegistry registry) {
+        this.registry = Objects.requireNonNull(registry, "registry");
     }
 
     @Override
     public ParamMarshaller._QueryString<RoutingContext, Query> queryStrMarshaller() {
-        return ctx -> new Query(ctx.request().getParam("path"));
+        return ctx -> new Query(ctx.request().getParam("id"));
     }
 
     @Override
@@ -90,35 +49,28 @@ public class DocGetAction
 
     @Override
     public CompletableFuture<DocContent> execute(Query query, EmptyParam.NoHeaders headers) {
-        String path = query.path();
-        if (path == null || path.isBlank()) {
+        String raw = query.id();
+        if (raw == null || raw.isBlank()) {
             return CompletableFuture.failedFuture(
-                    notFound("path", "Required query parameter 'path' was not provided"));
+                    notFound("id", "Required query parameter 'id' was not provided"));
         }
-        if (path.contains("..") || path.startsWith("/") || path.startsWith("\\")) {
-            return CompletableFuture.failedFuture(
-                    notFound(path, "Must not contain '..' segments or a leading slash"));
+        UUID id;
+        try {
+            id = UUID.fromString(raw);
+        } catch (IllegalArgumentException e) {
+            return CompletableFuture.failedFuture(notFound(raw, "Malformed UUID"));
         }
-        String contentType = lookupContentType(path);
-        if (contentType == null) {
-            return CompletableFuture.failedFuture(notFound(path,
-                    "Unsupported file extension; allowed: " + extensionToContentType.keySet()));
+        Doc doc = registry.resolve(id);
+        if (doc == null) {
+            return CompletableFuture.failedFuture(notFound(raw, "No Doc registered with this UUID"));
         }
         try {
-            String body = String.join("\n", resourceReader.getStringsFromResource(path));
-            return CompletableFuture.completedFuture(new DocContent(body, contentType));
+            String body = doc.contents();
+            return CompletableFuture.completedFuture(new DocContent(body, doc.contentType()));
         } catch (Exception e) {
-            return CompletableFuture.failedFuture(notFound(path, "Doc not found on classpath"));
+            return CompletableFuture.failedFuture(notFound(raw,
+                    "Failed to load Doc contents: " + e.getMessage()));
         }
-    }
-
-    /** Find the matching extension entry for a path, or null if none. */
-    private String lookupContentType(String path) {
-        String lower = path.toLowerCase();
-        for (var entry : extensionToContentType.entrySet()) {
-            if (lower.endsWith(entry.getKey())) return entry.getValue();
-        }
-        return null;
     }
 
     private static ResourceNotFound notFound(String resource, String reason) {

@@ -15,27 +15,33 @@ import java.util.List;
  * studios just register {@code DocReader.INSTANCE} alongside their other apps;
  * no per-studio subclass needed.
  *
- * <p>URL: {@code /app?app=doc-reader&path=<classpath-relative.md>}.
- * The reader fetches the bytes via {@code /doc?path=…} (served by
- * {@code DocGetAction} from this same module), renders with marked.js, and
- * builds a heading TOC sidebar.</p>
+ * <p>URL: {@code /app?app=doc-reader&doc=<uuid>}. The reader fetches the bytes via
+ * {@code /doc?id=<uuid>} (served by {@code DocGetAction} from this same module against
+ * the studio's {@link hue.captains.singapura.js.homing.studio.base.DocRegistry}), renders
+ * with marked.js, and builds a heading TOC sidebar.</p>
  *
  * <p>The auto-generated body uses the studio brand by default. Downstream
  * that wants a custom brand can subclass and override {@link #brandLabel()};
  * the typical case is just to use the shared instance.</p>
  */
-public record DocReader() implements AppModule<DocReader>, SelfContent {
+public record DocReader() implements AppModule<DocReader.Params, DocReader>, SelfContent {
 
-    record appMain() implements AppModule._AppMain<DocReader> {}
+    record appMain() implements AppModule._AppMain<DocReader.Params, DocReader> {}
 
     public record link() implements AppLink<DocReader> {}
 
-    /** Typed query parameter — classpath-relative path to the doc to render. */
-    public record Params(String path) {}
+    /**
+     * Query parameter — the wire identity of the Doc to render. The string is the textual
+     * form of a {@link java.util.UUID}; server-side parsing to a typed UUID happens in
+     * {@code DocGetAction.Query} (the boundary that actually consumes it). Kept as String
+     * here because the Params record drives JS-side codegen, and the JS side just forwards
+     * the string into {@code /doc?id=<string>}.
+     */
+    public record Params(String doc) implements AppModule._Param {}
 
     public static final DocReader INSTANCE = new DocReader();
 
-    @Override public Class<?> paramsType() { return Params.class; }
+    @Override public Class<Params> paramsType() { return Params.class; }
 
     @Override public String title() { return "Homing · studio · doc"; }
 
@@ -43,11 +49,15 @@ public record DocReader() implements AppModule<DocReader>, SelfContent {
     public String brandLabel() { return "Homing · studio"; }
 
     /**
-     * Simple-name of the home / root catalogue app for the brand link. Default
-     * {@code studio-catalogue} so the brand link goes home in the standard studio.
-     * Downstream studios with a different home app should subclass and override.
+     * URL the brand link navigates to. Default {@code "/"} (the framework's root
+     * redirect lands the user on the studio's home app). Downstream studios with a
+     * specific catalogue can override:
+     *
+     * <pre>{@code
+     * @Override public String homeUrl() { return CatalogueAppHost.urlFor(MyHomeCatalogue.class); }
+     * }</pre>
      */
-    public String homeAppSimpleName() { return "studio-catalogue"; }
+    public String homeUrl() { return "/"; }
 
     @Override
     public ImportsFor<DocReader> imports() {
@@ -64,22 +74,20 @@ public record DocReader() implements AppModule<DocReader>, SelfContent {
 
     @Override
     public List<String> selfContent(ModuleNameResolver nameResolver) {
-        String brandJs = jstr(brandLabel());
-        String homeUrl = jstr("/app?app=" + homeAppSimpleName());
+        // The brand (label + logo + homeUrl) comes from /brand — populated
+        // from StudioBrand at boot. This module no longer hardcodes its own
+        // brandLabel() / homeUrl() — those defaults exist as a back-compat
+        // safety net for the /brand action when no StudioBrand is registered.
         return List.of(
                 "function appMain(rootElement) {",
-                "    var brand = { href: " + homeUrl + ", label: " + brandJs + " };",
-                "    rootElement.replaceChildren(renderDocReader({",
-                "        docPath:     params.path,",
-                "        brand:       brand,",
-                "        crumbsAbove: [{ text: \"Home\", href: " + homeUrl + " }]",
-                "    }));",
+                "    fetch(\"/brand\").then(function(r) { return r.json(); }).then(function(brand) {",
+                "        rootElement.replaceChildren(renderDocReader({",
+                "            docId:       params.doc,",
+                "            brand:       { href: brand.homeUrl, label: brand.label, logo: brand.logo },",
+                "            crumbsAbove: [{ text: \"Home\", href: brand.homeUrl }]",
+                "        }));",
+                "    });",
                 "}"
         );
-    }
-
-    private static String jstr(String s) {
-        if (s == null) return "null";
-        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 }

@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.studio.rfc0002;
 
+import hue.captains.singapura.js.homing.studio.base.tracker.Acceptance;
 import hue.captains.singapura.js.homing.studio.base.tracker.Decision;
 import hue.captains.singapura.js.homing.studio.base.tracker.DecisionStatus;
 import hue.captains.singapura.js.homing.studio.base.tracker.Dependency;
@@ -22,7 +23,7 @@ public final class Rfc0002PlanData implements Plan {
     private Rfc0002PlanData() {}
 
     @Override public String kicker()        { return "RFC 0002"; }
-    @Override public String title()         { return "Typed Themes for CssGroups"; }
+    @Override public String name()          { return "Typed Themes for CssGroups"; }
     @Override public String subtitle() {
         return "Source of truth: Rfc0002Steps.java. Edit, recompile, refresh — phases and decisions update live.";
     }
@@ -39,6 +40,11 @@ public final class Rfc0002PlanData implements Plan {
     @Override
     public List<Decision> decisions() {
         return Rfc0002Steps.DECISIONS.stream().map(Rfc0002PlanData::adaptDecision).toList();
+    }
+
+    @Override
+    public List<Acceptance> acceptance() {
+        return List.of();   // TODO: populate per-tracker; v1 falls back to per-phase outcomes only.
     }
 
     private static Phase adaptPhase(Rfc0002Steps.Phase p) {

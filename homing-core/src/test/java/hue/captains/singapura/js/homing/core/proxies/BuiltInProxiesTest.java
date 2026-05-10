@@ -126,7 +126,7 @@ class BuiltInProxiesTest {
     // SimpleAppResolver discovery via an entry app that imports the proxies
     // ====================================================================
 
-    record AppWithBuiltIns() implements AppModule<AppWithBuiltIns> {
+    record AppWithBuiltIns() implements AppModule<AppModule._None, AppWithBuiltIns> {
         public record link() implements AppLink<AppWithBuiltIns> {}
         static final AppWithBuiltIns INSTANCE = new AppWithBuiltIns();
         @Override public String title() { return "Sample"; }

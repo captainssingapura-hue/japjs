@@ -71,12 +71,12 @@ public final class NavWriter {
             String identifier = target.getClass().getSimpleName();
             String comma = (i < entries.size() - 1) ? "," : "";
             switch (target) {
-                case AppModule<?> ignored -> {
+                case AppModule<?, ?> ignored -> {
                     out.add("    " + identifier
                           + ": function(p) { return _homingBuildAppUrl(\""
                           + jsString(target.simpleName()) + "\", p); }" + comma);
                 }
-                case ProxyApp<?> proxy -> {
+                case ProxyApp<?, ?> proxy -> {
                     var tpl = UrlTemplate.compile(proxy.urlTemplate(), proxy.paramsType());
                     String body = tpl.toJsExpression("p");
                     out.add("    " + identifier

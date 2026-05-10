@@ -25,7 +25,7 @@ class SingleModuleImportWriterTest {
         }
     }
 
-    record AppA() implements AppModule<AppA> {
+    record AppA() implements AppModule<AppModule._None, AppA> {
         public record link() implements AppLink<AppA> {}
         static final AppA INSTANCE = new AppA();
         @Override public String title() { return "A"; }

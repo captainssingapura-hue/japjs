@@ -314,12 +314,16 @@ public final class UrlTemplate {
     }
 
     private static Map<String, RecordComponent> describeParams(Class<?> paramsType) {
-        if (paramsType == null || paramsType == Void.class || paramsType == void.class) {
+        if (paramsType == null
+                || paramsType == Void.class
+                || paramsType == void.class
+                || paramsType == AppModule._None.class) {
             return Map.of();
         }
         if (!paramsType.isRecord()) {
             throw new IllegalStateException(
-                    "paramsType must be a record class or Void.class, got: " + paramsType.getName());
+                    "paramsType must be a record class, AppModule._None.class, or Void.class, got: "
+                            + paramsType.getName());
         }
         Map<String, RecordComponent> out = new LinkedHashMap<>();
         for (var rc : paramsType.getRecordComponents()) {

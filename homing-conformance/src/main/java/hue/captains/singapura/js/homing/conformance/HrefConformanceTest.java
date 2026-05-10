@@ -131,7 +131,7 @@ public abstract class HrefConformanceTest {
      * String literals are preserved (their contents are still scanned). Newlines
      * inside block comments are preserved so reported line numbers stay accurate.
      */
-    static List<String> stripComments(List<String> lines) {
+    public static List<String> stripComments(List<String> lines) {
         String joined = String.join("\n", lines);
         StringBuilder out = new StringBuilder(joined.length());
 

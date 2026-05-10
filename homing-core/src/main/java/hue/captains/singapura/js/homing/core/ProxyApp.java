@@ -21,11 +21,13 @@ package hue.captains.singapura.js.homing.core;
  * modules import to gain a typed {@code nav.X(params)} entry pointing at this
  * destination. The outgoing URL is constructed from {@link #urlTemplate()}.</p>
  *
- * <p>Introduced in RFC 0001 Step 03.</p>
+ * <p>Introduced in RFC 0001 Step 03; v1 typed on {@code <P, M>} symmetrically
+ * with {@link AppModule}.</p>
  *
- * @param <P> self-type
+ * @param <P> the params record type ({@link AppModule._None} for static URLs)
+ * @param <M> self-type
  */
-public non-sealed interface ProxyApp<P extends ProxyApp<P>> extends Linkable {
+public non-sealed interface ProxyApp<P extends AppModule._Param, M extends ProxyApp<P, M>> extends Linkable {
 
     /**
      * URL template with {@code {name}} interpolation slots. Parsed at first
@@ -61,11 +63,13 @@ public non-sealed interface ProxyApp<P extends ProxyApp<P>> extends Linkable {
     }
 
     /**
-     * Java record describing this proxy's typed parameters, or {@code Void.class}
-     * for a static URL with no interpolation. Default is {@code Void.class}.
+     * Java record describing this proxy's typed parameters. Defaults to
+     * {@link AppModule._None}{@code .class} for static URLs with no
+     * interpolation slots.
      */
     @Override
-    default Class<?> paramsType() {
-        return Void.class;
+    @SuppressWarnings("unchecked")
+    default Class<P> paramsType() {
+        return (Class<P>) AppModule._None.class;
     }
 }

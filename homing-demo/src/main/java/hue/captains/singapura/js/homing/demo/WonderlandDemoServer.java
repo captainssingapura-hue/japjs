@@ -22,7 +22,7 @@ public class WonderlandDemoServer {
         // RFC 0001 Step 11: single entry app — DemoCatalogue links to every other
         // demo via typed AppLink imports, so the resolver discovers the whole
         // graph transitively. (Pre-Step-11 we had to enumerate every app.)
-        var appResolver = new SimpleAppResolver(List.<AppModule<?>>of(
+        var appResolver = new SimpleAppResolver(List.<AppModule<?, ?>>of(
                 DemoCatalogue.INSTANCE
         ));
 

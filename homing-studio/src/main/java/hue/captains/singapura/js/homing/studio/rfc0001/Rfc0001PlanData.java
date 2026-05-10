@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.studio.rfc0001;
 
+import hue.captains.singapura.js.homing.studio.base.tracker.Acceptance;
 import hue.captains.singapura.js.homing.studio.base.tracker.Decision;
 import hue.captains.singapura.js.homing.studio.base.tracker.Dependency;
 import hue.captains.singapura.js.homing.studio.base.tracker.Phase;
@@ -26,7 +27,7 @@ public final class Rfc0001PlanData implements Plan {
     private Rfc0001PlanData() {}
 
     @Override public String kicker()        { return "RFC 0001"; }
-    @Override public String title()         { return "App Registry & Typed Navigation"; }
+    @Override public String name()          { return "App Registry & Typed Navigation"; }
     @Override public String subtitle() {
         return "Source of truth: Rfc0001Steps.java. Edit, recompile, refresh — steps update live.";
     }
@@ -43,6 +44,11 @@ public final class Rfc0001PlanData implements Plan {
     @Override
     public List<Decision> decisions() {
         return List.of();   // RFC 0001 has no decisions concept.
+    }
+
+    @Override
+    public List<Acceptance> acceptance() {
+        return List.of();   // TODO: populate per-tracker; v1 falls back to per-phase outcomes only.
     }
 
     private static Phase adaptStep(Rfc0001Steps.Step s) {

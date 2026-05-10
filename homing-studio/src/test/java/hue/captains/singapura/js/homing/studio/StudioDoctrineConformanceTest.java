@@ -8,14 +8,8 @@ import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
 import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
-import hue.captains.singapura.js.homing.studio.rename.RenamePlan;
-import hue.captains.singapura.js.homing.studio.rename.RenameStep;
-import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001Plan;
-import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001Step;
-import hue.captains.singapura.js.homing.studio.rfc0002.Rfc0002Plan;
-import hue.captains.singapura.js.homing.studio.rfc0002.Rfc0002Step;
-import hue.captains.singapura.js.homing.studio.rfc0002ext1.Rfc0002Ext1Plan;
-import hue.captains.singapura.js.homing.studio.rfc0002ext1.Rfc0002Ext1Step;
+import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
+import hue.captains.singapura.js.homing.studio.base.tracker.PlanAppHost;
 
 import java.util.List;
 import java.util.Set;
@@ -40,26 +34,12 @@ class StudioDoctrineConformanceTest extends DoctrineConformanceTest {
     @Override
     protected List<EsModule<?>> esModules() {
         return List.<EsModule<?>>of(
+                CatalogueAppHost.INSTANCE,
+                PlanAppHost.INSTANCE,
                 // Top-level catalogue / reader modules — compose StudioElements directly.
-                StudioCatalogue.INSTANCE,
-                JourneysCatalogue.INSTANCE,
-                BuildingBlocksCatalogue.INSTANCE,
-                DoctrineCatalogue.INSTANCE,
                 DocBrowser.INSTANCE,
-                DocReader.INSTANCE,
-                // Plan trackers — auto-generated JS via PlanAppModule + PlanRenderer.
-                // The base class skips modules that have no .js resource (the
-                // tracker pattern emits its body via SelfContent), so the test
-                // is effectively a no-op for these. Listed anyway so any
-                // future hand-written tracker JS gets caught.
-                Rfc0001Plan.INSTANCE,
-                Rfc0001Step.INSTANCE,
-                Rfc0002Plan.INSTANCE,
-                Rfc0002Step.INSTANCE,
-                Rfc0002Ext1Plan.INSTANCE,
-                Rfc0002Ext1Step.INSTANCE,
-                RenamePlan.INSTANCE,
-                RenameStep.INSTANCE
+                DocReader.INSTANCE
+                // RFC 0005-ext1: per-tracker AppModules deleted; PlanAppHost serves all.
         );
     }
 

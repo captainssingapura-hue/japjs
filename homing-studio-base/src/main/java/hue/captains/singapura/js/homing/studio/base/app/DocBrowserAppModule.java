@@ -10,13 +10,14 @@ import java.util.List;
  * Generic AppModule for a doc-browser page. Concrete browsers implement
  * {@link #docBrowserData()} and inherit the auto-generated JS body.
  */
-public interface DocBrowserAppModule<M extends DocBrowserAppModule<M>> extends AppModule<M>, SelfContent {
+public interface DocBrowserAppModule<M extends DocBrowserAppModule<M>> extends AppModule<AppModule._None, M>, SelfContent {
 
     DocBrowserData docBrowserData();
 
     default String brandLabel() { return "Homing · studio"; }
 
-    default String homeAppSimpleName() { return simpleName(); }
+    /** RFC 0005: URL the brand link navigates to. Default {@code "/"} (root redirect lands on home). */
+    default String homeUrl() { return "/"; }
 
     @Override
     default String title() {
@@ -25,20 +26,20 @@ public interface DocBrowserAppModule<M extends DocBrowserAppModule<M>> extends A
 
     @Override
     default List<String> selfContent(ModuleNameResolver nameResolver) {
-        String json    = DocBrowserJson.of(docBrowserData());
-        String brandJs = jstr(brandLabel());
-        String homeUrl = jstr("/app?app=" + homeAppSimpleName());
+        String json = DocBrowserJson.of(docBrowserData());
+        // Brand (label + logo + homeUrl) comes from /brand — populated from
+        // StudioBrand at boot. brandLabel() / homeUrl() defaults remain as
+        // a safety net for the /brand action when no StudioBrand is registered.
         return List.of(
                 "const docBrowserData = " + json + ";",
                 "function appMain(rootElement) {",
-                "    var brand = { href: " + homeUrl + ", label: " + brandJs + " };",
-                "    rootElement.replaceChildren(renderDocBrowser({ data: docBrowserData, brand: brand }));",
+                "    fetch(\"/brand\").then(function(r) { return r.json(); }).then(function(brand) {",
+                "        rootElement.replaceChildren(renderDocBrowser({",
+                "            data:  docBrowserData,",
+                "            brand: { href: brand.homeUrl, label: brand.label, logo: brand.logo }",
+                "        }));",
+                "    });",
                 "}"
         );
-    }
-
-    private static String jstr(String s) {
-        if (s == null) return "null";
-        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 }

@@ -14,7 +14,7 @@ class SimpleAppResolverTest {
     // =====================================================================
 
     /** Standalone app with no AppLink imports. */
-    record Standalone() implements AppModule<Standalone> {
+    record Standalone() implements AppModule<AppModule._None, Standalone> {
         public record link() implements AppLink<Standalone> {}
         static final Standalone INSTANCE = new Standalone();
         @Override public String title() { return "Standalone"; }
@@ -23,7 +23,7 @@ class SimpleAppResolverTest {
     }
 
     /** App that links to {@link Standalone}. */
-    record Hub() implements AppModule<Hub> {
+    record Hub() implements AppModule<AppModule._None, Hub> {
         public record link() implements AppLink<Hub> {}
         static final Hub INSTANCE = new Hub();
         @Override public String title() { return "Hub"; }
@@ -36,7 +36,7 @@ class SimpleAppResolverTest {
     }
 
     /** Linear chain: Root → MidA → Leaf */
-    record Leaf() implements AppModule<Leaf> {
+    record Leaf() implements AppModule<AppModule._None, Leaf> {
         public record link() implements AppLink<Leaf> {}
         static final Leaf INSTANCE = new Leaf();
         @Override public String title() { return "Leaf"; }
@@ -44,7 +44,7 @@ class SimpleAppResolverTest {
         @Override public ExportsOf<Leaf> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record MidA() implements AppModule<MidA> {
+    record MidA() implements AppModule<AppModule._None, MidA> {
         public record link() implements AppLink<MidA> {}
         static final MidA INSTANCE = new MidA();
         @Override public String title() { return "MidA"; }
@@ -56,7 +56,7 @@ class SimpleAppResolverTest {
         @Override public ExportsOf<MidA> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record MidB() implements AppModule<MidB> {
+    record MidB() implements AppModule<AppModule._None, MidB> {
         public record link() implements AppLink<MidB> {}
         static final MidB INSTANCE = new MidB();
         @Override public String title() { return "MidB"; }
@@ -69,7 +69,7 @@ class SimpleAppResolverTest {
     }
 
     /** Root that diamonds out to MidA and MidB, both pointing at Leaf. */
-    record Root() implements AppModule<Root> {
+    record Root() implements AppModule<AppModule._None, Root> {
         public record link() implements AppLink<Root> {}
         static final Root INSTANCE = new Root();
         @Override public String title() { return "Root"; }
@@ -83,7 +83,7 @@ class SimpleAppResolverTest {
     }
 
     /** Cycle pair: CycleA ↔ CycleB. */
-    record CycleA() implements AppModule<CycleA> {
+    record CycleA() implements AppModule<AppModule._None, CycleA> {
         public record link() implements AppLink<CycleA> {}
         static final CycleA INSTANCE = new CycleA();
         @Override public String title() { return "CycleA"; }
@@ -95,7 +95,7 @@ class SimpleAppResolverTest {
         @Override public ExportsOf<CycleA> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record CycleB() implements AppModule<CycleB> {
+    record CycleB() implements AppModule<AppModule._None, CycleB> {
         public record link() implements AppLink<CycleB> {}
         static final CycleB INSTANCE = new CycleB();
         @Override public String title() { return "CycleB"; }
@@ -108,7 +108,7 @@ class SimpleAppResolverTest {
     }
 
     /** Two apps that collide on simpleName(). */
-    record Foo() implements AppModule<Foo> {
+    record Foo() implements AppModule<AppModule._None, Foo> {
         public record link() implements AppLink<Foo> {}
         static final Foo INSTANCE = new Foo();
         @Override public String simpleName() { return "shared"; }
@@ -117,7 +117,7 @@ class SimpleAppResolverTest {
         @Override public ExportsOf<Foo> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record Bar() implements AppModule<Bar> {
+    record Bar() implements AppModule<AppModule._None, Bar> {
         public record link() implements AppLink<Bar> {}
         static final Bar INSTANCE = new Bar();
         @Override public String simpleName() { return "shared"; }
@@ -134,7 +134,7 @@ class SimpleAppResolverTest {
         @Override public List<CssClass<Styles>> cssClasses() { return List.of(new btn()); }
     }
 
-    record OnlyCss() implements AppModule<OnlyCss> {
+    record OnlyCss() implements AppModule<AppModule._None, OnlyCss> {
         public record link() implements AppLink<OnlyCss> {}
         static final OnlyCss INSTANCE = new OnlyCss();
         @Override public String title() { return "OnlyCss"; }
@@ -147,14 +147,14 @@ class SimpleAppResolverTest {
     }
 
     /** Proxies. */
-    record GitHubProxy() implements ProxyApp<GitHubProxy> {
+    record GitHubProxy() implements ProxyApp<AppModule._None, GitHubProxy> {
         public record link() implements AppLink<GitHubProxy> {}
         static final GitHubProxy INSTANCE = new GitHubProxy();
         @Override public String simpleName() { return "github"; }
         @Override public String urlTemplate() { return "https://github.com"; }
     }
 
-    record DocsProxy() implements ProxyApp<DocsProxy> {
+    record DocsProxy() implements ProxyApp<AppModule._None, DocsProxy> {
         public record link() implements AppLink<DocsProxy> {}
         static final DocsProxy INSTANCE = new DocsProxy();
         @Override public String simpleName() { return "docs"; }
@@ -162,7 +162,7 @@ class SimpleAppResolverTest {
     }
 
     /** App that links to two proxies. */
-    record WithProxies() implements AppModule<WithProxies> {
+    record WithProxies() implements AppModule<AppModule._None, WithProxies> {
         public record link() implements AppLink<WithProxies> {}
         static final WithProxies INSTANCE = new WithProxies();
         @Override public String title() { return "WithProxies"; }
@@ -176,7 +176,7 @@ class SimpleAppResolverTest {
     }
 
     /** Cross-kind name collision: app and proxy share simpleName "clash". */
-    record ClashApp() implements AppModule<ClashApp> {
+    record ClashApp() implements AppModule<AppModule._None, ClashApp> {
         public record link() implements AppLink<ClashApp> {}
         static final ClashApp INSTANCE = new ClashApp();
         @Override public String simpleName() { return "clash"; }
@@ -189,7 +189,7 @@ class SimpleAppResolverTest {
         @Override public ExportsOf<ClashApp> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record ClashProxy() implements ProxyApp<ClashProxy> {
+    record ClashProxy() implements ProxyApp<AppModule._None, ClashProxy> {
         public record link() implements AppLink<ClashProxy> {}
         static final ClashProxy INSTANCE = new ClashProxy();
         @Override public String simpleName() { return "clash"; }

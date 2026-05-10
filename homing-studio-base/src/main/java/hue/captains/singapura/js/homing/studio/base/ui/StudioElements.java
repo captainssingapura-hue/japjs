@@ -40,6 +40,10 @@ public record StudioElements() implements DomModule<StudioElements> {
     public record Card()            implements Exportable._Constant<StudioElements> {}
     public record Pill()            implements Exportable._Constant<StudioElements> {}
     public record Section()         implements Exportable._Constant<StudioElements> {}
+    /** Vertical list container — counterpart to {@link Section} for prose-like rows (objectives, acceptance, decisions). */
+    public record Listing()         implements Exportable._Constant<StudioElements> {}
+    /** A row inside a {@link Listing}: optional left-marker, label, description, optional href. */
+    public record ListItem()        implements Exportable._Constant<StudioElements> {}
     public record Footer()          implements Exportable._Constant<StudioElements> {}
     /** Tracker-shaped builders — used by PlanAppModule's auto-generated JS. */
     public record StatusBadge()     implements Exportable._Constant<StudioElements> {}
@@ -66,6 +70,7 @@ public record StudioElements() implements DomModule<StudioElements> {
                         new StudioStyles.st_header(),
                         new StudioStyles.st_brand(),
                         new StudioStyles.st_brand_dot(),
+                        new StudioStyles.st_brand_logo(),
                         new StudioStyles.st_brand_word(),
                         new StudioStyles.st_breadcrumbs(),
                         new StudioStyles.st_crumb(),
@@ -83,10 +88,17 @@ public record StudioElements() implements DomModule<StudioElements> {
                         new StudioStyles.st_app_pill_icon(),
                         new StudioStyles.st_app_pill_label(),
                         new StudioStyles.st_app_pill_desc(),
-                        // Section + Footer
+                        // Section + Listing + Footer
                         new StudioStyles.st_section(),
                         new StudioStyles.st_section_title(),
                         new StudioStyles.st_grid(),
+                        new StudioStyles.st_list(),
+                        new StudioStyles.st_list_item(),
+                        new StudioStyles.st_list_item_marker(),
+                        new StudioStyles.st_list_item_body(),
+                        new StudioStyles.st_list_item_label(),
+                        new StudioStyles.st_list_item_desc(),
+                        new StudioStyles.st_list_item_met(),
                         new StudioStyles.st_footer(),
                         // Tracker chrome
                         new StudioStyles.st_status_badge(),
@@ -121,7 +133,8 @@ public record StudioElements() implements DomModule<StudioElements> {
     @Override
     public ExportsOf<StudioElements> exports() {
         return new ExportsOf<>(INSTANCE, List.of(
-                new Header(), new Brand(), new Card(), new Pill(), new Section(), new Footer(),
+                new Header(), new Brand(), new Card(), new Pill(),
+                new Section(), new Listing(), new ListItem(), new Footer(),
                 new StatusBadge(), new OverallProgress(), new StepCard(), new DecisionCard(),
                 new TodoList(), new Panel(), new MetricsTable()
         ));

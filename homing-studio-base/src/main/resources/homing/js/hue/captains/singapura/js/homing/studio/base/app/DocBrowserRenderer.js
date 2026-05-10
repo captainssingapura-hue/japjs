@@ -20,8 +20,9 @@ function renderDocBrowser(props) {
     var brand = props.brand;
 
     var docs = data.docs;
-    function readerUrl(path) {
-        return "/app?app=" + data.readerAppSimpleName + "&path=" + encodeURIComponent(path);
+    // RFC 0004: typed Doc URLs use the Doc's UUID, not a path string.
+    function readerUrl(id) {
+        return "/app?app=" + data.readerAppSimpleName + "&doc=" + encodeURIComponent(id);
     }
 
     var root = document.createElement("div");
@@ -66,7 +67,7 @@ function renderDocBrowser(props) {
     var searchInput = document.createElement("input");
     css.addClass(searchInput, st_search);
     searchInput.type = "search";
-    searchInput.placeholder = "Search title or path…";
+    searchInput.placeholder = "Search title or summary…";
     searchWrap.appendChild(searchInput);
 
     var filterContainer = document.createElement("div");
@@ -130,7 +131,7 @@ function renderDocBrowser(props) {
             if (!query) return true;
             return d.title.toLowerCase().indexOf(query) !== -1
                 || (d.summary && d.summary.toLowerCase().indexOf(query) !== -1)
-                || d.path.toLowerCase().indexOf(query) !== -1;
+                || d.category.toLowerCase().indexOf(query) !== -1;
         });
 
         if (matched.length === 0) {
@@ -157,7 +158,7 @@ function renderDocBrowser(props) {
             var g = groups[order[k]];
             var cards = g.items.map(function(doc) {
                 return Card({
-                    href:       readerUrl(doc.path),
+                    href:       readerUrl(doc.id),
                     title:      doc.title,
                     summary:    doc.summary,
                     badge:      doc.category,

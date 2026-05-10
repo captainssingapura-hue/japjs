@@ -5,9 +5,9 @@ import hue.captains.singapura.js.homing.demo.css.SpinningStyles;
 
 import java.util.List;
 
-public record SpinningAnimals() implements AppModule<SpinningAnimals> {
+public record SpinningAnimals() implements AppModule<AppModule._None, SpinningAnimals> {
 
-    record appMain() implements AppModule._AppMain<SpinningAnimals> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, SpinningAnimals> {}
 
     public record link() implements AppLink<SpinningAnimals> {}
 

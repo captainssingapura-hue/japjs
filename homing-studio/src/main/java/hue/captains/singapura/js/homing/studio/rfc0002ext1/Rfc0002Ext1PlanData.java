@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.studio.rfc0002ext1;
 
+import hue.captains.singapura.js.homing.studio.base.tracker.Acceptance;
 import hue.captains.singapura.js.homing.studio.base.tracker.Decision;
 import hue.captains.singapura.js.homing.studio.base.tracker.DecisionStatus;
 import hue.captains.singapura.js.homing.studio.base.tracker.Dependency;
@@ -24,7 +25,7 @@ public final class Rfc0002Ext1PlanData implements Plan {
     private Rfc0002Ext1PlanData() {}
 
     @Override public String kicker()        { return "RFC 0002-ext1"; }
-    @Override public String title()         { return "Utility-First Composition + Semantic Tokens"; }
+    @Override public String name()          { return "Utility-First Composition + Semantic Tokens"; }
     @Override public String subtitle() {
         return "Source of truth: Rfc0002Ext1Steps.java. Edit, recompile, refresh — phases, decisions, and metrics update live.";
     }
@@ -41,6 +42,11 @@ public final class Rfc0002Ext1PlanData implements Plan {
     @Override
     public List<Decision> decisions() {
         return Rfc0002Ext1Steps.DECISIONS.stream().map(Rfc0002Ext1PlanData::adaptDecision).toList();
+    }
+
+    @Override
+    public List<Acceptance> acceptance() {
+        return List.of();   // TODO: populate per-tracker; v1 falls back to per-phase outcomes only.
     }
 
     private static Phase adaptPhase(Rfc0002Ext1Steps.Phase p) {

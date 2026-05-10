@@ -50,15 +50,23 @@ public final class ParamsWriter {
     }
 
     public List<String> write() {
-        if (paramsType == null || paramsType == Void.class || paramsType == void.class) {
+        if (paramsType == null
+                || paramsType == Void.class
+                || paramsType == void.class
+                || paramsType == AppModule._None.class) {
             return List.of();
         }
         if (!paramsType.isRecord()) {
             throw new IllegalStateException(
-                    "paramsType must be a record class or Void.class; got: " + paramsType.getName());
+                    "paramsType must be a record class, AppModule._None.class, or Void.class; got: "
+                            + paramsType.getName());
         }
 
         var components = paramsType.getRecordComponents();
+        if (components.length == 0) {
+            // _None or any zero-component record — nothing to emit.
+            return List.of();
+        }
 
         // Reserved-key collision check
         for (var rc : components) {

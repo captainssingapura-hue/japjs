@@ -6,9 +6,9 @@ import hue.captains.singapura.js.homing.demo.css.PlaygroundStyles;
 
 import java.util.List;
 
-public record MovingAnimal() implements AppModule<MovingAnimal> {
+public record MovingAnimal() implements AppModule<AppModule._None, MovingAnimal> {
 
-    record appMain() implements AppModule._AppMain<MovingAnimal> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, MovingAnimal> {}
 
     public record link() implements AppLink<MovingAnimal> {}
 

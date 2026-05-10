@@ -5,9 +5,9 @@ import hue.captains.singapura.js.homing.libs.ThreeJs;
 
 import java.util.List;
 
-public record TurtleDemo() implements AppModule<TurtleDemo> {
+public record TurtleDemo() implements AppModule<AppModule._None, TurtleDemo> {
 
-    record appMain() implements AppModule._AppMain<TurtleDemo> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, TurtleDemo> {}
 
     public record link() implements AppLink<TurtleDemo> {}
 

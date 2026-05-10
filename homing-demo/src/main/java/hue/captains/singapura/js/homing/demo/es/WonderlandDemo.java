@@ -4,10 +4,10 @@ import hue.captains.singapura.js.homing.core.*;
 
 import java.util.List;
 
-public record WonderlandDemo() implements AppModule<WonderlandDemo> {
+public record WonderlandDemo() implements AppModule<AppModule._None, WonderlandDemo> {
 
     // lowercase record name — maps to JS identifier "appMain"
-    record appMain() implements AppModule._AppMain<WonderlandDemo> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, WonderlandDemo> {}
 
     public record link() implements AppLink<WonderlandDemo> {}
 

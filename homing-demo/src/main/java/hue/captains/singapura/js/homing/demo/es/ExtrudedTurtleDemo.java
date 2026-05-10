@@ -5,9 +5,9 @@ import hue.captains.singapura.js.homing.libs.ThreeJs;
 
 import java.util.List;
 
-public record ExtrudedTurtleDemo() implements AppModule<ExtrudedTurtleDemo> {
+public record ExtrudedTurtleDemo() implements AppModule<AppModule._None, ExtrudedTurtleDemo> {
 
-    record appMain() implements AppModule._AppMain<ExtrudedTurtleDemo> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, ExtrudedTurtleDemo> {}
 
     public record link() implements AppLink<ExtrudedTurtleDemo> {}
 

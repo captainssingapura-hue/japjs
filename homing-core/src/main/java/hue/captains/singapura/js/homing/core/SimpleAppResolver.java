@@ -28,10 +28,10 @@ import java.util.Map;
  */
 public final class SimpleAppResolver {
 
-    private final Map<String, AppModule<?>> appsByName;
-    private final Map<Class<?>, AppModule<?>> appsByClass;
-    private final Map<String, ProxyApp<?>>   proxiesByName;
-    private final Map<Class<?>, ProxyApp<?>> proxiesByClass;
+    private final Map<String, AppModule<?, ?>> appsByName;
+    private final Map<Class<?>, AppModule<?, ?>> appsByClass;
+    private final Map<String, ProxyApp<?, ?>>   proxiesByName;
+    private final Map<Class<?>, ProxyApp<?, ?>> proxiesByClass;
 
     /**
      * Build the registry from a list of entry apps. Walks {@link AppLink}
@@ -39,9 +39,9 @@ public final class SimpleAppResolver {
      *
      * @throws IllegalStateException on simple-name collision in the closure
      */
-    public SimpleAppResolver(List<? extends AppModule<?>> entryApps) {
-        var apps    = new LinkedHashMap<Class<?>, AppModule<?>>();
-        var proxies = new LinkedHashMap<Class<?>, ProxyApp<?>>();
+    public SimpleAppResolver(List<? extends AppModule<?, ?>> entryApps) {
+        var apps    = new LinkedHashMap<Class<?>, AppModule<?, ?>>();
+        var proxies = new LinkedHashMap<Class<?>, ProxyApp<?, ?>>();
         for (var entry : entryApps) {
             collect(entry, apps, proxies);
         }
@@ -74,12 +74,12 @@ public final class SimpleAppResolver {
     }
 
     /** Resolve only an AppModule by simple-name. Returns null for proxy names or unknown. */
-    public AppModule<?> resolveApp(String simpleName) {
+    public AppModule<?, ?> resolveApp(String simpleName) {
         return appsByName.get(simpleName);
     }
 
     /** Resolve only a ProxyApp by simple-name. Returns null for app names or unknown. */
-    public ProxyApp<?> resolveProxy(String simpleName) {
+    public ProxyApp<?, ?> resolveProxy(String simpleName) {
         return proxiesByName.get(simpleName);
     }
 
@@ -91,12 +91,12 @@ public final class SimpleAppResolver {
     }
 
     /** All AppModules in the closure. */
-    public Collection<AppModule<?>> apps() {
+    public Collection<AppModule<?, ?>> apps() {
         return Collections.unmodifiableCollection(appsByClass.values());
     }
 
     /** All ProxyApps in the closure. */
-    public Collection<ProxyApp<?>> proxies() {
+    public Collection<ProxyApp<?, ?>> proxies() {
         return Collections.unmodifiableCollection(proxiesByClass.values());
     }
 
@@ -113,9 +113,9 @@ public final class SimpleAppResolver {
     // -----------------------------------------------------------------------
 
     private void collect(
-            AppModule<?> app,
-            Map<Class<?>, AppModule<?>> apps,
-            Map<Class<?>, ProxyApp<?>> proxies) {
+            AppModule<?, ?> app,
+            Map<Class<?>, AppModule<?, ?>> apps,
+            Map<Class<?>, ProxyApp<?, ?>> proxies) {
         if (apps.containsKey(app.getClass())) return; // visited
         apps.put(app.getClass(), app);
 
@@ -127,8 +127,8 @@ public final class SimpleAppResolver {
 
             Importable from = entry.getKey();
             switch (from) {
-                case AppModule<?> nextApp -> collect(nextApp, apps, proxies);
-                case ProxyApp<?> proxy -> proxies.putIfAbsent(proxy.getClass(), proxy);
+                case AppModule<?, ?> nextApp -> collect(nextApp, apps, proxies);
+                case ProxyApp<?, ?> proxy -> proxies.putIfAbsent(proxy.getClass(), proxy);
                 case EsModule<?> ignored -> {
                     // An AppLink import keyed on a non-Linkable EsModule is a
                     // misuse (you can only AppLink to a Linkable). Silently

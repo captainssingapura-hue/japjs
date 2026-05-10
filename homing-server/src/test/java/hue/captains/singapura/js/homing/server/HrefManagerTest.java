@@ -20,7 +20,7 @@ class HrefManagerTest {
 
     // ---- Sample apps -----------------------------------------------------
 
-    record Target() implements AppModule<Target> {
+    record Target() implements AppModule<AppModule._None, Target> {
         public record link() implements AppLink<Target> {}
         static final Target INSTANCE = new Target();
         @Override public String title() { return "T"; }
@@ -28,7 +28,7 @@ class HrefManagerTest {
         @Override public ExportsOf<Target> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record AppWithLink() implements AppModule<AppWithLink> {
+    record AppWithLink() implements AppModule<AppModule._None, AppWithLink> {
         public record link() implements AppLink<AppWithLink> {}
         static final AppWithLink INSTANCE = new AppWithLink();
         @Override public String title() { return "Has Link"; }
@@ -40,7 +40,7 @@ class HrefManagerTest {
         @Override public ExportsOf<AppWithLink> exports() { return new ExportsOf<>(this, List.of()); }
     }
 
-    record AppNoLink() implements AppModule<AppNoLink> {
+    record AppNoLink() implements AppModule<AppModule._None, AppNoLink> {
         static final AppNoLink INSTANCE = new AppNoLink();
         @Override public String title() { return "No Link"; }
         @Override public ImportsFor<AppNoLink> imports() { return ImportsFor.noImports(); }
@@ -54,7 +54,7 @@ class HrefManagerTest {
         @Override public List<CssClass<SomeStyles>> cssClasses() { return List.of(new btn()); }
     }
 
-    record AppOnlyCss() implements AppModule<AppOnlyCss> {
+    record AppOnlyCss() implements AppModule<AppModule._None, AppOnlyCss> {
         static final AppOnlyCss INSTANCE = new AppOnlyCss();
         @Override public String title() { return "Only CSS"; }
         @Override public ImportsFor<AppOnlyCss> imports() {

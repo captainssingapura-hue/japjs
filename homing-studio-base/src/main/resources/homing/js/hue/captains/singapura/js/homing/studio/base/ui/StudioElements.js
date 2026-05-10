@@ -43,16 +43,44 @@ function _appendAll(parent /*, ...children */) {
 }
 
 // ---------- Brand ----------
-// Brand({ href, label }) → <a class="st-brand" href={href}><span class="st-brand-dot"/><span class="st-brand-word">{label}</span></a>
+// Brand({ href, label, logo? }) →
+//   <a class="st-brand" href={href}>
+//     <span class="st-brand-(dot|logo)">…</span>
+//     <span class="st-brand-word">{label}</span>
+//   </a>
+//
+// `logo` is an optional SVG markup string (server-resolved from a typed
+// SvgRef on StudioBrand). When present, parsed via DOMParser and slotted
+// into a fixed 22×22 wrapper. When absent, falls back to the framework's
+// coloured-square dot.
 //
 // Used inside Header. The brand is always a link to the studio's home.
 function Brand(props) {
     var a = _withClass(_el("a"), st_brand);
     href.set(a, props.href);
-    var dot  = _withClass(_el("span"), st_brand_dot);
+
+    // Glyph: typed SVG logo when supplied, dot fallback otherwise. SVG markup
+    // arrives as a string (server-resolved typed asset) and goes through
+    // DOMParser — same path AnimalCell.js uses for typed-SVG embedding, so
+    // the doctrine on no-raw-HTML is satisfied (asset, not authored markup).
+    var glyph;
+    if (props.logo) {
+        glyph = _withClass(_el("span"), st_brand_logo);
+        var svg = new DOMParser().parseFromString(props.logo, "image/svg+xml").documentElement;
+        // Strip the SVG's own width/height attributes so the wrapper's CSS
+        // (.st-brand-logo svg → width:100%; height:100%) controls sizing
+        // unconditionally. Without this, an SVG with hardcoded dimensions
+        // (e.g. width="800px") would render at full size and either overflow
+        // the wrapper or get clipped to the wrapper's top-left corner.
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+        glyph.appendChild(svg);
+    } else {
+        glyph = _withClass(_el("span"), st_brand_dot);
+    }
     var word = _withClass(_el("span"), st_brand_word);
     word.textContent = props.label;
-    return _appendAll(a, dot, word);
+    return _appendAll(a, glyph, word);
 }
 
 // ---------- Header ----------
@@ -89,6 +117,18 @@ function Header(props) {
         trail.appendChild(node);
     }
     bar.appendChild(trail);
+
+    // Theme-picker slot — server-rendered placeholder (AppHtmlGetAction's
+    // renderThemePicker) lives at document.getElementById("__theme_picker_slot__").
+    // We reparent it into this header bar so the picker shares the sticky
+    // band's inverted background, sits flush against the right edge, and
+    // sticks together with the header on scroll. If the slot is missing
+    // (registry has 0 or 1 themes → server emitted nothing) we no-op.
+    var pickerSlot = document.getElementById("__theme_picker_slot__");
+    if (pickerSlot) {
+        pickerSlot.style.display = "flex";   // server set display:none to hide pre-paint
+        bar.appendChild(pickerSlot);
+    }
 
     return bar;
 }
@@ -188,6 +228,89 @@ function Section(props) {
         section.appendChild(grid);
     }
     return section;
+}
+
+// ---------- Listing + ListItem ----------
+// Listing({ title, children }) →
+//   <div class="st-section">
+//     <div class="st-section-title">{title}</div>
+//     <div class="st-list">{...children}</div>
+//   </div>
+//
+// Vertical-stack counterpart to Section. Use for prose-like rows
+// (objectives, acceptance criteria, decisions) where each item is a
+// label + description that reads naturally one-per-line. Use Section
+// (with the inner st-grid) for card tiles where multi-column layout
+// helps scannability.
+function Listing(props) {
+    var section = _withClass(_el("div"), st_section);
+    if (props.title) {
+        var t = _withClass(_el("div"), st_section_title);
+        t.textContent = props.title;
+        section.appendChild(t);
+    }
+    var list = _withClass(_el("div"), st_list);
+    var children = props.children || [];
+    for (var i = 0; i < children.length; i++) {
+        if (children[i] != null) list.appendChild(children[i]);
+    }
+    section.appendChild(list);
+    return section;
+}
+
+// ListItem({ marker, label, description, href, met }) →
+//   <a class="st-list-item [st-list-item-met]" href={href}> | <div …>
+//     [<div class="st-list-item-marker">{marker}</div>]
+//     <div class="st-list-item-body">
+//       <div class="st-list-item-label">{label}</div>
+//       <div class="st-list-item-desc">{description}</div>
+//     </div>
+//   </a/div>
+//
+// `marker` may be a string (rendered as text) or a DOM node (e.g. a
+// StatusBadge for decisions, a glyph for acceptance). When omitted, the
+// marker column is dropped entirely. `description` may be a string or a
+// node. `href` is optional; when present, the row becomes a clickable
+// anchor. `met: true` adds the green-tone modifier (used by the
+// acceptance section).
+function ListItem(props) {
+    var row;
+    if (props.href) {
+        row = _withClass(_el("a"), st_list_item);
+        href.set(row, props.href);
+    } else {
+        row = _withClass(_el("div"), st_list_item);
+    }
+    if (props.met) css.addClass(row, st_list_item_met);
+
+    if (props.marker != null && props.marker !== "") {
+        var markerBox = _withClass(_el("div"), st_list_item_marker);
+        if (typeof props.marker === "string") {
+            markerBox.textContent = props.marker;
+        } else {
+            markerBox.appendChild(props.marker);
+        }
+        row.appendChild(markerBox);
+    }
+
+    var body = _withClass(_el("div"), st_list_item_body);
+    if (props.label != null && props.label !== "") {
+        var label = _withClass(_el("div"), st_list_item_label);
+        label.textContent = props.label;
+        body.appendChild(label);
+    }
+    if (props.description != null && props.description !== "") {
+        var desc = _withClass(_el("div"), st_list_item_desc);
+        if (typeof props.description === "string") {
+            desc.textContent = props.description;
+        } else {
+            desc.appendChild(props.description);
+        }
+        body.appendChild(desc);
+    }
+    row.appendChild(body);
+
+    return row;
 }
 
 // ---------- Footer ----------

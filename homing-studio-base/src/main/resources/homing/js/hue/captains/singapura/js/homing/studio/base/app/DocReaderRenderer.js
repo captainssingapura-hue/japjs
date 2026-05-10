@@ -1,11 +1,17 @@
 // =============================================================================
 // DocReaderRenderer — shared renderer for DocReader.
 //
-// renderDocReader({ docPath, brand, crumbsAbove }) → Node
+// renderDocReader({ docId, brand, crumbsAbove }) → Node
 //
-// Fetches /doc?path=<docPath>, parses with marked.js, installs via
-// Range.createContextualFragment (no innerHTML write), walks headings to
-// build a TOC sidebar with IntersectionObserver scroll-spy.
+// Fetches /doc?id=<docId> (UUID — typed Doc reference per RFC 0004), parses
+// with marked.js, installs via Range.createContextualFragment (no innerHTML
+// write), walks headings to build a TOC sidebar with IntersectionObserver
+// scroll-spy.
+//
+// RFC 0004-ext1: also fetches /doc-refs?id=<docId> (typed Reference list) and
+// emits a "References" section beneath the body with stable id="ref:<name>"
+// per entry. Markdown citations like [label](#ref:<name>) navigate natively
+// via the browser's fragment handling — no DOM walking, no href substitution.
 // =============================================================================
 
 var href = HrefManagerInstance;
@@ -33,30 +39,30 @@ function _collectHeadings(rootEl) {
 }
 
 function renderDocReader(props) {
-    var docPath     = props.docPath;
+    var docId       = props.docId;
     var brand       = props.brand;
-    var crumbsAbove = props.crumbsAbove || [];   // breadcrumbs preceding the doc path crumb
-
-    var pathTitle = docPath ? docPath.split("/").pop() : "(no document)";
+    var crumbsAbove = props.crumbsAbove || [];
 
     var root = document.createElement("div");
     css.addClass(root, st_root);
 
+    // Header is rendered with placeholder text for the breadcrumb; the title
+    // is filled in once /doc-refs returns it (server-resolved from the typed Doc).
     var crumbs = [];
     for (var i = 0; i < crumbsAbove.length; i++) crumbs.push(crumbsAbove[i]);
-    crumbs.push({ text: pathTitle });
-
-    root.appendChild(Header({ brand: brand, crumbs: crumbs }));
+    var leafCrumb = { text: docId ? "Loading…" : "(no document)" };
+    crumbs.push(leafCrumb);
+    var headerEl = Header({ brand: brand, crumbs: crumbs });
+    root.appendChild(headerEl);
 
     var main = document.createElement("div");
     css.addClass(main, st_main);
 
     var meta = document.createElement("div");
     css.addClass(meta, st_doc_meta);
-    var pathCode = document.createElement("code");
-    pathCode.style.cssText = "font-size:11px; color: var(--st-gray-mid);";
-    pathCode.textContent = docPath || "—";
-    meta.appendChild(pathCode);
+    var titleEl = document.createElement("span");
+    titleEl.textContent = docId ? "" : "—";
+    meta.appendChild(titleEl);
     main.appendChild(meta);
 
     var layout = document.createElement("div");
@@ -83,20 +89,28 @@ function renderDocReader(props) {
     layout.appendChild(bodyEl);
     main.appendChild(layout);
 
+    // RFC 0004-ext1: References section appended after the layout, populated
+    // from /doc-refs?id=<uuid>. Hidden (omitted) when the Doc declares zero
+    // references. Per-Reference render dispatches on the JSON `kind` field.
+    var refsEl = document.createElement("section");
+    css.addClass(refsEl, st_section);
+    refsEl.style.cssText = "display:none;";
+    main.appendChild(refsEl);
+
     root.appendChild(main);
 
-    if (!docPath) {
+    if (!docId) {
         var errMsg = document.createElement("div");
         css.addClass(errMsg, st_error);
         errMsg.appendChild(document.createTextNode("No document specified. Use "));
-        var errCode = document.createElement("code"); errCode.textContent = "?path=…";
+        var errCode = document.createElement("code"); errCode.textContent = "?doc=<uuid>";
         errMsg.appendChild(errCode);
         errMsg.appendChild(document.createTextNode("."));
         bodyEl.replaceChildren(errMsg);
         return root;
     }
 
-    fetch("/doc?path=" + encodeURIComponent(docPath))
+    fetch("/doc?id=" + encodeURIComponent(docId))
         .then(function(r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.text();
@@ -106,13 +120,100 @@ function renderDocReader(props) {
             var errEl = document.createElement("div");
             css.addClass(errEl, st_error);
             errEl.appendChild(document.createTextNode("Failed to load "));
-            var c = document.createElement("code"); c.textContent = docPath;
+            var c = document.createElement("code"); c.textContent = docId;
             errEl.appendChild(c);
             errEl.appendChild(document.createTextNode(": " + err.message));
             bodyEl.replaceChildren(errEl);
         });
 
+    fetch("/doc-refs?id=" + encodeURIComponent(docId))
+        .then(function(r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+        })
+        .then(function(info) {
+            // Server-resolved Doc metadata: title (friendly name) + summary + category
+            // + references[]. Update the breadcrumb + meta line with the title;
+            // render the References section from info.references.
+            if (info && info.title) {
+                leafCrumb.text = info.title;
+                // Re-render header with the updated leaf crumb text.
+                var newHeader = Header({ brand: brand, crumbs: crumbs });
+                root.replaceChild(newHeader, headerEl);
+                headerEl = newHeader;
+                titleEl.textContent = info.title;
+                if (info.category) {
+                    var catSpan = document.createElement("span");
+                    catSpan.style.cssText = "margin-left:12px; font-size:11px; color: var(--st-gray-mid); text-transform:uppercase; letter-spacing:0.05em;";
+                    catSpan.textContent = info.category;
+                    meta.appendChild(catSpan);
+                }
+            }
+            _renderReferences(info && info.references ? info.references : [], refsEl);
+        })
+        .catch(function() { /* Metadata + references are optional; silently omit on failure. */ });
+
     return root;
+}
+
+// =============================================================================
+// _renderReferences — emits the References section for RFC 0004-ext1.
+// Per-subtype dispatch on the JSON `kind` field; each entry becomes a card
+// with id="ref:<name>" so markdown anchor citations land on the right element.
+// =============================================================================
+function _renderReferences(refs, container) {
+    if (!refs || refs.length === 0) return;
+    container.style.cssText = "";
+
+    var heading = document.createElement("h2");
+    css.addClass(heading, st_section_title);
+    heading.textContent = "References";
+    container.appendChild(heading);
+
+    for (var i = 0; i < refs.length; i++) {
+        var r = refs[i];
+        var card = document.createElement("div");
+        css.addClass(card, st_card);
+        card.id = "ref:" + r.name;
+
+        var title = document.createElement("h3");
+        css.addClass(title, st_card_title);
+
+        var summary = document.createElement("p");
+        css.addClass(summary, st_card_summary);
+
+        if (r.kind === "doc") {
+            var titleLink = document.createElement("a");
+            css.addClass(titleLink, st_card_link);
+            href.set(titleLink, "/app?app=doc-reader&doc=" + encodeURIComponent(r.uuid));
+            titleLink.textContent = r.title;
+            title.appendChild(titleLink);
+            summary.textContent = r.summary || "";
+        } else if (r.kind === "external") {
+            var extLink = document.createElement("a");
+            css.addClass(extLink, st_card_link);
+            href.set(extLink, r.url);
+            extLink.setAttribute("target", "_blank");
+            extLink.setAttribute("rel", "noopener");
+            extLink.textContent = r.label || r.url;
+            title.appendChild(extLink);
+            summary.textContent = r.description || "";
+        } else if (r.kind === "image") {
+            // Image rendering deferred per RFC 0004-ext1 §4.6 (needs /asset endpoint).
+            // For v1, surface alt + caption + classpath path as text-only placeholder.
+            title.textContent = r.alt || r.name;
+            summary.textContent = (r.caption ? r.caption + " — " : "")
+                                + "(image at " + r.resourcePath + ")";
+        } else {
+            // Unknown kind — render the raw JSON for visibility.
+            title.textContent = "Unknown reference kind: " + r.kind;
+            summary.textContent = JSON.stringify(r);
+        }
+
+        card.appendChild(title);
+        card.appendChild(summary);
+        container.appendChild(card);
+    }
 }
 
 function _renderDoc(md, bodyEl, tocEl) {
@@ -183,3 +284,4 @@ function _renderDoc(md, bodyEl, tocEl) {
         for (var hi2 = 0; hi2 < headings.length; hi2++) observer.observe(headings[hi2]);
     }
 }
+

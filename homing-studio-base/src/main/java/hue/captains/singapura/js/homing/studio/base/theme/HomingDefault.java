@@ -106,11 +106,16 @@ public record HomingDefault() implements Theme {
                     font-family: "Calibri", "Segoe UI", system-ui, sans-serif;
                     min-height: 100vh;
                 }
+                .st-brand-logo svg { width: 100%; height: 100%; display: block; }
+                .st-brand:hover .st-brand-logo { transform: scale(1.18); }
                 .st-crumb:hover { color: var(--color-accent); }
                 .st-search:focus {
                     outline: none;
                     border-color: var(--color-border-emphasis);
-                    box-shadow: 0 0 0 3px rgba(244, 185, 66, 0.18);
+                    /* 18% alpha of the active theme's accent — replaces the
+                       previously hardcoded rgba(244,185,66,…) which leaked
+                       Default's gold into every theme. */
+                    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
                 }
                 .st-filter-btn:hover {
                     border-color: var(--color-border-emphasis);
@@ -123,7 +128,9 @@ public record HomingDefault() implements Theme {
                 }
                 .st-card:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(30, 39, 97, 0.12);
+                    /* Theme-aware lift shadow — 12% of the link tone. Replaces
+                       hardcoded rgba(30,39,97,…) which was Default's deep navy. */
+                    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-text-link) 12%, transparent);
                     border-left-color: var(--color-accent-emphasis);
                 }
                 .st-card-featured .st-card-title {
@@ -235,7 +242,7 @@ public record HomingDefault() implements Theme {
                 }
                 .st-app-pill:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 8px 18px rgba(30, 39, 97, 0.12);
+                    box-shadow: 0 8px 18px color-mix(in srgb, var(--color-text-link) 12%, transparent);
                     border-left-color: var(--color-accent-emphasis);
                 }
                 .st-app-pill-dark:hover {
@@ -253,7 +260,7 @@ public record HomingDefault() implements Theme {
                 }
                 .st-step-card:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(30, 39, 97, 0.10);
+                    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-text-link) 10%, transparent);
                     border-left-color: var(--color-accent-emphasis);
                 }
                 .st-task-done .st-task-box {

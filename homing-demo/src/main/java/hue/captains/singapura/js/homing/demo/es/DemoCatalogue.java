@@ -5,9 +5,9 @@ import hue.captains.singapura.js.homing.demo.css.CatalogueStyles;
 
 import java.util.List;
 
-public record DemoCatalogue() implements AppModule<DemoCatalogue> {
+public record DemoCatalogue() implements AppModule<AppModule._None, DemoCatalogue> {
 
-    record appMain() implements AppModule._AppMain<DemoCatalogue> {}
+    record appMain() implements AppModule._AppMain<AppModule._None, DemoCatalogue> {}
 
     public record link() implements AppLink<DemoCatalogue> {}
 

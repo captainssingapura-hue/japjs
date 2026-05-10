@@ -13,10 +13,26 @@ package hue.captains.singapura.js.homing.core;
  *
  * @param <M> self-type
  */
-public non-sealed interface AppModule<M extends AppModule<M>> extends DomModule<M>, Linkable {
+public non-sealed interface AppModule<P extends AppModule._Param, M extends AppModule<P, M>> extends DomModule<M>, Linkable {
 
     /**
-     * The title for the generated HTML page.
+     * Marker for the {@code Params} record an AppModule accepts via its URL
+     * query string. Every concrete params record implements this.
+     *
+     * <p>Apps with no params declare {@code AppModule<AppModule._None, MyApp>}
+     * and pass {@link _None#INSTANCE} where a {@code P} value is required.</p>
+     */
+    interface _Param {}
+
+    /** Sentinel for paramless apps. Use as the {@code P} type argument and
+     *  pass {@link #INSTANCE} where a params value is needed. */
+    record _None() implements _Param {
+        public static final _None INSTANCE = new _None();
+    }
+
+    /**
+     * The title for the generated HTML page (browser tab + scaffold). Typically
+     * a fully-qualified label like {@code "Homing · studio · browse"}.
      */
     String title();
 
@@ -25,9 +41,6 @@ public non-sealed interface AppModule<M extends AppModule<M>> extends DomModule<
      * derivation of the simple class name (e.g., {@code PitchDeck} →
      * {@code "pitch-deck"}). Override to lock the URL contract
      * independently of the Java class name.
-     *
-     * <p>Introduced as part of RFC 0001 Step 02. Step 01 ships the
-     * default; Step 02 will broaden its usage across the kernel.</p>
      */
     @Override
     default String simpleName() {
@@ -35,20 +48,29 @@ public non-sealed interface AppModule<M extends AppModule<M>> extends DomModule<
     }
 
     /**
-     * Java record describing this app's typed query parameters, or
-     * {@code Void.class} for parameter-less apps (the default).
+     * The Java record describing this app's typed query parameters. Defaults
+     * to {@link _None}{@code .class} for paramless apps; with-params apps
+     * declare {@code AppModule<MyParams, MyApp>} and override this to
+     * {@code MyParams.class}.
      *
-     * <p>Step 02 of RFC 0001 will broaden this; Step 06 wires it through
-     * the writer to generate a {@code params} const in the compiled JS.</p>
+     * <p>The unchecked cast is sound when {@code P} is {@link _None} and
+     * implementor doesn't override; with-params apps that fail to override
+     * get a class-cast lie at runtime — a discipline error caught by the
+     * type-parameter mismatch with {@link _None}.</p>
+     *
+     * <p>Each component of the record becomes one URL query key on outgoing
+     * links and is parsed back into a typed value on the receiving side
+     * (RFC 0001).</p>
      */
     @Override
-    default Class<?> paramsType() {
-        return Void.class;
+    @SuppressWarnings("unchecked")
+    default Class<P> paramsType() {
+        return (Class<P>) _None.class;
     }
 
     /**
      * Marker for the {@code appMain} export.
      * Use the record name {@code appMain} so the JS identifier matches.
      */
-    interface _AppMain<M extends AppModule<M>> extends Exportable._Constant<M> {}
+    interface _AppMain<P extends AppModule._Param, M extends AppModule<P, M>> extends Exportable._Constant<M> {}
 }

@@ -62,7 +62,7 @@ public class AppHtmlGetAction
             return CompletableFuture.failedFuture(ResourceNotFound.missingClass());
         }
 
-        AppModule<?> app;
+        AppModule<?, ?> app;
         try {
             if (query.hasSimpleName()) {
                 if (appResolver == null) {
@@ -88,7 +88,7 @@ public class AppHtmlGetAction
                 } catch (NoSuchFieldException e) {
                     instance = clazz.getDeclaredConstructor().newInstance();
                 }
-                if (!(instance instanceof AppModule<?> a)) {
+                if (!(instance instanceof AppModule<?, ?> a)) {
                     return CompletableFuture.failedFuture(
                             ResourceNotFound.wrongType(query.className(), "AppModule"));
                 }
@@ -163,20 +163,26 @@ public class AppHtmlGetAction
                    .append(">").append(htmlEscape(label)).append("</option>");
         }
 
-        // Styled with semantic CSS tokens so the picker adapts per-theme +
-        // per-mode (light/dark) rather than locking to a hardcoded palette.
-        // Explicit background + color on the <select> itself (not just the
-        // wrapper) so the OS-rendered drop-down list of <option>s inherits
-        // theme colors — `background: transparent` would have leaked the
-        // browser's default white through the popup.
+        // Renders into an invisible "slot" div the StudioElements Header picks
+        // up at render time (see StudioElements.js — Header looks for
+        // #__theme_picker_slot__ and reparents it into the sticky header bar).
+        // Until the slot is reparented, `display:none` keeps it from flashing
+        // as a stray element on first paint. Once reparented, an inline style
+        // override resets `display` to flex.
+        //
+        // The picker uses the inverted-surface tokens so it visually merges
+        // with the header's dark band — no hardcoded palette, theme-aware.
         return """
-                <div style="position:fixed; top:12px; right:12px; z-index:9999; background:var(--color-surface-raised); color:var(--color-text-primary); border:1px solid var(--color-border); border-radius:6px; padding:6px 10px; font:13px system-ui,sans-serif; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-                    <label style="color:var(--color-text-muted); margin-right:6px;">Theme:</label>
-                    <select id="__theme_picker__" style="font:inherit; border:none; background:var(--color-surface-raised); color:var(--color-text-primary); cursor:pointer; padding:2px 4px;">
+                <div id="__theme_picker_slot__" style="display:none; align-items:center; gap:6px; margin-left:auto; font:13px system-ui,sans-serif;">
+                    <label style="color:var(--color-text-on-inverted-muted);">Theme:</label>
+                    <select id="__theme_picker__" style="font:inherit; border:1px solid rgba(255,255,255,0.15); background:transparent; color:var(--color-text-on-inverted); cursor:pointer; padding:2px 6px; border-radius:4px;">
                         %s
                     </select>
                 </div>
                 <style>
+                    /* OS-rendered popup list of <option>s falls back to the
+                       theme's raised surface so it stays legible regardless
+                       of the dark header band. */
                     #__theme_picker__ option {
                         background: var(--color-surface-raised);
                         color: var(--color-text-primary);
