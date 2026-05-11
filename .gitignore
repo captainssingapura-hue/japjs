@@ -11,6 +11,11 @@ target/
 *.iws
 *.iml
 *.ipr
+.idea
+
+### Local ###
+.docs
+.claude
 
 ### Eclipse ###
 .apt_generated

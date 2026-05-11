@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+        <artifactId>homing.js</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>homing-skills</artifactId>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Mini-studio rides on the full studio-base stack — Catalogue, DocReader,
+             theme picker, brand chrome, all reused as-is. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-studio-base</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <!-- Per the Dual-Audience Skills doctrine: the .md files live in
+                 ONE place at the repo root (.claude/skills/<slug>/SKILL.md)
+                 and the jar packages a copy at classpath path
+                 claude-skills/<slug>/SKILL.md. SkillDoc records override
+                 resourcePath() to read this same path; the dump CLI writes
+                 the same bytes back to a user-chosen target. Single source. -->
+            <resource>
+                <directory>${project.basedir}/../.claude/skills</directory>
+                <targetPath>claude-skills</targetPath>
+                <includes>
+                    <include>**/SKILL.md</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+    </build>
+
+    <!-- Consumption model: a standard Maven artifact, not a runnable fat-jar.
+         Downstream projects add it as a dependency and invoke `mvn exec:java`
+         (with `-Dexec.mainClass=hue.captains.singapura.js.homing.skills.SkillsCli`)
+         to dump skills or boot the mini-studio. See the `use-homing-skills`
+         skill shipped in this bundle for the exact pom recipe. -->
+</project>

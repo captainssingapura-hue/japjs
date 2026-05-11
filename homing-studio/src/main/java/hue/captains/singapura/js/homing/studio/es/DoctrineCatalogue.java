@@ -3,6 +3,7 @@ package hue.captains.singapura.js.homing.studio.es;
 import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.CatalogueContainerDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.DualAudienceSkillsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FirstUserDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.ManagedDomOpsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDoc;
@@ -23,6 +24,7 @@ public record DoctrineCatalogue() implements Catalogue {
     @Override public List<Entry> entries() {
         return List.of(
                 Entry.of(FirstUserDoc.INSTANCE),
+                Entry.of(DualAudienceSkillsDoc.INSTANCE),
                 Entry.of(PureComponentViewsDoc.INSTANCE),
                 Entry.of(MethodsOverPropsDoc.INSTANCE),
                 Entry.of(ManagedDomOpsDoc.INSTANCE),
