@@ -25,6 +25,7 @@ import hue.captains.singapura.js.homing.studio.docs.doctrines.ManagedDomOpsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.OwnedReferencesDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PlanContainerDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.DualAudienceSkillsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FirstUserDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PureComponentViewsDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.LiveTrackerPatternDoc;
@@ -92,6 +93,7 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(Defect0002Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
 
             entry(FirstUserDoc.INSTANCE,          "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(DualAudienceSkillsDoc.INSTANCE, "Doctrines", StudioStyles.st_badge_reference.class),
             entry(PureComponentViewsDoc.INSTANCE, "Doctrines", StudioStyles.st_badge_reference.class),
             entry(MethodsOverPropsDoc.INSTANCE,   "Doctrines", StudioStyles.st_badge_reference.class),
             entry(ManagedDomOpsDoc.INSTANCE,      "Doctrines", StudioStyles.st_badge_reference.class),
