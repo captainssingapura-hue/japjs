@@ -1,9 +1,12 @@
 package hue.captains.singapura.js.homing.server;
 
+import hue.captains.singapura.js.homing.core.Component;
 import hue.captains.singapura.js.homing.core.CssBlock;
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
 import hue.captains.singapura.js.homing.core.CssGroupImpl;
+import hue.captains.singapura.js.homing.core.Layer;
+import hue.captains.singapura.js.homing.core.Layers;
 import hue.captains.singapura.js.homing.core.Theme;
 import hue.captains.singapura.js.homing.core.util.CssClassName;
 import hue.captains.singapura.tao.http.action.GetAction;
@@ -11,6 +14,8 @@ import hue.captains.singapura.tao.http.action.ParamMarshaller;
 import io.vertx.ext.web.RoutingContext;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -123,11 +128,13 @@ public class CssContentGetAction
     private static String renderCss(CssGroupImpl<?, ?> impl, CssGroup<?> group) {
         StringBuilder sb = new StringBuilder();
 
-        // 1. Legacy CSS custom properties + globalRules — emitted only when an
-        // impl is registered for the group. RFC 0002-ext1 Phase 09+ deployments
-        // serve these via the dedicated /theme-vars + /theme-globals endpoints;
-        // for fully-migrated groups (no impl registered) the renderer skips
-        // these blocks entirely and emits only per-class rules.
+        // Defect 0003 — cascade-layer declaration goes first so the browser
+        // honours the ladder regardless of bundle load order.
+        sb.append(Layers.declaration()).append("\n\n");
+
+        // 1. :root custom properties stay unlayered — CSS vars don't
+        // participate in cascade conflicts; layering them would only
+        // complicate `var(--…)` resolution.
         if (impl != null) {
             Map<String, String> primitives = impl.cssVariables();
             Map<String, String> semantic   = impl.semanticTokens();
@@ -137,23 +144,29 @@ public class CssContentGetAction
                 semantic  .forEach((k, v) -> sb.append("    ").append(k).append(": ").append(v).append(";\n"));
                 sb.append("}\n\n");
             }
+            // Legacy globalRules — wrap in @layer component as the safe
+            // default. Themes targeting other tiers should migrate to
+            // ThemeGlobals.chunks().
             String global = impl.globalRules();
             if (global != null && !global.isEmpty()) {
-                sb.append(global);
+                sb.append("@layer component {\n");
+                sb.append(global.indent(4));
                 if (!global.endsWith("\n")) sb.append('\n');
-                sb.append('\n');
+                sb.append("}\n\n");
             }
         }
 
-        // 2. Per-class rules — iterate the group's declared CssClasses, resolve
-        // each one's body, then emit the base rule + auto-generated variant
-        // rules per `cls.variants()`.
-        //
-        // RFC 0002-ext1 Phase 05: prefer `cls.body()` when non-null (inline
-        // class-level body — theme-agnostic, no impl method needed). Fall back
-        // to the legacy impl-method dispatch via reflection for classes that
-        // still rely on the per-theme Impl<TH> contract.
+        // 2. Per-class rules — group by the cascade tier each CssClass opts
+        // into via InLayer<L>. Classes without an InLayer marker fall into
+        // @layer component (the implicit default — see Layers.ofImplementor).
+        Map<Class<? extends Layer>, List<String>> byLayer = new LinkedHashMap<>();
+        for (Class<? extends Layer> layer : Layers.ASCENDING) {
+            byLayer.put(layer, new ArrayList<>());
+        }
+
         for (CssClass<?> cssClass : group.cssClasses()) {
+            Class<? extends Layer> layer = Layers.ofImplementor(cssClass);
+            List<String> bucket = byLayer.get(layer);
             try {
                 String baseKebab = CssClassName.toCssName(cssClass.getClass());
                 String selector = "." + baseKebab;
@@ -168,32 +181,43 @@ public class CssContentGetAction
                     Method m = impl.getClass().getMethod(cssClass.getClass().getSimpleName());
                     body = ((CssBlock<?>) m.invoke(impl)).body();
                 } else {
-                    sb.append("/* render error: no body() and no registered impl for ")
-                      .append(cssClass.getClass().getSimpleName()).append(" */\n");
+                    bucket.add("/* render error: no body() and no registered impl for "
+                            + cssClass.getClass().getSimpleName() + " */");
                     continue;
                 }
 
-                // Base rule (with optional pseudoState suffix).
-                sb.append(selector).append(" {\n");
-                if (!body.isEmpty()) sb.append(body.indent(4));
-                sb.append("}\n");
+                StringBuilder rule = new StringBuilder();
+                rule.append(selector).append(" {\n");
+                if (!body.isEmpty()) rule.append(body.indent(4));
+                rule.append("}\n");
 
-                // Auto-generated variant rules — same body, state-prefixed kebab,
-                // pseudo-state suffix on the selector.
                 for (String variant : cssClass.variants()) {
-                    sb.append(".").append(variant).append("-").append(baseKebab)
-                      .append(":").append(variant).append(" {\n");
-                    if (!body.isEmpty()) sb.append(body.indent(4));
-                    sb.append("}\n");
+                    rule.append(".").append(variant).append("-").append(baseKebab)
+                            .append(":").append(variant).append(" {\n");
+                    if (!body.isEmpty()) rule.append(body.indent(4));
+                    rule.append("}\n");
                 }
+                bucket.add(rule.toString());
             } catch (NoSuchMethodException e) {
-                sb.append("/* render error: no method ").append(cssClass.getClass().getSimpleName())
-                  .append("() on ").append(impl == null ? "(null impl)" : impl.getClass().getSimpleName())
-                  .append(" */\n");
+                bucket.add("/* render error: no method " + cssClass.getClass().getSimpleName()
+                        + "() on " + (impl == null ? "(null impl)" : impl.getClass().getSimpleName()) + " */");
             } catch (Exception e) {
-                sb.append("/* render error: ").append(cssClass.getClass().getSimpleName())
-                  .append(" — ").append(e.getMessage()).append(" */\n");
+                bucket.add("/* render error: " + cssClass.getClass().getSimpleName()
+                        + " — " + e.getMessage() + " */");
             }
+        }
+
+        // 3. Emit each non-empty layer in ASCENDING order, wrapped in
+        // `@layer X { … }`. The declaration at the top fixes cascade order
+        // regardless of how these blocks interleave with other bundles.
+        for (Class<? extends Layer> layer : Layers.ASCENDING) {
+            List<String> rules = byLayer.get(layer);
+            if (rules.isEmpty()) continue;
+            sb.append("@layer ").append(Layers.CSS_NAME.get(layer)).append(" {\n");
+            for (String rule : rules) {
+                sb.append(rule.indent(4));
+            }
+            sb.append("}\n\n");
         }
 
         return sb.toString();

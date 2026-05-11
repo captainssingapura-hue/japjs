@@ -11,6 +11,7 @@ import hue.captains.singapura.js.homing.studio.base.theme.ThemesIntro;
 import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
 import hue.captains.singapura.js.homing.studio.base.tracker.PlanAppHost;
 import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ReleasesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
@@ -51,7 +52,8 @@ public class StudioServer {
                 StudioCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
                 JourneysCatalogue.INSTANCE,
-                BuildingBlocksCatalogue.INSTANCE
+                BuildingBlocksCatalogue.INSTANCE,
+                ReleasesCatalogue.INSTANCE
         );
 
         // RFC 0005-ext1: explicit plan list registered alongside.

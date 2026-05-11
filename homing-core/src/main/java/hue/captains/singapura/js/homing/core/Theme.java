@@ -34,4 +34,24 @@ public interface Theme {
      * overridden.
      */
     default String label() { return slug(); }
+
+    /**
+     * Optional atmospheric backdrop — a typed {@link SvgRef} pointing at an
+     * SVG asset that the framework renders as <i>inline DOM</i> behind the
+     * studio chrome, on every page, when this theme is active.
+     *
+     * <p>Returning a non-null {@code SvgRef} causes
+     * {@code AppHtmlGetAction} to embed the resolved SVG markup as the first
+     * child of {@code <body>}, wrapped in {@code <div class="theme-backdrop">}.
+     * Because the SVG is real DOM (not a {@code background-image} sandbox),
+     * its individual elements participate in the host document's CSS cascade
+     * — themes can add per-element {@code :hover} animations, transitions,
+     * pointer-event handlers, etc.</p>
+     *
+     * <p>Default {@code null} → no backdrop. Most themes return null and
+     * tint the chrome via CSS variables alone. Atmospheric themes
+     * ({@code HomingMapleBridge} is the framework's first) return an
+     * {@code SvgRef} pointing at an inline SVG illustration.</p>
+     */
+    default SvgRef<?> backdrop() { return null; }
 }

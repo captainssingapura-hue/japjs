@@ -1,11 +1,15 @@
 package hue.captains.singapura.js.homing.server;
 
+import hue.captains.singapura.js.homing.core.Layer;
+import hue.captains.singapura.js.homing.core.Layers;
 import hue.captains.singapura.js.homing.core.Theme;
 import hue.captains.singapura.js.homing.core.ThemeGlobals;
+import hue.captains.singapura.js.homing.core.ThemeOverlay;
 import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.ParamMarshaller;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -55,10 +59,44 @@ public class ThemeGlobalsGetAction
         }
 
         ThemeGlobals<?> globals = registry.globalsForSlug(slug);
-        if (globals == null || globals.css() == null || globals.css().isEmpty()) {
+        if (globals == null) {
             return CompletableFuture.completedFuture(new CssContent(""));
         }
+        return CompletableFuture.completedFuture(new CssContent(render(globals)));
+    }
 
-        return CompletableFuture.completedFuture(new CssContent(globals.css()));
+    /**
+     * Wrap the theme's globals in cascade-layer declarations (Defect 0003).
+     * Prefer {@link ThemeGlobals#chunks()} when present — each (layer →
+     * content) pair gets its own {@code @layer X { … }} block, in ASCENDING
+     * order. Fall back to {@link ThemeGlobals#css()} wrapped in
+     * {@code @layer theme { … }} for themes that haven't migrated.
+     */
+    private static String render(ThemeGlobals<?> globals) {
+        Map<Class<? extends Layer>, String> chunks = globals.chunks();
+        String legacy = globals.css();
+        boolean hasChunks = chunks != null && !chunks.isEmpty();
+        boolean hasLegacy = legacy != null && !legacy.isEmpty();
+        if (!hasChunks && !hasLegacy) return "";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(Layers.declaration()).append("\n\n");
+
+        if (hasChunks) {
+            for (Class<? extends Layer> layer : Layers.ASCENDING) {
+                String content = chunks.get(layer);
+                if (content == null || content.isEmpty()) continue;
+                sb.append("@layer ").append(Layers.CSS_NAME.get(layer)).append(" {\n");
+                sb.append(content.indent(4));
+                if (!content.endsWith("\n")) sb.append('\n');
+                sb.append("}\n\n");
+            }
+        } else {
+            sb.append("@layer ").append(Layers.CSS_NAME.get(ThemeOverlay.class)).append(" {\n");
+            sb.append(legacy.indent(4));
+            if (!legacy.endsWith("\n")) sb.append('\n');
+            sb.append("}\n");
+        }
+        return sb.toString();
     }
 }

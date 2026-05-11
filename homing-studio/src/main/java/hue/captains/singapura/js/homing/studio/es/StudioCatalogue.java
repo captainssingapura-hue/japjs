@@ -36,7 +36,8 @@ public record StudioCatalogue() implements Catalogue {
                         ThemesIntro.INSTANCE,
                         AppModule._None.INSTANCE,
                         "Themes",
-                        "Palette previews and one-click activation for every registered theme. Your choice sticks across navigation."))
+                        "Palette previews and one-click activation for every registered theme. Your choice sticks across navigation.")),
+                Entry.of(ReleasesCatalogue.INSTANCE)
         );
     }
 }

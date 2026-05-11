@@ -40,6 +40,26 @@ public interface ThemeGlobals<TH extends Theme> {
     /** Identity: which theme these globals belong to. */
     TH theme();
 
-    /** Raw CSS body, served verbatim. */
-    String css();
+    /** Raw CSS body, served verbatim.
+     *
+     *  <p>Back-compat surface for themes that don't split their content by
+     *  {@link Layer}. The framework's CSS-serving action falls back to this
+     *  method when {@link #chunks()} returns empty, wrapping the whole blob
+     *  in {@code @layer theme}.</p>
+     *
+     *  <p>New themes should override {@link #chunks()} instead — splitting
+     *  content by cascade layer makes the load-order ambiguity disappear
+     *  (see <i>Defect 0003</i>).</p>
+     */
+    default String css() { return ""; }
+
+    /**
+     * Cascade-layer-keyed chunks of CSS. The framework wraps each chunk in
+     * the matching {@code @layer X { … }} block so the rules participate
+     * in the studio-wide cascade ordering. Empty map → fall back to
+     * {@link #css()} as a single {@link ThemeOverlay} chunk.
+     */
+    default java.util.Map<Class<? extends Layer>, String> chunks() {
+        return java.util.Map.of();
+    }
 }

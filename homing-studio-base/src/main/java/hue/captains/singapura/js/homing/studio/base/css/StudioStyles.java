@@ -3,13 +3,15 @@ package hue.captains.singapura.js.homing.studio.base.css;
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
 import hue.captains.singapura.js.homing.core.CssImportsFor;
+import hue.captains.singapura.js.homing.core.InLayer;
+import hue.captains.singapura.js.homing.core.Layout;
 
 import java.util.List;
 
 public record StudioStyles() implements CssGroup<StudioStyles> {
     public static final StudioStyles INSTANCE = new StudioStyles();
 
-    public record st_root() implements CssClass<StudioStyles> {
+    public record st_root() implements CssClass<StudioStyles>, InLayer<Layout> {
         @Override public String body() { return """
             min-height: 100vh;
             display: flex;
@@ -113,7 +115,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             """;
         }
     }
-    public record st_main() implements CssClass<StudioStyles> {
+    public record st_main() implements CssClass<StudioStyles>, InLayer<Layout> {
         @Override public String body() { return """
             flex: 1;
             max-width: 1280px;
@@ -121,6 +123,12 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             margin: 0 auto;
             padding: 36px 32px 64px;
             box-sizing: border-box;
+            /* The doc-reader page gets a "page on a desk" column slab applied
+             * via @layer component (HomingDefault.COMPONENT_CSS targets
+             * `.st-main:has(.st-doc-meta)`); catalogue/doc-browser/themes-intro/
+             * plan-host pages stay slab-less because they don't carry the
+             * doc-meta marker. Cards on those pages keep their own
+             * surface-raised fill without losing contrast to a column bg. */
             """;
         }
     }
@@ -179,7 +187,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             """;
         }
     }
-    public record st_grid() implements CssClass<StudioStyles> {
+    public record st_grid() implements CssClass<StudioStyles>, InLayer<Layout> {
         @Override public String body() { return """
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -189,7 +197,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
     }
     // Vertical-list layout — used for prose-like rows (objectives, acceptance,
     // decisions). Counterpart to st-grid (which lays out card tiles).
-    public record st_list() implements CssClass<StudioStyles> {
+    public record st_list() implements CssClass<StudioStyles>, InLayer<Layout> {
         @Override public String body() { return """
             display: flex;
             flex-direction: column;
@@ -421,7 +429,7 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             """;
         }
     }
-    public record st_layout() implements CssClass<StudioStyles> {
+    public record st_layout() implements CssClass<StudioStyles>, InLayer<Layout> {
         @Override public String body() { return """
             display: grid;
             grid-template-columns: 260px 1fr;

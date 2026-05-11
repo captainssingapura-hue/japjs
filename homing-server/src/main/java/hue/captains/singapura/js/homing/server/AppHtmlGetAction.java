@@ -113,6 +113,7 @@ public class AppHtmlGetAction
         String themeJs  = effectiveTheme != null ? "\"" + effectiveTheme + "\"" : "null";
         String localeJs = query.locale() != null ? "\"" + query.locale() + "\"" : "null";
         String themePickerHtml = renderThemePicker(effectiveTheme);
+        String backdropHtml    = renderBackdrop(effectiveTheme);
 
         String html = """
                 <!DOCTYPE html>
@@ -122,6 +123,7 @@ public class AppHtmlGetAction
                     <title>%s</title>
                 </head>
                 <body>
+                    %s
                     <div id="app"></div>
                     %s
                     <script type="module">
@@ -139,7 +141,7 @@ public class AppHtmlGetAction
                     </script>
                 </body>
                 </html>
-                """.formatted(app.title(), themePickerHtml, themeJs, localeJs, baseModuleUrl);
+                """.formatted(app.title(), backdropHtml, themePickerHtml, themeJs, localeJs, baseModuleUrl);
 
         return CompletableFuture.completedFuture(new HtmlPageContent(html));
     }
@@ -201,6 +203,34 @@ public class AppHtmlGetAction
                     })();
                 </script>
                 """.formatted(options.toString());
+    }
+
+    /**
+     * Per-theme atmospheric backdrop. When the active {@link hue.captains.singapura.js.homing.core.Theme}
+     * declares a non-null {@link hue.captains.singapura.js.homing.core.Theme#backdrop()}, resolve the
+     * referenced SVG markup and inline it as the first child of {@code <body>},
+     * wrapped in {@code <div class="theme-backdrop">}.
+     *
+     * <p>Theme CSS positions the wrapper (typically fixed cover behind the
+     * chrome). Because the SVG is real DOM (not a {@code background-image}
+     * sandbox), its individual elements participate in the host document's
+     * CSS cascade — themes can attach {@code :hover}, transitions, and
+     * animation triggers to specific classed elements inside the SVG.</p>
+     *
+     * <p>Themes without a backdrop (the default for the framework's other six
+     * themes) return null and this method emits the empty string.</p>
+     */
+    private String renderBackdrop(String currentTheme) {
+        if (currentTheme == null) return "";
+        var theme = themeRegistry.themes().stream()
+                .filter(t -> currentTheme.equals(t.slug()))
+                .findFirst().orElse(null);
+        if (theme == null) return "";
+        var ref = theme.backdrop();
+        if (ref == null) return "";
+        var svg = ref.resolve().orElse("");
+        if (svg.isBlank()) return "";
+        return "<div class=\"theme-backdrop\" aria-hidden=\"true\">" + svg + "</div>";
     }
 
     private static String htmlEscape(String s) {
