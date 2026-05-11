@@ -1,6 +1,13 @@
 package hue.captains.singapura.js.homing.studio.base.theme;
 
+import hue.captains.singapura.js.homing.core.Component;
 import hue.captains.singapura.js.homing.core.CssVar;
+import hue.captains.singapura.js.homing.core.Layer;
+import hue.captains.singapura.js.homing.core.MediaGated;
+import hue.captains.singapura.js.homing.core.Prose;
+import hue.captains.singapura.js.homing.core.Reset;
+import hue.captains.singapura.js.homing.core.State;
+import hue.captains.singapura.js.homing.core.ThemeOverlay;
 import hue.captains.singapura.js.homing.core.Theme;
 import hue.captains.singapura.js.homing.core.ThemeGlobals;
 import hue.captains.singapura.js.homing.core.ThemeVariables;
@@ -97,7 +104,8 @@ public record HomingDefault() implements Theme {
      * {@code @media (prefers-color-scheme: dark)} primitive override + this
      * shared structural string.</p>
      */
-    public static final String STRUCTURAL_CSS = """
+    /** Tier: RESET — html / body baseline. Lowest priority; everything overrides this. */
+    private static final String RESET_CSS = """
                 html, body {
                     margin: 0;
                     padding: 0;
@@ -106,33 +114,21 @@ public record HomingDefault() implements Theme {
                     font-family: "Calibri", "Segoe UI", system-ui, sans-serif;
                     min-height: 100vh;
                 }
+                """;
+
+    /** Tier: COMPONENT — descendant rules / variant styling. Same priority as StudioStyles classes. */
+    private static final String COMPONENT_CSS = """
+                /* Doc-reader column slab — `.st-doc-meta` is uniquely emitted
+                 * by DocReaderRenderer, so `:has(.st-doc-meta)` scopes the
+                 * slab to the reading page only. Catalogue / doc-browser /
+                 * themes-intro / plan-host pages stay slab-less so their
+                 * cards keep visual contrast on the body bg. */
+                .st-main:has(.st-doc-meta) {
+                    background-color: var(--color-surface-raised);
+                    border-radius: 6px;
+                    box-shadow: 0 2px 24px color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+                }
                 .st-brand-logo svg { width: 100%; height: 100%; display: block; }
-                .st-brand:hover .st-brand-logo { transform: scale(1.18); }
-                .st-crumb:hover { color: var(--color-accent); }
-                .st-search:focus {
-                    outline: none;
-                    border-color: var(--color-border-emphasis);
-                    /* 18% alpha of the active theme's accent — replaces the
-                       previously hardcoded rgba(244,185,66,…) which leaked
-                       Default's gold into every theme. */
-                    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
-                }
-                .st-filter-btn:hover {
-                    border-color: var(--color-border-emphasis);
-                    color: var(--color-text-link-hover);
-                }
-                .st-filter-btn-active:hover {
-                    background: var(--color-surface-inverted);
-                    color: var(--color-accent);
-                    border-color: var(--color-surface-inverted);
-                }
-                .st-card:hover {
-                    transform: translateY(-2px);
-                    /* Theme-aware lift shadow — 12% of the link tone. Replaces
-                       hardcoded rgba(30,39,97,…) which was Default's deep navy. */
-                    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-text-link) 12%, transparent);
-                    border-left-color: var(--color-accent-emphasis);
-                }
                 .st-card-featured .st-card-title {
                     color: var(--color-text-on-inverted);
                     font-size: 22px;
@@ -153,14 +149,33 @@ public record HomingDefault() implements Theme {
                 .st-card-featured .st-card-link {
                     color: var(--color-accent);
                 }
-                @media (max-width: 920px) {
-                    .st-layout { grid-template-columns: 1fr; }
-                    .st-sidebar { display: none; }
+                .st-app-pill-dark .st-app-pill-icon {
+                    background: var(--color-accent);
+                    color: var(--color-accent-on);
                 }
-                .st-toc-item:hover {
+                .st-app-pill-dark .st-app-pill-label {
+                    color: var(--color-text-on-inverted);
+                }
+                .st-app-pill-dark .st-app-pill-desc {
+                    color: var(--color-text-on-inverted-muted);
+                }
+                .st-task-done .st-task-box {
+                    background: var(--color-accent);
+                    border-color: var(--color-accent-emphasis);
+                    color: var(--color-accent-on);
+                    font-weight: 700;
+                }
+                .st-footer code {
+                    font-family: "Consolas", "Courier New", monospace;
+                    background: var(--color-surface-recessed);
                     color: var(--color-text-link);
-                    border-left-color: var(--color-border-emphasis);
+                    padding: 1px 6px;
+                    border-radius: 3px;
                 }
+                """;
+
+    /** Tier: PROSE — descendant selectors over markdown-rendered content inside .st-doc. */
+    private static final String PROSE_CSS = """
                 .st-doc h1, .st-doc h2, .st-doc h3, .st-doc h4 {
                     font-family: "Georgia", serif;
                     color: var(--color-text-link);
@@ -176,7 +191,6 @@ public record HomingDefault() implements Theme {
                 .st-doc ul, .st-doc ol { margin: 0 0 1em 0; padding-left: 1.5em; }
                 .st-doc li { margin: 0.3em 0; }
                 .st-doc a { color: var(--color-text-link-hover); text-decoration: underline; text-underline-offset: 2px; }
-                .st-doc a:hover { color: var(--color-text-link); }
                 .st-doc blockquote {
                     margin: 1em 0;
                     padding: 4px 0 4px 18px;
@@ -233,13 +247,36 @@ public record HomingDefault() implements Theme {
                     margin: 2em 0;
                 }
                 .st-doc img { max-width: 100%; }
-                .st-footer code {
-                    font-family: "Consolas", "Courier New", monospace;
-                    background: var(--color-surface-recessed);
-                    color: var(--color-text-link);
-                    padding: 1px 6px;
-                    border-radius: 3px;
+                """;
+
+    /** Tier: STATE — :hover, :focus, :active. Wins over base component styling. */
+    private static final String STATE_CSS = """
+                .st-brand:hover .st-brand-logo { transform: scale(1.18); }
+                .st-crumb:hover { color: var(--color-accent); }
+                .st-search:focus {
+                    outline: none;
+                    border-color: var(--color-border-emphasis);
+                    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
                 }
+                .st-filter-btn:hover {
+                    border-color: var(--color-border-emphasis);
+                    color: var(--color-text-link-hover);
+                }
+                .st-filter-btn-active:hover {
+                    background: var(--color-surface-inverted);
+                    color: var(--color-accent);
+                    border-color: var(--color-surface-inverted);
+                }
+                .st-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-text-link) 12%, transparent);
+                    border-left-color: var(--color-accent-emphasis);
+                }
+                .st-toc-item:hover {
+                    color: var(--color-text-link);
+                    border-left-color: var(--color-border-emphasis);
+                }
+                .st-doc a:hover { color: var(--color-text-link); }
                 .st-app-pill:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 8px 18px color-mix(in srgb, var(--color-text-link) 12%, transparent);
@@ -248,33 +285,72 @@ public record HomingDefault() implements Theme {
                 .st-app-pill-dark:hover {
                     background: var(--color-surface-inverted);
                 }
-                .st-app-pill-dark .st-app-pill-icon {
-                    background: var(--color-accent);
-                    color: var(--color-accent-on);
-                }
-                .st-app-pill-dark .st-app-pill-label {
-                    color: var(--color-text-on-inverted);
-                }
-                .st-app-pill-dark .st-app-pill-desc {
-                    color: var(--color-text-on-inverted-muted);
-                }
                 .st-step-card:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 6px 16px color-mix(in srgb, var(--color-text-link) 10%, transparent);
                     border-left-color: var(--color-accent-emphasis);
                 }
-                .st-task-done .st-task-box {
-                    background: var(--color-accent);
-                    border-color: var(--color-accent-emphasis);
-                    color: var(--color-accent-on);
-                    font-weight: 700;
+                """;
+
+    /** Tier: MEDIA_GATED — @media queries (responsive, print, dark-mode override).
+     *  The print block no longer needs `!important`; cascade layers resolve the
+     *  load-order ambiguity (Defect 0003). */
+    private static final String MEDIA_GATED_CSS = """
+                @media (max-width: 920px) {
+                    .st-layout { grid-template-columns: 1fr; }
+                    .st-sidebar { display: none; }
+                }
+                @media print {
+                    .st-layout                     { grid-template-columns: 1fr; }
+                    .st-sidebar                    { display: none; }
+                    .st-doc                        { max-width: none; }
+                    .st-main                       { max-width: none; padding: 12px 0; }
+                    .theme-backdrop                { display: none; }
+                    #__theme_picker_slot__         { display: none; }
+                    .st-header                     { position: static; }
                 }
                 """;
+
+    /**
+     * Back-compat handle. The framework's CSS-serving action prefers
+     * {@link Globals#chunks()}; this constant remains so any code that
+     * concatenates STRUCTURAL_CSS as a string (e.g. {@code DARK_OVERRIDE +
+     * STRUCTURAL_CSS}) keeps working without modification. New themes
+     * should NOT reference this — return {@link #STRUCTURAL_CHUNKS} (or
+     * a merge with theme-specific chunks) from their {@code chunks()}.
+     */
+    public static final String STRUCTURAL_CSS =
+            RESET_CSS + COMPONENT_CSS + PROSE_CSS + STATE_CSS + MEDIA_GATED_CSS;
+
+    /** Tier-tagged version of {@link #STRUCTURAL_CSS}. New themes consume this. */
+    public static final Map<Class<? extends Layer>, String> STRUCTURAL_CHUNKS = Map.of(
+            Reset.class,      RESET_CSS,
+            Component.class,  COMPONENT_CSS,
+            Prose.class,      PROSE_CSS,
+            State.class,      STATE_CSS,
+            MediaGated.class, MEDIA_GATED_CSS
+    );
 
     public record Globals() implements ThemeGlobals<HomingDefault> {
         public static final Globals INSTANCE = new Globals();
         @Override public HomingDefault theme() { return HomingDefault.INSTANCE; }
         @Override public String css() { return DARK_OVERRIDE + STRUCTURAL_CSS; }
+
+        /** Tier-tagged content. The framework wraps each chunk in
+         *  {@code @layer X { … }} (Defect 0003 — cascade ordering). DARK_OVERRIDE
+         *  lives in the theme tier because it re-binds tokens; structural rules
+         *  ride on {@link #STRUCTURAL_CHUNKS}. */
+        @Override
+        public Map<Class<? extends Layer>, String> chunks() {
+            return Map.of(
+                    Reset.class,        RESET_CSS,
+                    Component.class,    COMPONENT_CSS,
+                    Prose.class,        PROSE_CSS,
+                    State.class,        STATE_CSS,
+                    MediaGated.class,   MEDIA_GATED_CSS,
+                    ThemeOverlay.class, DARK_OVERRIDE
+            );
+        }
 
         /** Light/dark adaptation for HomingDefault. Without a primitive layer,
          *  the @media block re-binds semantic tokens directly — each role gets

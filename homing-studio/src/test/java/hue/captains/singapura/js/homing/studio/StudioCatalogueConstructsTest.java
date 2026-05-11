@@ -7,6 +7,7 @@ import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ReleasesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +39,8 @@ class StudioCatalogueConstructsTest {
         // doc providers (the catalogue side + DocBrowser).
         var docRegistry = new DocRegistry(java.util.stream.Stream.of(
                         DocBrowser.INSTANCE.docs(),
-                        BuildingBlocksCatalogue.INSTANCE.docs())
+                        BuildingBlocksCatalogue.INSTANCE.docs(),
+                        ReleasesCatalogue.INSTANCE.docs())
                 .flatMap(List::stream)
                 .toList());
 
@@ -46,7 +48,8 @@ class StudioCatalogueConstructsTest {
                 StudioCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
                 JourneysCatalogue.INSTANCE,
-                BuildingBlocksCatalogue.INSTANCE
+                BuildingBlocksCatalogue.INSTANCE,
+                ReleasesCatalogue.INSTANCE
         );
 
         assertDoesNotThrow(() -> new CatalogueRegistry(brand, docRegistry, catalogues));

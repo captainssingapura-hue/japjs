@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | **Open** — diagnosis recorded; resolution drafted in [RFC 0003](#ref:rfc-3). |
+| **Status** | **Resolved** (2026-05-11) — by reframing rather than by adding a new primitive. Themes vary **paint + shape** (both CSS, now cascade-deterministic per [Defect 0003](#ref:def-3) fix); themes do **not** vary **behavior** (DOM, JS, events — that's view-layer territory, separately addressed by [RFC 0003](#ref:rfc-3)'s Component primitive). See §7 below. |
 | **Author** | Howard, with Homing |
 | **Created** | 2026-05-08 |
 | **Severity** | Design-level — caps the expressiveness of theming and forces UI duplication across every consumer. |
@@ -95,6 +95,62 @@ That's the rule. Components are what makes it expressible. RFC 0003 §2 commits 
 
 ## 6. Decision deferred → resolution
 
-[RFC 0003](#ref:rfc-3) drafts the resolution: a `Component<C>` + `ComponentImpl<C, TH>` primitive, the doctrine in §4 above as a foundational principle, a complete atom vocabulary so the doctrine has no escape hatches, and three scope flavours (atoms + chrome / + Mode B + assets / + conformance test) with v2 (the proposed v1 target) covering both this defect and the doctrine end-to-end.
+[RFC 0003](#ref:rfc-3) drafts a `Component<C>` + `ComponentImpl<C, TH>` primitive and the no-innerHTML doctrine in §4 above. That work is still valuable — but for view-layer encapsulation, not for theming. See §7 for what shipped.
 
-When RFC 0003 ships, this defect closes; the RFC's docs replace it.
+---
+
+## 7. Resolution — concerns separated, shape gap closed by CSS
+
+**Ship date:** 2026-05-11.
+
+The original framing conflated two concerns that turn out to belong to different layers:
+
+| Concern | Layer | Who controls it |
+|---|---|---|
+| **Paint** — colours, sizes, typography | CSS variables + class rules | Theme |
+| **Shape** — visual form: corners, borders, decorative chrome, backdrop, padding mass | CSS class rules + `::before`/`::after` + per-theme `backdrop()` SVG | Theme |
+| **Behavior** — DOM structure, child arrangement, event handlers, JS state | View-layer code | **Not theme** — application or `Component` |
+
+The defect's original symptom inventory (cards, animal platform, JS duplication) folded all three into "things themes can't change." But on reflection, only the first two *should* be theme territory. A theme that swapped event handlers or reordered DOM children would couple visual identity to behavioural surface — a recipe for themes that subtly break apps.
+
+### 7.1 What changed
+
+**Nothing new was added to the theme primitives.** What changed is the cascade plumbing underneath them, plus the realisation that CSS is more capable than the original defect credited.
+
+[Defect 0003](#ref:def-3)'s typed `Layer` ladder + `@layer` serving made cross-bundle CSS overrides deterministic. Themes can now reshape any selector in any layer without `!important` and without specificity arithmetic. The cascade itself is the mechanism — the same mechanism that was always shipping, just made trustworthy.
+
+### 7.2 What "shape" CSS can actually do
+
+The 2022–2025 CSS surface is materially richer than the era this defect was written against. A theme working in pure CSS can:
+
+- **Reshape any element** — `border-radius`, `border`, `box-shadow` (inset for 3D bevels), `padding`, `clip-path`, `mask-image`.
+- **Synthesize decorative chrome** — `::before` / `::after` with `content` add visual structure (gradient title bars, ornamental corners, callouts) without DOM changes.
+- **Swap background imagery** — `background-image: url("data:image/svg+xml,…")` lets each theme inject different SVG path data via a CSS variable. The forest theme's mossy platform and the sunset theme's dune are different SVG `d` attributes embedded in different data URIs assigned to the same `--platform-bg` variable.
+- **Replace the backdrop entirely** — `Theme.backdrop()` (introduced for Maple Bridge, used again by Retro 90s) renders a per-theme inline SVG as the page atmosphere. The SVG's interior elements get classed so the *theme's CSS* can wire per-element hover/transitions — interactive backdrop without theme-driven JS.
+- **Compose layered fills** — multiple `background-image` layers, `mix-blend-mode`, `filter`, `backdrop-filter` cover most "different visual texture per theme" cases.
+
+### 7.3 Worked example — the Retro 90s card reshape
+
+The `HomingRetro90s` theme reshapes `.st-card` from a rounded-corner left-accented tile into a Windows-95 window. **Zero DOM changes.** Pure CSS in `@layer theme`:
+
+- `border-radius: 0`, full `1px` border on all sides (vs the default `border-left: 4px`),
+- Inset asymmetric `box-shadow` for the Fixed3D bevel,
+- `::before` with `content: "▸"` and a navy-gradient background paints the title bar,
+- `padding: 0` on the card with re-padding on the children via `> *:first-child` / `> *:last-child`.
+
+The card's HTML is identical to every other theme's. The visual form is unmistakably different. That's the entire defect's "cards can't be reshaped" claim, refuted in 30 lines of CSS that win the cascade by `@layer` ordering rather than by hacks.
+
+### 7.4 What's still NOT theme territory — and shouldn't be
+
+The defect's §1.2 listed "Studio card duplication" — every studio's JS re-emits the same card HTML inline. That's a real problem, but it's **not a theming problem**. It's a view-layer encapsulation problem: there should be a typed `Component` so consumers compose `Card(title, summary, meta)` instead of writing HTML strings.
+
+[RFC 0003](#ref:rfc-3)'s `Component<C>` primitive still addresses that — and the [Encapsulated Components doctrine](#ref:doc-encapsulated) makes it normative. But notice the shape: `Component<C>`, not `ComponentImpl<C, TH>`. The per-theme parameter the original defect proposed is **not needed** — themes vary the *paint and shape* of a Component via CSS targeting its class names, not by emitting different DOM.
+
+A Component's job: own its markup, its behavior, and its CSS (the doctrine). A theme's job: paint and reshape every Component on the page via CSS in `@layer theme`. The two contracts compose without ever meeting at a `ComponentImpl<C, TH>` seam.
+
+### 7.5 Lessons banked
+
+- **Conflating concerns inflates defects.** This one named "themes can't change DOM" as a problem when the right framing is "themes shouldn't change DOM."
+- **CSS is the theming surface; it was already enough.** The Defect 0003 cascade fix unlocked what CSS could do all along.
+- **Per-theme variant typeclasses (`X<C, TH>`) are a smell when the same selector + better CSS would do.** `CssGroupImpl<C, TH>` predates the chunked-globals approach and is now mostly load-bearing for back-compat; new content goes through `CssClass` bodies + theme-level CSS overrides, no per-theme impl needed.
+- **The no-innerHTML doctrine survives intact** but is now framed as view-layer encapsulation (Pure-Component Views + Encapsulated Components doctrines), not as a theming concern.
