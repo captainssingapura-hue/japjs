@@ -124,10 +124,29 @@ public class CatalogueGetAction
         }
         sb.append("],");
 
-        // Entries.
+        // Entries — RFC 0005-ext2 Option A: typed sub-catalogues first
+        // (rendered as catalogue cards), then leaves (Doc / App / Plan).
+        // Within each group the catalogue's declared order is preserved.
         sb.append("\"entries\":[");
         boolean firstEntry = true;
-        for (Entry e : c.entries()) {
+
+        // ---- Sub-catalogues ----
+        for (Catalogue child : c.subCatalogues()) {
+            if (!firstEntry) sb.append(',');
+            firstEntry = false;
+            // Renders as a Card (uniform with Doc/Plan entries) — `category`
+            // is a fixed "CATALOGUE" badge so a mixed-kind listing reads at
+            // a glance which entries drill into further sub-catalogues.
+            sb.append("{\"kind\":\"catalogue\",")
+              .append("\"name\":")    .append(jstr(child.name())).append(',')
+              .append("\"summary\":") .append(jstr(child.summary())).append(',')
+              .append("\"category\":").append(jstr("CATALOGUE")).append(',')
+              .append("\"url\":")     .append(jstr(catalogueUrl(child.getClass().getName())))
+              .append('}');
+        }
+
+        // ---- Leaves ----
+        for (Entry e : c.leaves()) {
             if (!firstEntry) sb.append(',');
             firstEntry = false;
             switch (e) {
@@ -137,17 +156,6 @@ public class CatalogueGetAction
                       .append("\"summary\":") .append(jstr(d.summary())).append(',')
                       .append("\"category\":").append(jstr(d.category())).append(',')
                       .append("\"url\":")     .append(jstr(docReaderUrl(d.uuid().toString())))
-                      .append('}');
-                }
-                case Entry.OfCatalogue(Catalogue child) -> {
-                    // Renders as a Card (uniform with Doc/Plan entries) — `category`
-                    // is a fixed "CATALOGUE" badge so a mixed-kind listing reads at
-                    // a glance which entries drill into further sub-catalogues.
-                    sb.append("{\"kind\":\"catalogue\",")
-                      .append("\"name\":")    .append(jstr(child.name())).append(',')
-                      .append("\"summary\":") .append(jstr(child.summary())).append(',')
-                      .append("\"category\":").append(jstr("CATALOGUE")).append(',')
-                      .append("\"url\":")     .append(jstr(catalogueUrl(child.getClass().getName())))
                       .append('}');
                 }
                 case Entry.OfApp(Navigable<?, ?> nav) -> {

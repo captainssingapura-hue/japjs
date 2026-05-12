@@ -211,8 +211,6 @@ public final class StudioBootstrap {
         var docAction        = new DocGetAction(docRegistry);
         var themesAction     = new ThemesGetAction(themeRegistry);
         var brandAction      = new BrandGetAction(brand, !catalogues.isEmpty());
-        // RFC 0004-ext1: typed References JSON for the DocReader's References section.
-        var docRefsAction    = new DocRefsGetAction(docRegistry);
 
         // RFC 0005: when catalogues are registered, root redirects to the brand's home
         // catalogue (full URL with ?id=<class-fqn>). Otherwise legacy "first app" behaviour.
@@ -231,6 +229,11 @@ public final class StudioBootstrap {
             catalogueRegistry = null;
             catalogueAction   = null;
         }
+
+        // RFC 0004-ext1: typed References JSON for the DocReader's References section.
+        // RFC 0005-ext2: also carries the breadcrumb chain so DocReader can render the
+        // catalogue path above the doc title (replacing the old flat "Home" stub).
+        var docRefsAction    = new DocRefsGetAction(docRegistry, catalogueRegistry);
 
         // RFC 0005-ext1: typed Plan registry + PlanAppHost. Built only when plans are
         // explicitly registered. Boot-time validations (phase ID uniqueness, decision ID

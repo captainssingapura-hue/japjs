@@ -3,8 +3,8 @@ package hue.captains.singapura.js.homing.demo.studio;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.studio.base.Doc;
 import hue.captains.singapura.js.homing.studio.base.DocProvider;
-import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
+import hue.captains.singapura.js.homing.studio.base.app.L0_Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.Navigable;
 import hue.captains.singapura.js.homing.studio.base.theme.ThemesIntro;
 
@@ -16,14 +16,14 @@ import java.util.List;
  * so {@link DemoIntroDoc} is reachable through the studio's {@code DocRegistry}
  * (required for {@code Entry.OfDoc} reachability validation at boot).
  */
-public record DemoStudio() implements Catalogue, DocProvider {
+public record DemoStudio() implements L0_Catalogue, DocProvider {
 
     public static final DemoStudio INSTANCE = new DemoStudio();
 
     @Override public String name()    { return "Demo Studio"; }
     @Override public String summary() { return "A tiny dogfood studio for homing-studio-base — branded with the turtle, running on its own port, configured in one file."; }
 
-    @Override public List<Entry> entries() {
+    @Override public List<Entry> leaves() {
         return List.of(
                 Entry.of(DemoIntroDoc.INSTANCE),
                 Entry.of(new Navigable<>(

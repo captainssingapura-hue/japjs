@@ -1,44 +1,35 @@
 package hue.captains.singapura.js.homing.studio.es;
 
-import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
-import hue.captains.singapura.js.homing.studio.base.app.Entry;
-import hue.captains.singapura.js.homing.studio.rename.RenamePlanData;
-import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001PlanData;
-import hue.captains.singapura.js.homing.studio.rfc0002.Rfc0002PlanData;
-import hue.captains.singapura.js.homing.studio.rfc0002ext1.Rfc0002Ext1PlanData;
-import hue.captains.singapura.js.homing.studio.rfc0004.Rfc0004PlanData;
-import hue.captains.singapura.js.homing.studio.rfc0004ext1.Rfc0004Ext1PlanData;
-import hue.captains.singapura.js.homing.studio.rfc0005.Rfc0005PlanData;
-import hue.captains.singapura.js.homing.studio.rfc0005ext1.Rfc0005Ext1PlanData;
-import hue.captains.singapura.js.homing.studio.instruments.InstrumentsPlanData;
-import hue.captains.singapura.js.homing.studio.release.V1PlanData;
+import hue.captains.singapura.js.homing.studio.base.app.L1_Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
 
 import java.util.List;
 
 /**
- * Sub-catalogue listing every plan tracker. Per RFC 0005-ext1, each entry is a
- * typed {@link hue.captains.singapura.js.homing.studio.base.tracker.Plan}
- * served by the shared {@code PlanAppHost} — no per-tracker AppModule needed.
+ * L1 sub-catalogue grouping every multi-phase plan tracker in the studio.
+ *
+ * <p>RFC 0005-ext2 §11: now an intermediate node — plans are organised one
+ * level deeper, under {@link RfcJourneysCatalogue} (RFC-driven plans) and
+ * {@link OperationsJourneysCatalogue} (cross-cutting refactors / releases /
+ * tooling). This catalogue carries no leaves of its own.</p>
+ *
+ * <p>This is the studio's first L2-deep catalogue and exercises the typed-levels
+ * stack at depth 2 — breadcrumbs over any plan now render
+ * {@code Homing · studio › Journeys › RFCs › <plan name>} (or
+ * {@code … › Operations › <plan name>}).</p>
  */
-public record JourneysCatalogue() implements Catalogue {
+public record JourneysCatalogue() implements L1_Catalogue<StudioCatalogue> {
 
     public static final JourneysCatalogue INSTANCE = new JourneysCatalogue();
 
+    @Override public StudioCatalogue parent() { return StudioCatalogue.INSTANCE; }
     @Override public String name()    { return "Journeys"; }
-    @Override public String summary() { return "Live trackers for every multi-phase plan in this project."; }
+    @Override public String summary() { return "Live trackers for every multi-phase plan in this project — grouped by RFC vs. cross-cutting operations."; }
 
-    @Override public List<Entry> entries() {
+    @Override public List<L2_Catalogue<JourneysCatalogue>> subCatalogues() {
         return List.of(
-                Entry.of(Rfc0001PlanData.INSTANCE),
-                Entry.of(Rfc0002PlanData.INSTANCE),
-                Entry.of(Rfc0002Ext1PlanData.INSTANCE),
-                Entry.of(RenamePlanData.INSTANCE),
-                Entry.of(Rfc0004PlanData.INSTANCE),
-                Entry.of(Rfc0004Ext1PlanData.INSTANCE),
-                Entry.of(Rfc0005PlanData.INSTANCE),
-                Entry.of(Rfc0005Ext1PlanData.INSTANCE),
-                Entry.of(V1PlanData.INSTANCE),
-                Entry.of(InstrumentsPlanData.INSTANCE)
+                RfcJourneysCatalogue.INSTANCE,
+                OperationsJourneysCatalogue.INSTANCE
         );
     }
 }

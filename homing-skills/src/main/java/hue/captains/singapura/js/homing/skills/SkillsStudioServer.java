@@ -28,6 +28,10 @@ public final class SkillsStudioServer {
 
     private SkillsStudioServer() {}
 
+    public static void main(String[] args){
+        start(8080);
+    }
+
     public static void start(int port) {
         List<AppModule<?, ?>> apps = List.of(
                 CatalogueAppHost.INSTANCE,

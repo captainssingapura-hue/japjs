@@ -155,7 +155,7 @@ Exhaustive over the sealed permits — adding L9+ later forces every dispatch si
 | Catalogue's parent type | Inferred from boot walk | **Type parameter** |
 | Multi-parent (a catalogue claimed by two parents) | Boot-time error | **Impossible** — a class implements one set of interfaces, can have one `parent()` return type |
 | Cycle | Boot-time DFS error | **Impossible** — `parent()` returns LN-1, which `parent()` returns LN-2, etc. — chain strictly descends; no cycle possible without violating the type system |
-| Wrong-level entry (catalogue child not one level deeper than parent) | Boot-time validation | Boot-time validation (Option A trade-off) |
+| Wrong-level entry (catalogue child not one level deeper than parent) | Boot-time validation | **Impossible** — `subCatalogues()` is typed `List<? extends L<N+1>_Catalogue<?>>` at each level (see §11) |
 | Doc breadcrumb chain | Reverse-index map walk | **`parent()` recursion** via sealed switch |
 | Plan breadcrumb chain | Same as doc | **`parent()` recursion** via sealed switch |
 
@@ -267,3 +267,96 @@ Three forces converging:
 - **The shallowness window**: the tree is currently only 2 levels deep with 5 catalogues. A future studio with 8 levels and 40 catalogues would face a much harder migration. We migrate now while the cost is bounded.
 
 The framework gets simpler, the type system carries more, the defect closes structurally. No reason to defer.
+
+---
+
+## 11. Refinement — typed sub-catalogue list
+
+The original ext2 design left one corner runtime-checked: `Catalogue` still had a single `entries()` returning `List<Entry>`, where `Entry` was a 4-variant sum including `OfCatalogue(Catalogue)`. The depth-correctness of a sub-catalogue child was the *one* invariant the type system couldn't enforce — so `CatalogueRegistry` carried a boot-time `levelOf(child) == levelOf(parent) + 1` check + a parent-match check on `Entry.OfCatalogue` payloads.
+
+That seam is the same shape of bug as the original flat-breadcrumb defect: a runtime check standing in for a type. We close it the same way.
+
+### 11.1 The split
+
+`Catalogue` gains a typed `subCatalogues()` companion to a renamed-and-narrowed `leaves()`:
+
+```java
+public sealed interface Catalogue permits L0_Catalogue, ..., L8_Catalogue {
+    String name();
+    default String summary() { return ""; }
+    default List<? extends Catalogue> subCatalogues() { return List.of(); }
+    default List<Entry>               leaves()        { return List.of(); }
+}
+```
+
+Each level interface narrows `subCatalogues()` to the next level down:
+
+```java
+public non-sealed interface L0_Catalogue extends Catalogue {
+    @Override default List<? extends L1_Catalogue<?>> subCatalogues() { return List.of(); }
+}
+
+public non-sealed interface L1_Catalogue<P extends L0_Catalogue> extends Catalogue {
+    P parent();
+    @Override default List<? extends L2_Catalogue<?>> subCatalogues() { return List.of(); }
+}
+// ... through L7. L8 is terminal — there is no L9 type.
+```
+
+Concrete catalogues override `subCatalogues()` with their narrow parent-typed list:
+
+```java
+public record StudioCatalogue() implements L0_Catalogue {
+    @Override public List<L1_Catalogue<StudioCatalogue>> subCatalogues() {
+        return List.of(DoctrineCatalogue.INSTANCE, JourneysCatalogue.INSTANCE, ...);
+    }
+    @Override public List<Entry> leaves() {
+        return List.of(Entry.of(documentsNavigable), Entry.of(themesNavigable));
+    }
+}
+```
+
+`Entry` loses the `OfCatalogue` variant — it's now strictly leaf-shaped:
+
+```java
+public sealed interface Entry permits Entry.OfDoc, Entry.OfApp, Entry.OfPlan { ... }
+```
+
+### 11.2 What the compiler now refuses
+
+| Mistake | Before | After 11.x |
+|---|---|---|
+| An L1 catalogue listed under an L1 parent (wrong depth) | Runtime throw | **Compile error** (`L2_Catalogue<?>` bound rejects L1) |
+| An L3 catalogue listed under an L1 parent (skips a level) | Runtime throw | **Compile error** |
+| A child catalogue whose `parent()` type doesn't match the containing class | Runtime throw | **Compile error** *when the author writes the narrow type* (`List<L2_Catalogue<MyL1>>`); falls back to the runtime parent-match check only if the author uses the wildcard escape hatch |
+| An `Entry.OfCatalogue` slipped into a leaf-only list | Allowed by type | **Compile error** — the variant no longer exists |
+
+### 11.3 What stays runtime
+
+- **Parent-match by instance.** `subCatalogues()` constrains the *type* of children's parents. It can't constrain that the *instance* returned by `child.parent()` is the same singleton as the containing catalogue. In our singleton-INSTANCE convention this is trivially satisfied; the runtime check is a cheap belt-and-braces for authoring slips.
+- **L8 terminal check.** L8 has no L9 to constrain against; the registry validates that L8 catalogues report empty `subCatalogues()`.
+- **Closure + doc/plan reachability** — unchanged.
+
+### 11.4 Render order — Option A
+
+`entries()` used to let a catalogue interleave a sub-catalogue between two leaves. After the split, the renderer emits **all sub-catalogues first, then all leaves** (within-group ordering preserved). This was a deliberate choice over re-permitting interleaving via a third "display order" mechanism:
+
+- None of the four L1s in the current studio interleave.
+- `StudioCatalogue` is the only L0 with mixed children; the resulting render — four sub-catalogue cards, then the two nav cards (Documents, Themes) — is structurally clearer than the previous interleave anyway.
+- If interleaving turns out to matter for some future catalogue, the cheap fix is to author the entry as a Doc or Navigable instead of a sub-catalogue. Catalogues group; leaves don't need to.
+
+### 11.5 Migration
+
+Files touched (all in the same RFC 0005-ext2 commit):
+
+| File | Change |
+|---|---|
+| `Catalogue.java` | Replace `entries()` with `subCatalogues()` + `leaves()`, both defaulted to empty |
+| `Entry.java` | Remove `OfCatalogue` variant + `Entry.of(Catalogue)` factory |
+| `L0..L8_Catalogue.java` | Add narrowing `@Override` of `subCatalogues()` (L0–L7); L8 terminal |
+| `CatalogueRegistry.java` | Iterate `subCatalogues()` + `leaves()`; drop the runtime depth check; keep parent-match + L8 terminal checks |
+| `CatalogueGetAction.java` | Render sub-catalogues first, then leaves (Option A); drop `OfCatalogue` switch case |
+| All 7 catalogue records (Studio, Doctrine, Journeys, BuildingBlocks, Releases, DemoStudio, SkillsHome) | Split `entries()` into `subCatalogues()` (typed narrow) + `leaves()` |
+| `CatalogueRegistryTest.java` | Migrate fixtures; remove the depth-mismatch test (now a compile error); retain the stale-parent test via the wildcard escape hatch |
+
+All 156 studio tests + 23 base + everything else green post-migration. The framework's runtime catalogue checks have collapsed from {cycle, multi-parent, depth, parent-match, closure, doc/plan reachability} to {parent-match (instance equality), L8 terminal, closure, doc/plan reachability}. The first three got absorbed into the type system over the course of this RFC.

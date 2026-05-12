@@ -133,11 +133,21 @@ function renderDocReader(props) {
         })
         .then(function(info) {
             // Server-resolved Doc metadata: title (friendly name) + summary + category
-            // + references[]. Update the breadcrumb + meta line with the title;
-            // render the References section from info.references.
+            // + breadcrumbs[] + references[]. Update the breadcrumb + meta line with
+            // the title; rebuild the breadcrumb chain (RFC 0005-ext2) from
+            // info.breadcrumbs when the server provides it; render the References
+            // section from info.references.
             if (info && info.title) {
                 leafCrumb.text = info.title;
-                // Re-render header with the updated leaf crumb text.
+                // RFC 0005-ext2: when the server returned a typed breadcrumb chain
+                // (catalogue root → ... → containing catalogue), use it instead of
+                // whatever crumbsAbove the caller supplied. The leaf crumb (this
+                // doc's title) is always appended last as a non-link.
+                if (info.breadcrumbs && info.breadcrumbs.length > 0) {
+                    crumbs = info.breadcrumbs.slice();
+                    crumbs.push(leafCrumb);
+                }
+                // Re-render header with the updated chain + leaf crumb text.
                 var newHeader = Header({ brand: brand, crumbs: crumbs });
                 root.replaceChild(newHeader, headerEl);
                 headerEl = newHeader;

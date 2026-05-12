@@ -21,6 +21,7 @@ import hue.captains.singapura.js.homing.studio.docs.comparison.HomingVsReactVueD
 import hue.captains.singapura.js.homing.studio.docs.defects.Defect0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.defects.Defect0002Doc;
 import hue.captains.singapura.js.homing.studio.docs.defects.Defect0003Doc;
+import hue.captains.singapura.js.homing.studio.docs.defects.Defect0004Doc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.CatalogueContainerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.ManagedDomOpsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDoc;
@@ -33,7 +34,10 @@ import hue.captains.singapura.js.homing.studio.docs.gotchas.Gotcha0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FirstUserDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PureComponentViewsDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.LiveTrackerPatternDoc;
+import hue.captains.singapura.js.homing.studio.docs.guides.ReleaseChecklistDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.UserGuideDoc;
+import hue.captains.singapura.js.homing.studio.docs.releases.Release0_0_100Doc;
+import hue.captains.singapura.js.homing.studio.docs.releases.Release0_0_11Doc;
 import hue.captains.singapura.js.homing.studio.docs.rename.RenameExecutionPlanDoc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0002Doc;
@@ -100,10 +104,15 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(RenameExecutionPlanDoc.INSTANCE, "Rename", StudioStyles.st_badge_rename.class),
 
             entry(LiveTrackerPatternDoc.INSTANCE, "Guides", StudioStyles.st_badge_reference.class),
+            entry(ReleaseChecklistDoc.INSTANCE,   "Guides", StudioStyles.st_badge_reference.class),
+
+            entry(Release0_0_100Doc.INSTANCE,  "Releases", StudioStyles.st_badge_reference.class),
+            entry(Release0_0_11Doc.INSTANCE,   "Releases", StudioStyles.st_badge_reference.class),
 
             entry(Defect0001Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
             entry(Defect0002Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
             entry(Defect0003Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
+            entry(Defect0004Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
 
             entry(Gotcha0001Doc.INSTANCE,      "Gotchas", StudioStyles.st_badge_reference.class),
 

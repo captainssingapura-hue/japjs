@@ -67,13 +67,21 @@ function _phaseUrl(planId, phaseId)     { return _planUrl(planId) + "&phase=" + 
 
 function _brandHeader(data, crumbsAfter) {
     var brand = data.brand || { label: "studio", homeUrl: "/" };
-    var crumbs = [
-        { text: brand.label,       href: brand.homeUrl },
-        { text: data.name }
-    ];
+    // RFC 0005-ext2: the server now resolves the typed catalogue chain
+    // (root → ... → containing catalogue, typically Journeys) and emits it as
+    // data.breadcrumbs. The plan name is appended as the leaf crumb; the
+    // phase label (when on a phase view) appends after that.
+    var crumbs = [];
+    if (data.breadcrumbs && data.breadcrumbs.length > 0) {
+        for (var i = 0; i < data.breadcrumbs.length; i++) crumbs.push(data.breadcrumbs[i]);
+    } else {
+        // Legacy fallback — no CatalogueRegistry on this studio.
+        crumbs.push({ text: brand.label, href: brand.homeUrl });
+    }
+    crumbs.push({ text: data.name });
     if (crumbsAfter && crumbsAfter.length) {
         crumbs[crumbs.length - 1].href = crumbsAfter[0].selfUrl;
-        for (var i = 0; i < crumbsAfter.length; i++) crumbs.push({ text: crumbsAfter[i].text });
+        for (var j = 0; j < crumbsAfter.length; j++) crumbs.push({ text: crumbsAfter[j].text });
     }
     return Header({
         brand:  { href: brand.homeUrl, label: brand.label, logo: brand.logo },
