@@ -25,6 +25,7 @@ import hue.captains.singapura.js.homing.studio.rfc0004.Rfc0004PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0004ext1.Rfc0004Ext1PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0005.Rfc0005PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0005ext1.Rfc0005Ext1PlanData;
+import hue.captains.singapura.js.homing.studio.instruments.InstrumentsPlanData;
 import hue.captains.singapura.js.homing.studio.release.V1PlanData;
 
 import java.util.List;
@@ -66,7 +67,8 @@ public class StudioServer {
                 Rfc0004Ext1PlanData.INSTANCE,
                 Rfc0005PlanData.INSTANCE,
                 Rfc0005Ext1PlanData.INSTANCE,
-                V1PlanData.INSTANCE
+                V1PlanData.INSTANCE,
+                InstrumentsPlanData.INSTANCE
         );
 
         // RFC 0005: brand as injectable per-installation config.

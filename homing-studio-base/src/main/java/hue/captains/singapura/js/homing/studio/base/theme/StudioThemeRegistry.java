@@ -33,7 +33,8 @@ public final class StudioThemeRegistry implements ThemeRegistry {
                 HomingForbiddenCity.INSTANCE,
                 HomingLetterpress.INSTANCE,
                 HomingMapleBridge.INSTANCE,
-                HomingRetro90s.INSTANCE
+                HomingRetro90s.INSTANCE,
+                HomingJazzDrums.INSTANCE
         );
     }
 
@@ -46,7 +47,8 @@ public final class StudioThemeRegistry implements ThemeRegistry {
                 HomingForbiddenCity.Vars.INSTANCE,
                 HomingLetterpress.Vars.INSTANCE,
                 HomingMapleBridge.Vars.INSTANCE,
-                HomingRetro90s.Vars.INSTANCE
+                HomingRetro90s.Vars.INSTANCE,
+                HomingJazzDrums.Vars.INSTANCE
         );
     }
 
@@ -59,7 +61,8 @@ public final class StudioThemeRegistry implements ThemeRegistry {
                 HomingForbiddenCity.Globals.INSTANCE,
                 HomingLetterpress.Globals.INSTANCE,
                 HomingMapleBridge.Globals.INSTANCE,
-                HomingRetro90s.Globals.INSTANCE
+                HomingRetro90s.Globals.INSTANCE,
+                HomingJazzDrums.Globals.INSTANCE
         );
     }
 }

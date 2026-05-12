@@ -1,8 +1,11 @@
 package hue.captains.singapura.js.homing.studio.base.theme;
 
+import hue.captains.singapura.js.homing.core.ClickTarget;
 import hue.captains.singapura.js.homing.core.CssVar;
+import hue.captains.singapura.js.homing.core.Cue;
 import hue.captains.singapura.js.homing.core.SvgRef;
 import hue.captains.singapura.js.homing.core.Theme;
+import hue.captains.singapura.js.homing.core.ThemeAudio;
 import hue.captains.singapura.js.homing.core.ThemeGlobals;
 import hue.captains.singapura.js.homing.core.ThemeVariables;
 
@@ -48,6 +51,89 @@ public record HomingMapleBridge() implements Theme {
     @Override
     public SvgRef<?> backdrop() {
         return new SvgRef<>(HomingMapleBridgeBg.INSTANCE, new HomingMapleBridgeBg.nocturne());
+    }
+
+    /** Theme-audio binding — clicks on the nocturne's classed elements
+     *  fire a temple bell, a soft chime (moon), or a lamp crackle
+     *  (temple window). See {@link MbAudio} for the spec, {@link StandardAudio}
+     *  for the cue selections. RFC 0007. */
+    @Override
+    public ThemeAudio<?> audio() {
+        return StandardAudio.INSTANCE;
+    }
+
+    // ===========================================================================
+    //  Click targets — sealed permits enumerate every clickable element on the
+    //  Maple Bridge surface. Each record carries a stable classToken that
+    //  matches a `class="…"` attribute in nocturne.svg.
+    // ===========================================================================
+
+    /** Sealed surface area of audio-bound Maple Bridge elements — both
+     *  click cues (nocturne scenery) and hover cues (chrome interactions).
+     *  Adding a new one is a typed action. */
+    public sealed interface MbTarget extends ClickTarget<HomingMapleBridge>
+            permits Temple, Moon, TempleWindow, Card, ListItem, TocItem {}
+
+    // Nocturne scenery — click cues.
+    public record Temple()       implements MbTarget { @Override public String classToken() { return "mb-temple"; } }
+    public record Moon()         implements MbTarget { @Override public String classToken() { return "mb-moon"; } }
+    public record TempleWindow() implements MbTarget { @Override public String classToken() { return "mb-temple-window"; } }
+
+    // Chrome interaction — hover cues. Bound to framework CssClasses
+    // (.st-card, .st-list-item, .st-toc-item) so any page that renders
+    // these structures gets the hover feedback. RFC 0008 hover extension.
+    public record Card()     implements MbTarget { @Override public String classToken() { return "st-card"; } }
+    public record ListItem() implements MbTarget { @Override public String classToken() { return "st-list-item"; } }
+    public record TocItem()  implements MbTarget { @Override public String classToken() { return "st-toc-item"; } }
+
+    // ===========================================================================
+    //  Audio spec — the contract every Maple Bridge audio implementation
+    //  must satisfy. One Cue-returning method per click target; the default
+    //  bindings() implementation walks them.
+    // ===========================================================================
+
+    /** Maple Bridge's audio spec. Every implementor must provide a cue
+     *  for each click target. The default {@link #bindings()} walks them
+     *  in order; the compiler enforces that no method is missing. */
+    public interface MbAudio extends ThemeAudio<HomingMapleBridge> {
+        Cue temple();
+        Cue moon();
+        Cue templeWindow();
+
+        @Override default HomingMapleBridge theme() { return HomingMapleBridge.INSTANCE; }
+
+        @Override default java.util.Map<ClickTarget<HomingMapleBridge>, Cue> bindings() {
+            return java.util.Map.of(
+                    new Temple(),       temple(),
+                    new Moon(),         moon(),
+                    new TempleWindow(), templeWindow()
+            );
+        }
+    }
+
+    /** Standard implementation — picks from the shared {@link Cues} stdlib.
+     *  Click cues are the nocturne scenery (temple bell, moon chime, lamp
+     *  crackle). Hover cues are the chrome interactions (card / list /
+     *  TOC items get a soft tink — the cursor entering a content surface
+     *  feels like a brushed thumb-strum on paper). */
+    public record StandardAudio() implements MbAudio {
+        public static final StandardAudio INSTANCE = new StandardAudio();
+        @Override public Cue temple()       { return Cues.TEMPLE_BELL; }
+        @Override public Cue moon()         { return Cues.SOFT_CHIME; }
+        @Override public Cue templeWindow() { return Cues.LAMP_CRACKLE; }
+
+        @Override public java.util.Map<ClickTarget<HomingMapleBridge>, Cue> hoverBindings() {
+            return java.util.Map.of(
+                    // Cards play a full diatonic chord — pop-progression voicing
+                    // as the cursor sweeps across the catalogue. Each card's
+                    // chord is hash-stable within a session.
+                    new Card(),     Cues.HOVER_CHORD_CLEAN,
+                    // List + TOC items stay on single-note vocal palette —
+                    // lighter touch for navigation surfaces.
+                    new ListItem(), Cues.HOVER_BREATH,
+                    new TocItem(),  Cues.HOVER_BREATH
+            );
+        }
     }
 
     public record Vars() implements ThemeVariables<HomingMapleBridge> {
