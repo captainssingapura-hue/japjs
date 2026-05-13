@@ -10,6 +10,7 @@ import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDo
 import hue.captains.singapura.js.homing.studio.docs.doctrines.OwnedReferencesDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PlanContainerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PureComponentViewsDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.WeighedComplexityDoc;
 
 import java.util.List;
 
@@ -21,6 +22,8 @@ public record DoctrineCatalogue() implements L1_Catalogue<StudioCatalogue> {
     @Override public StudioCatalogue parent() { return StudioCatalogue.INSTANCE; }
     @Override public String name()    { return "Doctrines"; }
     @Override public String summary() { return "The rules that hold the design together. Required reading."; }
+    @Override public String badge()   { return "DOCTRINE"; }
+    @Override public String icon()    { return "📚"; }
 
     @Override public List<Entry> leaves() {
         return List.of(
@@ -31,7 +34,8 @@ public record DoctrineCatalogue() implements L1_Catalogue<StudioCatalogue> {
                 Entry.of(ManagedDomOpsDoc.INSTANCE),
                 Entry.of(OwnedReferencesDoc.INSTANCE),
                 Entry.of(CatalogueContainerDoc.INSTANCE),
-                Entry.of(PlanContainerDoc.INSTANCE)
+                Entry.of(PlanContainerDoc.INSTANCE),
+                Entry.of(WeighedComplexityDoc.INSTANCE)
         );
     }
 }

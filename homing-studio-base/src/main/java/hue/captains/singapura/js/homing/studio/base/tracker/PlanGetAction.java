@@ -103,15 +103,18 @@ public class PlanGetAction
               .append("},");
             // RFC 0005-ext2: typed catalogue chain from root → containing
             // catalogue (typically Journeys). Renderer appends the plan name
-            // as the final non-link crumb.
+            // as the final non-link crumb. RFC 0009: prefix each crumb's
+            // text with the catalogue's icon glyph when non-empty.
             sb.append("\"breadcrumbs\":[");
             List<Catalogue> chain = catalogueRegistry.breadcrumbsForPlan(p.getClass());
             boolean firstCrumb = true;
             for (Catalogue c : chain) {
                 if (!firstCrumb) sb.append(',');
                 firstCrumb = false;
+                String icon = c.icon();
+                String text = (icon == null || icon.isEmpty()) ? c.name() : icon + " " + c.name();
                 sb.append('{')
-                  .append("\"text\":").append(jstr(c.name())).append(',')
+                  .append("\"text\":").append(jstr(text)).append(',')
                   .append("\"href\":").append(jstr(CatalogueAppHost.urlFor(c.getClass())))
                   .append('}');
             }

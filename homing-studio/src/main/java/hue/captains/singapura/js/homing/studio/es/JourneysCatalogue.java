@@ -25,6 +25,8 @@ public record JourneysCatalogue() implements L1_Catalogue<StudioCatalogue> {
     @Override public StudioCatalogue parent() { return StudioCatalogue.INSTANCE; }
     @Override public String name()    { return "Journeys"; }
     @Override public String summary() { return "Live trackers for every multi-phase plan in this project — grouped by RFC vs. cross-cutting operations."; }
+    @Override public String badge()   { return "JOURNEY"; }
+    @Override public String icon()    { return "🛤️"; }
 
     @Override public List<L2_Catalogue<JourneysCatalogue>> subCatalogues() {
         return List.of(

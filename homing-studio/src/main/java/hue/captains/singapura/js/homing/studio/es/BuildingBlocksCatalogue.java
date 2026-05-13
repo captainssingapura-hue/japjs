@@ -28,6 +28,8 @@ public record BuildingBlocksCatalogue()
     @Override public StudioCatalogue parent() { return StudioCatalogue.INSTANCE; }
     @Override public String name()    { return "Building Blocks"; }
     @Override public String summary() { return "Every reusable kit, atom, and primitive in homing-studio-base. The promise: no JS to write for the common case."; }
+    @Override public String badge()   { return "BLOCKS"; }
+    @Override public String icon()    { return "🧱"; }
 
     @Override public List<Entry> leaves() {
         return List.of(

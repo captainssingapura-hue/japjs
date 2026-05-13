@@ -33,6 +33,21 @@
             <artifactId>homing-studio-base</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- RFC 0009 follow-up: the demo composes three studios under one
+             umbrella. Pulling in homing-studio + homing-skills lets us
+             register their catalogues, plans, and Docs in the demo's
+             registries so navigating from the umbrella into any source
+             studio resolves locally. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-studio</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-skills</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-conformance</artifactId>

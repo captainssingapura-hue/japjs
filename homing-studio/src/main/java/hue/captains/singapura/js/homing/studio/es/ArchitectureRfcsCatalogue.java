@@ -6,6 +6,9 @@ import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0005Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0005Ext1Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0005Ext2Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0009Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0010Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0011Doc;
 
 import java.util.List;
 
@@ -26,7 +29,10 @@ public record ArchitectureRfcsCatalogue() implements L2_Catalogue<RfcsCatalogue>
                 Entry.of(Rfc0001Doc.INSTANCE),
                 Entry.of(Rfc0005Doc.INSTANCE),
                 Entry.of(Rfc0005Ext1Doc.INSTANCE),
-                Entry.of(Rfc0005Ext2Doc.INSTANCE)
+                Entry.of(Rfc0005Ext2Doc.INSTANCE),
+                Entry.of(Rfc0009Doc.INSTANCE),
+                Entry.of(Rfc0010Doc.INSTANCE),
+                Entry.of(Rfc0011Doc.INSTANCE)
         );
     }
 }

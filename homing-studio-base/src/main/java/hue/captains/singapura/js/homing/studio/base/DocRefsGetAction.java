@@ -139,8 +139,11 @@ public class DocRefsGetAction
             for (Catalogue c : chain) {
                 if (!first) sb.append(',');
                 first = false;
+                // RFC 0009: prefix crumb text with the catalogue's icon glyph.
+                String icon = c.icon();
+                String text = (icon == null || icon.isEmpty()) ? c.name() : icon + " " + c.name();
                 sb.append('{')
-                  .append("\"text\":").append(jstr(c.name())).append(',')
+                  .append("\"text\":").append(jstr(text)).append(',')
                   .append("\"href\":").append(jstr(CatalogueAppHost.urlFor(c.getClass())))
                   .append('}');
             }

@@ -70,6 +70,33 @@ public sealed interface Catalogue
     default String summary() { return ""; }
 
     /**
+     * Optional text label flowing into the parent catalogue's card-tile
+     * {@code category} JSON field (RFC 0009). Drives the badge CSS class
+     * applied to the tile. Default {@code "CATALOGUE"} — the framework's
+     * pre-RFC-0009 behaviour. Overrides earn per-kind visual differentiation
+     * ({@code "DOCTRINE"}, {@code "STUDIO"}, etc.).
+     *
+     * <p>Freeform string, matching the precedent {@code Doc.category()} sets.
+     * Renderers without a matching badge CSS class fall back to a generic
+     * style.</p>
+     */
+    default String badge() { return "CATALOGUE"; }
+
+    /**
+     * Optional short glyph (typically a single emoji) prefixed into the
+     * breadcrumb crumb text for this catalogue (RFC 0009). Default empty —
+     * the crumb shows just the catalogue's {@code name()}. Opt-in per
+     * catalogue: a return value of {@code "📚"} on {@code DoctrineCatalogue}
+     * renders the crumb as {@code "📚 Doctrines"}.
+     *
+     * <p>Use as a navigation aid only — do not encode meaning that exists
+     * nowhere else (screen readers will read the emoji literally, and some
+     * users may have emoji-rendering quirks). Keep the glyph short — ideally
+     * one grapheme.</p>
+     */
+    default String icon() { return ""; }
+
+    /**
      * Typed sub-catalogue children. Default empty; each level interface (L0..L7)
      * narrows the return type to the next level down — so a concrete catalogue's
      * override is constrained to children of exactly one level deeper. L8 is

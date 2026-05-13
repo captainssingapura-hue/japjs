@@ -110,7 +110,8 @@ public class CatalogueGetAction
           .append("\"homeUrl\":").append(jstr(catalogueUrl(brand.homeApp().getName())))
           .append("},");
 
-        // Breadcrumbs (root → leaf).
+        // Breadcrumbs (root → leaf). RFC 0009: prefix the visible text with
+        // each catalogue's icon() glyph when non-empty.
         sb.append("\"breadcrumbs\":[");
         List<Catalogue> crumbs = registry.breadcrumbs(c.getClass());
         boolean firstCrumb = true;
@@ -118,7 +119,7 @@ public class CatalogueGetAction
             if (!firstCrumb) sb.append(',');
             firstCrumb = false;
             String url = (ck.getClass() == c.getClass()) ? "" : catalogueUrl(ck.getClass().getName());
-            sb.append("{\"name\":").append(jstr(ck.name()))
+            sb.append("{\"name\":").append(jstr(crumbTextOf(ck)))
               .append(",\"url\":") .append(jstr(url))
               .append('}');
         }
@@ -134,13 +135,14 @@ public class CatalogueGetAction
         for (Catalogue child : c.subCatalogues()) {
             if (!firstEntry) sb.append(',');
             firstEntry = false;
-            // Renders as a Card (uniform with Doc/Plan entries) — `category`
-            // is a fixed "CATALOGUE" badge so a mixed-kind listing reads at
-            // a glance which entries drill into further sub-catalogues.
+            // RFC 0009: per-instance badge (default "CATALOGUE", may be
+            // overridden to "STUDIO" / "DOCTRINE" / etc.). The icon glyph is
+            // a navigation aid in breadcrumbs only — the card's category text
+            // is plain. Renderers pick a CSS badge class from the category.
             sb.append("{\"kind\":\"catalogue\",")
               .append("\"name\":")    .append(jstr(child.name())).append(',')
               .append("\"summary\":") .append(jstr(child.summary())).append(',')
-              .append("\"category\":").append(jstr("CATALOGUE")).append(',')
+              .append("\"category\":").append(jstr(child.badge())).append(',')
               .append("\"url\":")     .append(jstr(catalogueUrl(child.getClass().getName())))
               .append('}');
         }
@@ -191,6 +193,12 @@ public class CatalogueGetAction
 
     private static String catalogueUrl(String fqn) {
         return "/app?app=catalogue&id=" + fqn;
+    }
+
+    /** RFC 0009: breadcrumb crumb text — icon glyph prefix + name. */
+    static String crumbTextOf(Catalogue c) {
+        String icon = c.icon();
+        return (icon == null || icon.isEmpty()) ? c.name() : icon + " " + c.name();
     }
 
     private static String docReaderUrl(String uuid) {
