@@ -53,7 +53,9 @@ public record CatalogueAppHost() implements AppModule<CatalogueAppHost.Params, C
 
     @Override public String simpleName() { return "catalogue"; }
 
-    @Override public String title() { return "studio · catalogue"; }
+    /** Page-kind label. {@code AppHtmlGetAction} appends the downstream brand;
+     *  the renderer refines it to {@code "<catalogue-name> · <brand>"} on load. */
+    @Override public String title() { return "catalogue"; }
 
     @Override
     public ImportsFor<CatalogueAppHost> imports() {

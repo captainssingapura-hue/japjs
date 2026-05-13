@@ -41,8 +41,18 @@ public class HomingActionRegistry implements ActionRegistry<RoutingContext> {
      *  theme-bundle endpoints AND the theme picker widget in the page bootstrap. */
     public HomingActionRegistry(ModuleNameResolver nameResolver, SimpleAppResolver appResolver,
                                 ResourceReader resourceReader, ThemeRegistry themeRegistry) {
+        this(nameResolver, appResolver, resourceReader, themeRegistry, AppMeta.DEFAULT);
+    }
+
+    /** Downstream-aware overload — accepts an {@link AppMeta} carrying the
+     *  studio's brand label so {@link AppHtmlGetAction} can produce a
+     *  brand-correct {@code <title>} server-side. */
+    public HomingActionRegistry(ModuleNameResolver nameResolver, SimpleAppResolver appResolver,
+                                ResourceReader resourceReader, ThemeRegistry themeRegistry,
+                                AppMeta meta) {
         if (themeRegistry == null) themeRegistry = ThemeRegistry.EMPTY;
-        this.appAction = new AppHtmlGetAction(nameResolver, appResolver, themeRegistry);
+        if (meta == null) meta = AppMeta.DEFAULT;
+        this.appAction = new AppHtmlGetAction(nameResolver, appResolver, themeRegistry, meta);
         this.moduleAction = new EsModuleGetAction(nameResolver, resourceReader);
         // Base registry serves a typed-only CssContentGetAction with no impls
         // and no default theme — every /css-content request 404s unless an

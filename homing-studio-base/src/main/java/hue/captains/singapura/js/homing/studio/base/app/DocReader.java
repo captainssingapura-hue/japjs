@@ -43,7 +43,11 @@ public record DocReader() implements AppModule<DocReader.Params, DocReader>, Sel
 
     @Override public Class<Params> paramsType() { return Params.class; }
 
-    @Override public String title() { return "Homing · studio · doc"; }
+    /** Generic page-kind label. {@code AppHtmlGetAction} appends the downstream
+     *  studio's brand label from {@code AppMeta}, producing {@code "doc · <brand>"}.
+     *  Once the doc loads, {@code DocReaderRenderer} replaces this with the
+     *  doc's actual title. */
+    @Override public String title() { return "doc"; }
 
     /** Brand label shown in the header. Override in a subclass for custom branding. */
     public String brandLabel() { return "Homing · studio"; }

@@ -180,10 +180,13 @@ public final class StudioBootstrap {
             Map<String, GetAction<RoutingContext, ?, ?, ?>> extraGetActions,
             Map<String, PostAction<RoutingContext, ?, ?, ?>> extraPostActions) {
 
+        var appMeta = (brand != null && brand.label() != null && !brand.label().isBlank())
+                ? new hue.captains.singapura.js.homing.server.AppMeta(brand.label())
+                : hue.captains.singapura.js.homing.server.AppMeta.DEFAULT;
         var inner = new HomingActionRegistry(
                 nameResolver, appResolver,
                 ResourceReader.fromSystemProperty(),
-                themeRegistry);
+                themeRegistry, appMeta);
 
         // Studio defaults: typed-impl-backed /css-content + classpath /doc +
         // root redirect → home app.

@@ -46,6 +46,11 @@ function renderPlanHost(props) {
             return r.json();
         })
         .then(function(data) {
+            // Browser tab title — `<plan> · <brand>` (or `<plan> · Phase X · <brand>`
+            // when drilled into a phase). Same pattern as DocReader / CatalogueHost.
+            var subject = data.name + (phase ? " · Phase " + phase : "");
+            document.title = subject
+                + (data.brand && data.brand.label ? " · " + data.brand.label : "");
             if (phase) {
                 _renderStep(root, data, planId, phase);
             } else {

@@ -37,6 +37,17 @@ The studio itself dogfoods the new typed levels with two parallel L1→L2 sub-tr
 
 - **Audio cue plumbing in `Header` + `Card` + `ListItem`** — every clickable surface in the chrome wires through a `Cue` lookup when the active theme declares one. Themes that don't ship cues are unaffected.
 - **Render order for catalogue listings** — Option A from RFC 0005-ext2 §11: sub-catalogues render before leaves. Within-group ordering preserved.
+- **Brand-aware document `<title>`** — a new `AppMeta` record in `homing-server` carries the downstream studio's brand label through `AppHtmlGetAction`, so the served HTML's `<title>` is `<page-kind> · <brand>` from byte zero (no framework-default flash). The four hardcoded `AppModule.title()` strings (`"Homing · studio · doc"`, `"studio · catalogue"`, …) collapse to bare page-kind labels (`"doc"`, `"catalogue"`, `"plan"`, `"themes"`); `AppMeta.label()` provides the brand half. Each renderer further refines `document.title` to `<page-subject> · <brand>` (e.g. `"Doctrine — Dual-Audience Skills · Homing · studio"`) once the per-page data arrives.
+
+### Offline reading export (MHTML)
+
+The doc reader is now reliably exportable via the browser's *Save As → Webpage, Single File* (MHTML). Three small changes converge to make it work:
+
+- **TOC links survive MHTML's anchor-rewriting.** Chrome's MHTML save rewrites fragment-only `href="#slug"` attributes to absolute URLs, which on reopen attempt cross-document navigation (back to a server that doesn't exist offline). `DocReaderRenderer` now sets an inline `onclick` attribute that calls `scrollIntoView` and short-circuits with `return false` — inline event attributes are preserved verbatim in MHTML and execute when the saved file reopens, regardless of how the href was rewritten. A small `_tocScrollHandler(slug)` helper keeps the handler-string construction in one named place.
+- **Brand-correct `<title>` survives the save.** Tab titles in the exported file now read `<doc-title> · <brand>` instead of the framework-default `"Homing · studio · doc"` — same string the user sees live, courtesy of the `AppMeta` work above plus the renderers' `document.title` update at load time.
+- **Themes survive intact.** Every CSS bundle (cascade-layered `StudioStyles` + per-theme `chunks()`) inlines as text into the saved file; `Theme.backdrop()` SVGs are inline DOM (not background-image sandboxes), so their classed elements + CSS hover effects survive losslessly. A doc saved under Retro 90s reads as Retro 90s offline; saved under Maple Bridge, the moon still grows on hover.
+
+What does **not** survive MHTML export is the framework JS runtime — the ES modules served from `/homing/js/…` can't resolve from a `file://` reopen, so RFC 0007 audio cues fall silent, the `IntersectionObserver` scroll-spy active-highlight stops following the heading you're reading, and the theme picker / play-mode toggle become inert. Acceptable trade-off: the reader keeps the content, formatting, theme, breadcrumbs, working TOC, and brand identity in a single ~30–80 KB file — much smaller than the ~400–800 KB a print-to-PDF produces, and with text reflow + theme fidelity that PDF can't match.
 
 ### New theme: HomingJazzDrumKit ([RFC 0008](#ref:rfc-8))
 
@@ -123,5 +134,6 @@ The work paths visible from 0.0.100's vantage:
 - **Writing-media texture library** ([RFC 0006](#ref:rfc-6) §library) — the 10-SVG historical-textures pack (vellum, silk, bamboo, papyrus, …). Mechanical work once the typed `WritingMedium` contract is stable.
 - **More themes opting into RFC 0007 cues** — Maple Bridge could carry a temple-bell cue on navigation; Retro 90s a CRT-power-on chord. Both would take ~20 lines per theme.
 - **Skills for the audio + backdrop pipelines** — a `create-themed-experience` skill complementing `create-homing-theme`, covering the `Cue` + `Theme.backdrop()` patterns specifically.
+- **Formalise MHTML export as a one-button feature** — `Save As → Webpage, Single File` already works as of this release; a small "Export" affordance in the doc-reader chrome (and a matching `offline-reading-export` skill) would surface the capability for downstream studios without requiring users to discover it from the browser menu.
 
 The framework gets simpler at every layer where typing took over from runtime; the surface authors hold gets richer at the layers (sensory, navigation) where typing now serves the user-visible work. 0.0.101 has room to be a smaller, less-foundational release.

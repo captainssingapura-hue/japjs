@@ -35,19 +35,26 @@ public class AppHtmlGetAction
     private final ModuleNameResolver nameResolver;
     private final SimpleAppResolver appResolver;   // may be null in legacy-only mode
     private final ThemeRegistry themeRegistry;     // RFC 0002-ext1 — for the theme picker widget
+    private final AppMeta meta;                    // downstream-supplied brand label
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver) {
-        this(nameResolver, null, ThemeRegistry.EMPTY);
+        this(nameResolver, null, ThemeRegistry.EMPTY, AppMeta.DEFAULT);
     }
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver) {
-        this(nameResolver, appResolver, ThemeRegistry.EMPTY);
+        this(nameResolver, appResolver, ThemeRegistry.EMPTY, AppMeta.DEFAULT);
     }
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver, ThemeRegistry themeRegistry) {
+        this(nameResolver, appResolver, themeRegistry, AppMeta.DEFAULT);
+    }
+
+    public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver,
+                             ThemeRegistry themeRegistry, AppMeta meta) {
         this.nameResolver = nameResolver;
         this.appResolver = appResolver;
         this.themeRegistry = themeRegistry != null ? themeRegistry : ThemeRegistry.EMPTY;
+        this.meta = meta != null ? meta : AppMeta.DEFAULT;
     }
 
     @Override
@@ -175,7 +182,8 @@ public class AppHtmlGetAction
                     </script>
                 </body>
                 </html>
-                """.formatted(app.title(), backdropHtml, themePickerHtml, audioHtml, themeJs, localeJs, baseModuleUrl);
+                """.formatted(htmlEscape(app.title() + " · " + meta.label()),
+                              backdropHtml, themePickerHtml, audioHtml, themeJs, localeJs, baseModuleUrl);
 
         return CompletableFuture.completedFuture(new HtmlPageContent(html));
     }

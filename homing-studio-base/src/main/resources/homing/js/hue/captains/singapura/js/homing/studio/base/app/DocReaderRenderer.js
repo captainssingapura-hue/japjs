@@ -25,6 +25,16 @@ function _slugify(text) {
         .replace(/^-|-$/g, "");
 }
 
+// Build the inline onclick string for a TOC anchor. The HTML attribute
+// (onclick="...") is what survives Chrome's MHTML export — JS-bound
+// listeners (addEventListener / .onclick = fn) get dropped at save time
+// because they're runtime state, not serialised DOM. The slug input is
+// always _slugify() output, so [a-z0-9-]+ only — no string-escape needed.
+function _tocScrollHandler(slug) {
+    return "document.getElementById('" + slug
+         + "').scrollIntoView({behavior:'smooth'});return false;";
+}
+
 function _collectHeadings(rootEl) {
     var out = [];
     function visit(el) {
@@ -152,6 +162,11 @@ function renderDocReader(props) {
                 root.replaceChild(newHeader, headerEl);
                 headerEl = newHeader;
                 titleEl.textContent = info.title;
+                // Browser tab title — `<doc> · <brand>`. Replaces the static
+                // default served by AppHtmlGetAction (which doesn't know the
+                // downstream brand or the doc subject at HTML-render time).
+                document.title = info.title
+                    + (brand && brand.label ? " · " + brand.label : "");
                 if (info.category) {
                     var catSpan = document.createElement("span");
                     catSpan.style.cssText = "margin-left:12px; font-size:11px; color: var(--st-gray-mid); text-transform:uppercase; letter-spacing:0.05em;";
@@ -270,6 +285,11 @@ function _renderDoc(md, bodyEl, tocEl) {
         css.addClass(a, levelCls);
         href.set(a, "#" + item.slug);
         a.setAttribute("data-slug", item.slug);
+        // MHTML-survival: an inline onclick attribute is preserved in the
+        // exported file; a JS-bound listener wouldn't be. Live mode still
+        // benefits — the handler short-circuits Chrome's hash-rewriting
+        // navigation and just scrolls.
+        a.setAttribute("onclick", _tocScrollHandler(item.slug));
         a.textContent = item.text;
         tocLinks.push(a);
     }
