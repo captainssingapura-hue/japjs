@@ -25,6 +25,16 @@ function _slugify(text) {
         .replace(/^-|-$/g, "");
 }
 
+// Build the inline onclick string for a TOC anchor. The HTML attribute
+// (onclick="...") is what survives Chrome's MHTML export — JS-bound
+// listeners (addEventListener / .onclick = fn) get dropped at save time
+// because they're runtime state, not serialised DOM. The slug input is
+// always _slugify() output, so [a-z0-9-]+ only — no string-escape needed.
+function _tocScrollHandler(slug) {
+    return "document.getElementById('" + slug
+         + "').scrollIntoView({behavior:'smooth'});return false;";
+}
+
 function _collectHeadings(rootEl) {
     var out = [];
     function visit(el) {
@@ -133,15 +143,30 @@ function renderDocReader(props) {
         })
         .then(function(info) {
             // Server-resolved Doc metadata: title (friendly name) + summary + category
-            // + references[]. Update the breadcrumb + meta line with the title;
-            // render the References section from info.references.
+            // + breadcrumbs[] + references[]. Update the breadcrumb + meta line with
+            // the title; rebuild the breadcrumb chain (RFC 0005-ext2) from
+            // info.breadcrumbs when the server provides it; render the References
+            // section from info.references.
             if (info && info.title) {
                 leafCrumb.text = info.title;
-                // Re-render header with the updated leaf crumb text.
+                // RFC 0005-ext2: when the server returned a typed breadcrumb chain
+                // (catalogue root → ... → containing catalogue), use it instead of
+                // whatever crumbsAbove the caller supplied. The leaf crumb (this
+                // doc's title) is always appended last as a non-link.
+                if (info.breadcrumbs && info.breadcrumbs.length > 0) {
+                    crumbs = info.breadcrumbs.slice();
+                    crumbs.push(leafCrumb);
+                }
+                // Re-render header with the updated chain + leaf crumb text.
                 var newHeader = Header({ brand: brand, crumbs: crumbs });
                 root.replaceChild(newHeader, headerEl);
                 headerEl = newHeader;
                 titleEl.textContent = info.title;
+                // Browser tab title — `<doc> · <brand>`. Replaces the static
+                // default served by AppHtmlGetAction (which doesn't know the
+                // downstream brand or the doc subject at HTML-render time).
+                document.title = info.title
+                    + (brand && brand.label ? " · " + brand.label : "");
                 if (info.category) {
                     var catSpan = document.createElement("span");
                     catSpan.style.cssText = "margin-left:12px; font-size:11px; color: var(--st-gray-mid); text-transform:uppercase; letter-spacing:0.05em;";
@@ -260,6 +285,11 @@ function _renderDoc(md, bodyEl, tocEl) {
         css.addClass(a, levelCls);
         href.set(a, "#" + item.slug);
         a.setAttribute("data-slug", item.slug);
+        // MHTML-survival: an inline onclick attribute is preserved in the
+        // exported file; a JS-bound listener wouldn't be. Live mode still
+        // benefits — the handler short-circuits Chrome's hash-rewriting
+        // navigation and just scrolls.
+        a.setAttribute("onclick", _tocScrollHandler(item.slug));
         a.textContent = item.text;
         tocLinks.push(a);
     }

@@ -3,6 +3,8 @@ package hue.captains.singapura.js.homing.studio.base.tracker;
 import hue.captains.singapura.js.homing.server.EmptyParam;
 import hue.captains.singapura.js.homing.server.ResourceNotFound;
 import hue.captains.singapura.js.homing.studio.base.DocContent;
+import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueRegistry;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
 import hue.captains.singapura.tao.http.action.GetAction;
@@ -10,6 +12,7 @@ import hue.captains.singapura.tao.http.action.Param;
 import hue.captains.singapura.tao.http.action.ParamMarshaller;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -98,8 +101,24 @@ public class PlanGetAction
               .append("\"logo\":")   .append(jstr(logoSvg)).append(',')
               .append("\"homeUrl\":").append(jstr("/app?app=catalogue&id=" + brand.homeApp().getName()))
               .append("},");
+            // RFC 0005-ext2: typed catalogue chain from root → containing
+            // catalogue (typically Journeys). Renderer appends the plan name
+            // as the final non-link crumb.
+            sb.append("\"breadcrumbs\":[");
+            List<Catalogue> chain = catalogueRegistry.breadcrumbsForPlan(p.getClass());
+            boolean firstCrumb = true;
+            for (Catalogue c : chain) {
+                if (!firstCrumb) sb.append(',');
+                firstCrumb = false;
+                sb.append('{')
+                  .append("\"text\":").append(jstr(c.name())).append(',')
+                  .append("\"href\":").append(jstr(CatalogueAppHost.urlFor(c.getClass())))
+                  .append('}');
+            }
+            sb.append("],");
         } else {
             sb.append("\"brand\":null,");
+            sb.append("\"breadcrumbs\":[],");
         }
 
         // Objectives — optional 4th pillar; rendered at top of index view when non-empty.

@@ -5,21 +5,21 @@ import hue.captains.singapura.js.homing.studio.base.Doc;
 import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
 
 /**
- * Typed wrapper for {@link Catalogue} entries. Sealed to four kinds reflecting
- * the catalogue tree's structural model:
+ * Typed wrapper for {@link Catalogue} leaf entries. Sealed to three kinds
+ * reflecting the catalogue tree's leaf shapes:
  *
  * <ul>
  *   <li>{@link OfDoc} — a static {@link Doc} (markdown content shipped per RFC 0004).</li>
- *   <li>{@link OfCatalogue} — a sub-tree (another {@link Catalogue}).</li>
  *   <li>{@link OfApp} — a living "doc" — any {@link AppModule} with its own page.</li>
  *   <li>{@link OfPlan} — a structured living plan (RFC 0005-ext1) — questions, phased actions, acceptance.</li>
  * </ul>
  *
- * <p>The conceptual model: "doc" spans a spectrum from static (markdown) to living
- * (Plan trackers, custom apps). {@link OfDoc}, {@link OfApp}, and {@link OfPlan}
- * are three implementation kinds of the same conceptual "content the user navigates
- * to"; {@link OfCatalogue} is the sub-tree case. The renderer pattern-matches
- * exhaustively over the four sealed subtypes; the compile-time {@code switch}
+ * <p>The conceptual model: "doc" spans a spectrum from static (markdown) to
+ * living (Plan trackers, custom apps). All three {@code Entry} kinds are
+ * "content the user navigates to" — leaves of the catalogue tree. Sub-trees
+ * (other catalogues) live in {@link Catalogue#subCatalogues()}, typed by
+ * their level (RFC 0005-ext2). The renderer pattern-matches exhaustively
+ * over the three sealed subtypes; the compile-time {@code switch}
  * exhaustiveness check guarantees complete coverage.</p>
  *
  * <p><b>Why {@code OfApp} accepts any {@link AppModule} directly</b>: every
@@ -32,15 +32,14 @@ import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
  *
  * <p>Convenience factories keep call sites clean.</p>
  *
- * @since RFC 0005 (extended in RFC 0005-ext1 to add OfPlan; v1 unifies OfApp on AppModule directly)
+ * @since RFC 0005 (extended in RFC 0005-ext1 to add OfPlan; v1 unifies OfApp
+ *        on AppModule directly; RFC 0005-ext2 removes the {@code OfCatalogue}
+ *        variant — sub-catalogues moved to a typed sibling accessor).
  */
 public sealed interface Entry {
 
     /** A static Doc — markdown content shipped on the classpath. */
     record OfDoc(Doc doc) implements Entry {}
-
-    /** A sub-tree — another catalogue. */
-    record OfCatalogue(Catalogue catalogue) implements Entry {}
 
     /** A living "doc" — an AppModule bound to its typed Params with tile display data. */
     record OfApp(Navigable<?, ?> nav) implements Entry {}
@@ -53,7 +52,6 @@ public sealed interface Entry {
     // -----------------------------------------------------------------------
 
     static Entry of(Doc doc)               { return new OfDoc(doc); }
-    static Entry of(Catalogue catalogue)   { return new OfCatalogue(catalogue); }
     static Entry of(Navigable<?, ?> nav)   { return new OfApp(nav); }
     static Entry of(Plan plan)             { return new OfPlan(plan); }
 }

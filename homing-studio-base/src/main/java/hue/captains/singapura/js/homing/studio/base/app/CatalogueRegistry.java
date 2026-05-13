@@ -2,62 +2,62 @@ package hue.captains.singapura.js.homing.studio.base.app;
 
 import hue.captains.singapura.js.homing.studio.base.Doc;
 import hue.captains.singapura.js.homing.studio.base.DocRegistry;
+import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 /**
- * Boot-time registry of {@link Catalogue}s and the parent index used for breadcrumb
- * derivation. Constructed once at studio startup; immutable afterwards.
+ * Boot-time registry of {@link Catalogue}s with breadcrumb derivation via
+ * typed parent() calls (RFC 0005-ext2).
  *
- * <p>Per <a href="../../../../../../../../../../docs/rfcs/Rfc0005Doc.md">RFC 0005</a>
- * §6.1, the constructor performs four boot-time validations against the explicit
- * catalogue list — fail-fast at boot, no runtime surprises:</p>
+ * <p>Per RFC 0005-ext2, the catalogue tree's shape is now encoded in the
+ * type system: each catalogue extends exactly one of L0..L8, and non-root
+ * levels declare their parent's type as a generic parameter with a
+ * matching {@code parent()} accessor. The registry no longer needs to
+ * infer (catalogue → parent) at boot — it reads {@code parent()} directly.</p>
+ *
+ * <p>Boot-time validations remaining:</p>
  *
  * <ol>
- *   <li><b>Strict tree</b> — each catalogue appears as an entry in at most one parent.
- *       Multi-parent throws {@link IllegalStateException} (the v1 implementation enforces
- *       strict-tree for breadcrumb determinism; the doctrine permits multi-parent in
- *       principle but a future RFC would extend the URL contract to support it).</li>
- *   <li><b>No cycles</b> — walking {@link Catalogue#entries()} from each catalogue terminates.
- *       Cycles throw.</li>
- *   <li><b>Closure completeness</b> — every {@link Entry.OfCatalogue} references a catalogue
- *       that's in the registered list. An entry pointing at an unregistered catalogue
- *       throws.</li>
- *   <li><b>Doc reachability</b> — every {@link Entry.OfDoc} references a doc that's in the
- *       supplied {@link DocRegistry}. Catalogues can't link to off-classpath / private docs.</li>
+ *   <li><b>Entry depth + parent-match</b> — every {@link Entry.OfCatalogue}
+ *       child must declare its {@code parent()} as the containing catalogue.
+ *       Mismatch throws (covers "wrong-level entry" and "stale parent
+ *       reference" cases).</li>
+ *   <li><b>Closure completeness</b> — every {@code Entry.OfCatalogue}
+ *       references a catalogue in the registered list.</li>
+ *   <li><b>Doc reachability</b> — every {@code Entry.OfDoc} references a
+ *       doc in the supplied {@link DocRegistry}.</li>
+ *   <li><b>Brand home-app registered</b> — {@code brand.homeApp()} is an L0
+ *       catalogue in the list.</li>
  * </ol>
  *
- * <p>{@link Entry.OfApp} entries are not validated by this registry —
- * referenced {@link hue.captains.singapura.js.homing.core.AppModule}s are
- * registered independently through {@link
- * hue.captains.singapura.js.homing.core.SimpleAppResolver}; their reachability
- * is checked there.</p>
+ * <p>Cycle detection is no longer needed — the type system makes cycles
+ * impossible to express. Each LN's parent() returns LN-1; the chain
+ * strictly descends.</p>
  *
- * @since RFC 0005
+ * <p>Multi-parent is also impossible to express — a class can only declare
+ * one parent type at compile time.</p>
+ *
+ * @since RFC 0005 (refactored in RFC 0005-ext2)
  */
 public final class CatalogueRegistry {
 
     private final StudioBrand brand;
     private final Map<Class<? extends Catalogue>, Catalogue> byClass;
-    private final Map<Class<? extends Catalogue>, Catalogue> parentByChild;
+    /** Reverse index: doc UUID → first catalogue containing the doc.
+     *  Built at construction; used for breadcrumb derivation. */
+    private final Map<UUID, Catalogue> docHome;
+    /** Reverse index: plan class → first catalogue containing the plan. */
+    private final Map<Class<? extends Plan>, Catalogue> planHome;
 
-    /**
-     * Build a registry from the studio brand, the doc registry, and an explicit list of
-     * catalogues. Performs all four §6.1 validations at construction.
-     *
-     * @throws IllegalStateException on any validation failure (multi-parent, cycle,
-     *                               unregistered sub-catalogue, unregistered doc, blank
-     *                               name, null entries)
-     */
     public CatalogueRegistry(StudioBrand brand,
                              DocRegistry docRegistry,
                              Collection<? extends Catalogue> catalogues) {
@@ -65,7 +65,7 @@ public final class CatalogueRegistry {
         Objects.requireNonNull(docRegistry, "docRegistry");
         Objects.requireNonNull(catalogues,  "catalogues");
 
-        // Build the class → catalogue lookup. Each catalogue class registered at most once.
+        // Build the class → catalogue lookup.
         var byClass = new LinkedHashMap<Class<? extends Catalogue>, Catalogue>();
         for (Catalogue c : catalogues) {
             requireValid(c);
@@ -77,22 +77,88 @@ public final class CatalogueRegistry {
             }
         }
 
-        // Validate the brand's home-app references a registered catalogue.
+        // Validate the brand's home-app references a registered L0 catalogue.
         if (!byClass.containsKey(brand.homeApp())) {
             throw new IllegalStateException(
                     "StudioBrand.homeApp references " + brand.homeApp().getName()
                   + " which is not in the registered catalogue list");
         }
+        Catalogue homeCatalogue = byClass.get(brand.homeApp());
+        if (!(homeCatalogue instanceof L0_Catalogue)) {
+            throw new IllegalStateException(
+                    "StudioBrand.homeApp " + brand.homeApp().getName()
+                  + " must be an L0_Catalogue (the studio's root). Got "
+                  + homeCatalogue.getClass().getName() + " which is at level "
+                  + levelOf(homeCatalogue));
+        }
 
-        // Validate entries + build the parent index in one pass. Strict tree: each
-        // catalogue can be a child of at most one parent.
-        var parentByChild = new LinkedHashMap<Class<? extends Catalogue>, Catalogue>();
+        // Validate sub-catalogues + leaves and build reverse indices in one
+        // pass. RFC 0005-ext2: the typed parent() relation makes cycles and
+        // multi-parent impossible at the type level; subCatalogues() narrows
+        // the return type to L<N+1>, so the depth check is also compile-time.
+        // The remaining runtime checks are: closure (every sub-catalogue is
+        // in the registered list), parent-match (child.parent() == this
+        // catalogue), doc/plan reachability, and the L8 terminal invariant.
+        var docHomeMap  = new HashMap<UUID, Catalogue>();
+        var planHomeMap = new HashMap<Class<? extends Plan>, Catalogue>();
         for (Catalogue parent : byClass.values()) {
-            for (Entry e : parent.entries()) {
+            // ---- Sub-catalogue children ----
+            List<? extends Catalogue> subs = parent.subCatalogues();
+            if (subs == null) {
+                throw new IllegalStateException(
+                        "Catalogue " + parent.getClass().getName()
+                      + " has null subCatalogues()");
+            }
+            if (parent instanceof L8_Catalogue<?> && !subs.isEmpty()) {
+                throw new IllegalStateException(
+                        "Catalogue " + parent.getClass().getName()
+                      + " is an L8_Catalogue (terminal level) but declares "
+                      + subs.size() + " sub-catalogue(s). L8 catalogues cannot"
+                      + " nest further — there is no L9 type. Move children to leaves()"
+                      + " or refactor the tree shallower.");
+            }
+            for (Catalogue child : subs) {
+                if (child == null) {
+                    throw new IllegalStateException(
+                            "Catalogue " + parent.getClass().getName()
+                          + " has a null entry in subCatalogues()");
+                }
+                if (!byClass.containsKey(child.getClass())) {
+                    throw new IllegalStateException(
+                            "Catalogue " + parent.getClass().getName()
+                          + " references sub-catalogue " + child.getClass().getName()
+                          + " which is not in the registered catalogue list");
+                }
+                // RFC 0005-ext2: the child's typed parent() must point at this
+                // containing catalogue's INSTANCE. The type bound on
+                // subCatalogues() already constrains the parent's *type*; this
+                // runtime check covers the instance-equality case (singleton
+                // convention — handles authoring slip where a non-INSTANCE
+                // parent is returned).
+                Catalogue declaredParent = declaredParentOf(child);
+                if (declaredParent != parent) {
+                    throw new IllegalStateException(
+                            "Catalogue " + parent.getClass().getName()
+                          + " contains " + child.getClass().getName()
+                          + " in subCatalogues(), but the latter's parent() returns "
+                          + (declaredParent == null ? "null" : declaredParent.getClass().getName())
+                          + ". An L<N+1> child's parent() must return the containing"
+                          + " catalogue's INSTANCE (RFC 0005-ext2 typed-level invariant).");
+                }
+            }
+
+            // ---- Leaves ----
+            List<Entry> leaves = parent.leaves();
+            if (leaves == null) {
+                throw new IllegalStateException(
+                        "Catalogue " + parent.getClass().getName()
+                      + " has null leaves()");
+            }
+            for (Entry e : leaves) {
                 if (e == null) {
                     throw new IllegalStateException(
                             "Catalogue " + parent.getClass().getName()
-                          + " has a null Entry in entries()");
+                          + " has a null Entry in leaves()");
                 }
                 switch (e) {
                     case Entry.OfDoc(Doc d) -> {
@@ -108,27 +174,8 @@ public final class CatalogueRegistry {
                                   + " references Doc " + d.getClass().getName()
                                   + " (uuid=" + id + ") which is not in the DocRegistry");
                         }
-                    }
-                    case Entry.OfCatalogue(Catalogue child) -> {
-                        if (child == null) {
-                            throw new IllegalStateException(
-                                    "Catalogue " + parent.getClass().getName()
-                                  + " has Entry.OfCatalogue with null catalogue");
-                        }
-                        if (!byClass.containsKey(child.getClass())) {
-                            throw new IllegalStateException(
-                                    "Catalogue " + parent.getClass().getName()
-                                  + " references sub-catalogue " + child.getClass().getName()
-                                  + " which is not in the registered catalogue list");
-                        }
-                        Catalogue priorParent = parentByChild.put(child.getClass(), parent);
-                        if (priorParent != null && priorParent.getClass() != parent.getClass()) {
-                            throw new IllegalStateException(
-                                    "Catalogue " + child.getClass().getName()
-                                  + " has multiple parents: " + priorParent.getClass().getName()
-                                  + " and " + parent.getClass().getName()
-                                  + " (RFC 0005 v1 enforces strict-tree)");
-                        }
+                        // First catalogue containing this doc wins for breadcrumbs.
+                        docHomeMap.putIfAbsent(id, parent);
                     }
                     case Entry.OfApp(Navigable<?, ?> nav) -> {
                         if (nav == null) {
@@ -136,30 +183,22 @@ public final class CatalogueRegistry {
                                     "Catalogue " + parent.getClass().getName()
                                   + " has Entry.OfApp with null Navigable");
                         }
-                        // Navigable's compact constructor already enforces app/params/name
-                        // non-null; AppModule reachability is enforced via SimpleAppResolver
-                        // in the framework's app registry — not validated here.
                     }
-                    case Entry.OfPlan(hue.captains.singapura.js.homing.studio.base.tracker.Plan plan) -> {
+                    case Entry.OfPlan(Plan plan) -> {
                         if (plan == null) {
                             throw new IllegalStateException(
                                     "Catalogue " + parent.getClass().getName()
                                   + " has Entry.OfPlan with null plan");
                         }
-                        // Plan reachability is enforced via PlanRegistry (RFC 0005-ext1)
-                        // — not validated here.
+                        planHomeMap.putIfAbsent(plan.getClass(), parent);
                     }
                 }
             }
         }
 
-        // Cycle detection — DFS from each catalogue.
-        for (Catalogue root : byClass.values()) {
-            detectCycles(root, byClass, parentByChild, new HashSet<>());
-        }
-
-        this.byClass       = Map.copyOf(byClass);
-        this.parentByChild = Map.copyOf(parentByChild);
+        this.byClass  = Map.copyOf(byClass);
+        this.docHome  = Map.copyOf(docHomeMap);
+        this.planHome = Map.copyOf(planHomeMap);
     }
 
     private static void requireValid(Catalogue c) {
@@ -168,77 +207,110 @@ public final class CatalogueRegistry {
             throw new IllegalStateException(
                     "Catalogue " + c.getClass().getName() + " has null/blank name()");
         }
-        if (c.entries() == null) {
-            throw new IllegalStateException(
-                    "Catalogue " + c.getClass().getName() + " has null entries()");
-        }
+        // subCatalogues() / leaves() null-checks happen in the validation pass.
     }
 
-    private static void detectCycles(Catalogue at,
-                                     Map<Class<? extends Catalogue>, Catalogue> byClass,
-                                     Map<Class<? extends Catalogue>, Catalogue> parentByChild,
-                                     Set<Class<? extends Catalogue>> visiting) {
-        Class<? extends Catalogue> cls = at.getClass();
-        if (!visiting.add(cls)) {
-            throw new IllegalStateException("Cycle detected in catalogue tree at " + cls.getName());
-        }
-        for (Entry e : at.entries()) {
-            if (e instanceof Entry.OfCatalogue(Catalogue child)) {
-                detectCycles(child, byClass, parentByChild, visiting);
-            }
-        }
-        visiting.remove(cls);
+    /**
+     * The declared parent of a catalogue — extracted from the typed
+     * {@code parent()} method via a sealed-exhaustive switch. Returns
+     * null for L0 catalogues (which have no parent).
+     */
+    private static Catalogue declaredParentOf(Catalogue c) {
+        return switch (c) {
+            case L0_Catalogue l0 -> null;
+            case L1_Catalogue<?> l1 -> l1.parent();
+            case L2_Catalogue<?> l2 -> l2.parent();
+            case L3_Catalogue<?> l3 -> l3.parent();
+            case L4_Catalogue<?> l4 -> l4.parent();
+            case L5_Catalogue<?> l5 -> l5.parent();
+            case L6_Catalogue<?> l6 -> l6.parent();
+            case L7_Catalogue<?> l7 -> l7.parent();
+            case L8_Catalogue<?> l8 -> l8.parent();
+        };
+    }
+
+    /** The numeric level (0..8) of a catalogue, derived from its sealed type. */
+    public static int levelOf(Catalogue c) {
+        return switch (c) {
+            case L0_Catalogue l0 -> 0;
+            case L1_Catalogue<?> l1 -> 1;
+            case L2_Catalogue<?> l2 -> 2;
+            case L3_Catalogue<?> l3 -> 3;
+            case L4_Catalogue<?> l4 -> 4;
+            case L5_Catalogue<?> l5 -> 5;
+            case L6_Catalogue<?> l6 -> 6;
+            case L7_Catalogue<?> l7 -> 7;
+            case L8_Catalogue<?> l8 -> 8;
+        };
     }
 
     // -----------------------------------------------------------------------
     // Lookups
     // -----------------------------------------------------------------------
 
-    /** Brand configuration provided at construction. */
-    public StudioBrand brand() {
-        return brand;
-    }
+    public StudioBrand brand() { return brand; }
 
-    /** Resolve a Catalogue by its implementing class, or null if not registered. */
     public Catalogue resolve(Class<? extends Catalogue> cls) {
         return byClass.get(cls);
     }
 
-    /**
-     * Parent of the given catalogue, or null if the catalogue is a tree root (or not
-     * registered).
-     */
+    /** Parent of the given catalogue, or null if it's an L0 root (or not registered). */
     public Catalogue parentOf(Class<? extends Catalogue> cls) {
-        return parentByChild.get(cls);
+        Catalogue at = byClass.get(cls);
+        return at == null ? null : declaredParentOf(at);
     }
 
     /**
-     * Breadcrumb chain from the brand's home-app down to the given catalogue (inclusive).
-     * Returns a list whose first element is the home-app catalogue and whose last element
-     * is the supplied catalogue. Returns an empty list if the catalogue isn't registered.
+     * Breadcrumb chain from the root (L0) down to the given catalogue, inclusive.
+     * The first element is the root; the last is the supplied catalogue. Returns
+     * empty if the catalogue isn't registered.
+     *
+     * <p>RFC 0005-ext2: derived by walking {@code parent()} via the sealed-switch
+     * recursion, not by map lookup.</p>
      */
     public List<Catalogue> breadcrumbs(Class<? extends Catalogue> cls) {
         Catalogue at = byClass.get(cls);
         if (at == null) return List.of();
+        return breadcrumbs(at);
+    }
+
+    /** Same as {@link #breadcrumbs(Class)} but takes the instance directly. */
+    public List<Catalogue> breadcrumbs(Catalogue at) {
         List<Catalogue> chain = new ArrayList<>();
-        chain.add(at);
-        Class<? extends Catalogue> cursor = cls;
-        while (true) {
-            Catalogue parent = parentByChild.get(cursor);
-            if (parent == null) break;
-            chain.add(parent);
-            cursor = parent.getClass();
+        Catalogue cursor = at;
+        while (cursor != null) {
+            chain.add(cursor);
+            cursor = declaredParentOf(cursor);
         }
         Collections.reverse(chain);
         return List.copyOf(chain);
     }
 
-    /** All registered catalogues in registration order. */
+    /**
+     * Breadcrumb chain for a {@link Doc} by its UUID — root → containing
+     * catalogue → (caller appends the doc's title separately). Returns the
+     * empty list if the doc isn't referenced by any registered catalogue
+     * (such docs are typically reachable only via {@code DocBrowser}, where
+     * the breadcrumb falls back to the DocBrowser Navigable's catalogue path).
+     */
+    public List<Catalogue> breadcrumbsForDoc(UUID docId) {
+        Catalogue home = docHome.get(docId);
+        return home == null ? List.of() : breadcrumbs(home);
+    }
+
+    /**
+     * Breadcrumb chain for a {@link Plan} by its class — root → containing
+     * catalogue (typically Journeys).
+     */
+    public List<Catalogue> breadcrumbsForPlan(Class<? extends Plan> cls) {
+        Catalogue home = planHome.get(cls);
+        return home == null ? List.of() : breadcrumbs(home);
+    }
+
     public Collection<Catalogue> all() {
         return Collections.unmodifiableCollection(byClass.values());
     }
 
-    /** Number of registered catalogues. */
     public int size() {
         return byClass.size();
     }

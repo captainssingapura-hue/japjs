@@ -36,7 +36,8 @@ public final class SkillsManifest {
     public static final List<Entry> ALL = List.of(
             new Entry("use-homing-skills",    UseHomingSkillsSkillDoc.INSTANCE),
             new Entry("create-homing-studio", CreateHomingStudioSkillDoc.INSTANCE),
-            new Entry("create-homing-theme",  CreateHomingThemeSkillDoc.INSTANCE)
+            new Entry("create-homing-theme",  CreateHomingThemeSkillDoc.INSTANCE),
+            new Entry("migrate-from-0-0-11", MigrateFrom0_0_11SkillDoc.INSTANCE)
     );
 
     private SkillsManifest() {}

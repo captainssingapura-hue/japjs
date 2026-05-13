@@ -32,7 +32,7 @@ class AppHtmlGetActionTest {
         var result = action.execute(query, new EmptyParam.NoHeaders()).get();
 
         assertEquals("text/html", result.contentType());
-        assertTrue(result.body().contains("<title>Wonderland Demo</title>"));
+        assertTrue(result.body().contains("<title>Wonderland Demo · Homing</title>"));
         assertTrue(result.body().contains("/module?class=" + WonderlandDemo.class.getCanonicalName()));
         assertTrue(result.body().contains("await import(moduleUrl)"));
         assertTrue(result.body().contains("appMain(document.getElementById(\"app\"))"));
@@ -95,7 +95,7 @@ class AppHtmlGetActionTest {
         var query = byApp(WonderlandDemo.INSTANCE.simpleName());
         var result = actionWithResolver.execute(query, new EmptyParam.NoHeaders()).get();
 
-        assertTrue(result.body().contains("<title>Wonderland Demo</title>"));
+        assertTrue(result.body().contains("<title>Wonderland Demo · Homing</title>"));
         assertTrue(result.body().contains("/module?class=" + WonderlandDemo.class.getCanonicalName()));
     }
 
@@ -129,6 +129,6 @@ class AppHtmlGetActionTest {
                                  Alice.class.getCanonicalName(), null, null);
         var result = actionWithResolver.execute(query, new EmptyParam.NoHeaders()).get();
 
-        assertTrue(result.body().contains("<title>Wonderland Demo</title>"));
+        assertTrue(result.body().contains("<title>Wonderland Demo · Homing</title>"));
     }
 }

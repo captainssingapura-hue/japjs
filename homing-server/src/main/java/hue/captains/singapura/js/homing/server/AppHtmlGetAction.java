@@ -1,8 +1,17 @@
 package hue.captains.singapura.js.homing.server;
 
 import hue.captains.singapura.js.homing.core.AppModule;
+import hue.captains.singapura.js.homing.core.ClickTarget;
+import hue.captains.singapura.js.homing.core.Cue;
+import hue.captains.singapura.js.homing.core.KeyCombo;
+import hue.captains.singapura.js.homing.core.MembraneCue;
 import hue.captains.singapura.js.homing.core.ModuleNameResolver;
+import hue.captains.singapura.js.homing.core.NoiseCue;
+import hue.captains.singapura.js.homing.core.NoteHit;
+import hue.captains.singapura.js.homing.core.OscCue;
 import hue.captains.singapura.js.homing.core.SimpleAppResolver;
+import hue.captains.singapura.js.homing.core.ThemeAudio;
+import hue.captains.singapura.js.homing.core.ToneNotation;
 import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.ParamMarshaller;
 import io.vertx.ext.web.RoutingContext;
@@ -26,19 +35,26 @@ public class AppHtmlGetAction
     private final ModuleNameResolver nameResolver;
     private final SimpleAppResolver appResolver;   // may be null in legacy-only mode
     private final ThemeRegistry themeRegistry;     // RFC 0002-ext1 — for the theme picker widget
+    private final AppMeta meta;                    // downstream-supplied brand label
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver) {
-        this(nameResolver, null, ThemeRegistry.EMPTY);
+        this(nameResolver, null, ThemeRegistry.EMPTY, AppMeta.DEFAULT);
     }
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver) {
-        this(nameResolver, appResolver, ThemeRegistry.EMPTY);
+        this(nameResolver, appResolver, ThemeRegistry.EMPTY, AppMeta.DEFAULT);
     }
 
     public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver, ThemeRegistry themeRegistry) {
+        this(nameResolver, appResolver, themeRegistry, AppMeta.DEFAULT);
+    }
+
+    public AppHtmlGetAction(ModuleNameResolver nameResolver, SimpleAppResolver appResolver,
+                             ThemeRegistry themeRegistry, AppMeta meta) {
         this.nameResolver = nameResolver;
         this.appResolver = appResolver;
         this.themeRegistry = themeRegistry != null ? themeRegistry : ThemeRegistry.EMPTY;
+        this.meta = meta != null ? meta : AppMeta.DEFAULT;
     }
 
     @Override
@@ -114,6 +130,7 @@ public class AppHtmlGetAction
         String localeJs = query.locale() != null ? "\"" + query.locale() + "\"" : "null";
         String themePickerHtml = renderThemePicker(effectiveTheme);
         String backdropHtml    = renderBackdrop(effectiveTheme);
+        String audioHtml       = renderAudioRuntime(effectiveTheme);
 
         String html = """
                 <!DOCTYPE html>
@@ -121,10 +138,34 @@ public class AppHtmlGetAction
                 <head>
                     <meta charset="UTF-8">
                     <title>%s</title>
+                    <!-- Inline SVG favicon — silences the browser's automatic
+                         /favicon.ico request without a static asset round-trip.
+                         Amber H matches the studio brand's accent. Upgraded to
+                         the studio's brand logo (when registered) by the small
+                         /brand-fetch script below. -->
+                    <link rel="icon" id="__homing_favicon__" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text x='50%%' y='55%%' text-anchor='middle' dominant-baseline='central' font-family='Georgia,serif' font-weight='700' font-size='44' fill='%%23F4B942'>H</text></svg>">
+                    <script>
+                        // Upgrade the favicon to the studio's brand logo when
+                        // /brand is registered AND carries a non-empty `logo`.
+                        // Degrades silently — studios without StudioBrand wiring,
+                        // or with no logo, keep the framework-default amber H.
+                        fetch("/brand").then(function (r) { return r.ok ? r.json() : null; })
+                            .then(function (brand) {
+                                if (!brand || !brand.logo) return;
+                                var link = document.getElementById("__homing_favicon__");
+                                if (!link) return;
+                                // btoa needs binary; unescape(encodeURIComponent(...))
+                                // is the canonical UTF-8-safe encoding bridge.
+                                link.href = "data:image/svg+xml;base64,"
+                                          + btoa(unescape(encodeURIComponent(brand.logo)));
+                            })
+                            .catch(function () { /* fetch failed — keep the default */ });
+                    </script>
                 </head>
                 <body>
                     %s
                     <div id="app"></div>
+                    %s
                     %s
                     <script type="module">
                         // RFC 0002: theme is opt-in. If the URL didn't carry ?theme=, we
@@ -141,7 +182,8 @@ public class AppHtmlGetAction
                     </script>
                 </body>
                 </html>
-                """.formatted(app.title(), backdropHtml, themePickerHtml, themeJs, localeJs, baseModuleUrl);
+                """.formatted(htmlEscape(app.title() + " · " + meta.label()),
+                              backdropHtml, themePickerHtml, audioHtml, themeJs, localeJs, baseModuleUrl);
 
         return CompletableFuture.completedFuture(new HtmlPageContent(html));
     }
@@ -231,6 +273,684 @@ public class AppHtmlGetAction
         var svg = ref.resolve().orElse("");
         if (svg.isBlank()) return "";
         return "<div class=\"theme-backdrop\" aria-hidden=\"true\">" + svg + "</div>";
+    }
+
+    /**
+     * RFC 0007 — Per-theme audio runtime. When the active theme declares
+     * a non-null {@link hue.captains.singapura.js.homing.core.Theme#audio()},
+     * inject:
+     * <ol>
+     *   <li>The typed cue bindings serialised inline as a JS object literal
+     *       (keys are ClickTarget classTokens; values are typed cue records).</li>
+     *   <li>A small runtime that lazy-imports Tone.js on first user gesture,
+     *       attaches a single delegated click listener, and plays the bound
+     *       cue when an element carrying a target's classToken is clicked.</li>
+     *   <li>A mute toggle button next to the theme picker, persisted via
+     *       {@code localStorage}.</li>
+     * </ol>
+     *
+     * <p>Themes without audio emit the empty string — Tone.js stays out of
+     * the page bundle entirely on those pages.</p>
+     */
+    private String renderAudioRuntime(String currentTheme) {
+        if (currentTheme == null) return "";
+        var theme = themeRegistry.themes().stream()
+                .filter(t -> currentTheme.equals(t.slug()))
+                .findFirst().orElse(null);
+        if (theme == null) return "";
+        ThemeAudio<?> audio = theme.audio();
+        if (audio == null || audio.bindings().isEmpty()) return "";
+
+        // Resolve the ToneJs module URL. The framework's name resolver
+        // gives us the canonical path; we strip any leading query so
+        // it's reusable as an import specifier.
+        String toneClass = "hue.captains.singapura.js.homing.libs.ToneJs";
+        String toneUrl = "/module?class=" + toneClass;
+
+        // Emit cue bindings as a JS object literal — typed-record-to-JS-data
+        // by exhaustive sealed switch. No string parsing on the runtime path.
+        StringBuilder bindingsJs = new StringBuilder("{");
+        boolean firstBinding = true;
+        for (var entry : audio.bindings().entrySet()) {
+            if (!firstBinding) bindingsJs.append(",");
+            firstBinding = false;
+            ClickTarget<?> target = entry.getKey();
+            Cue cue = entry.getValue();
+            bindingsJs.append("\n        ")
+                      .append(jsQuote(target.classToken()))
+                      .append(": ")
+                      .append(emitCueJs(cue));
+        }
+        bindingsJs.append("\n    }");
+
+        // Emit hover bindings — { "st-card": <cue>, ... }. Same shape as
+        // AUDIO_BINDINGS but a different event triggers them (mouseover
+        // entry instead of click). Themes opt in; default empty.
+        StringBuilder hoverBindingsJs = new StringBuilder("{");
+        boolean firstHover = true;
+        for (var entry : audio.hoverBindings().entrySet()) {
+            if (!firstHover) hoverBindingsJs.append(",");
+            firstHover = false;
+            ClickTarget<?> target = entry.getKey();
+            Cue cue = entry.getValue();
+            hoverBindingsJs.append("\n        ")
+                           .append(jsQuote(target.classToken()))
+                           .append(": ")
+                           .append(emitCueJs(cue));
+        }
+        hoverBindingsJs.append("\n    }");
+
+        // Emit key bindings — { "KeyA": "drum-kick", "KeyS": "drum-snare", ... }.
+        // Mapping is event.code → classToken so the runtime can dispatch keydown
+        // through the same playCue path as a click. RFC 0008 Phase 2.
+        StringBuilder keyBindingsJs = new StringBuilder("{");
+        StringBuilder keyLabelsJs   = new StringBuilder("{");
+        boolean firstKey = true;
+        // The compiler can't prove the wildcard ClickTarget<?> from
+        // ThemeAudio<?>.keyBindings() shares its type parameter with the
+        // class tokens used by bindings(), but at runtime they share the
+        // same theme instance so the classToken keys line up. We just
+        // emit each binding's eventCode + classToken + displayLabel.
+        for (var e : audio.keyBindings().entrySet()) {
+            KeyCombo key = e.getKey();
+            ClickTarget<?> target = e.getValue();
+            if (!firstKey) { keyBindingsJs.append(","); keyLabelsJs.append(","); }
+            firstKey = false;
+            keyBindingsJs.append("\n        ")
+                         .append(jsQuote(key.eventCode())).append(": ")
+                         .append(jsQuote(target.classToken()));
+            keyLabelsJs.append("\n        ")
+                       .append(jsQuote(key.eventCode())).append(": ")
+                       .append("{ label: ").append(jsQuote(key.displayLabel()))
+                       .append(", target: ").append(jsQuote(target.classToken())).append(" }");
+        }
+        keyBindingsJs.append("\n    }");
+        keyLabelsJs.append("\n    }");
+        String themeSlugJs = jsQuote(currentTheme);
+
+        // Emit the shared vocal palette — 11 Tone.js note strings the
+        // runtime cycles through when baking a cue with paletteMode=VOCAL.
+        StringBuilder paletteJsBuilder = new StringBuilder("[");
+        boolean firstPaletteNote = true;
+        for (var note : hue.captains.singapura.js.homing.core.VocalPalette.NOTES) {
+            if (!firstPaletteNote) paletteJsBuilder.append(", ");
+            firstPaletteNote = false;
+            paletteJsBuilder.append(jsQuote(ToneNotation.forNote(note)));
+        }
+        paletteJsBuilder.append("]");
+        String paletteJs = paletteJsBuilder.toString();
+
+        // Emit the chord palette — 6 chords, each a list of Tone.js note
+        // strings. Cues with paletteMode=CHORD render one buffer per chord
+        // (all notes simultaneously). Selection semantics match VOCAL:
+        // hash on element identity for hover, random for click.
+        StringBuilder chordPaletteJsBuilder = new StringBuilder("[");
+        boolean firstChord = true;
+        for (var chord : hue.captains.singapura.js.homing.core.ChordPalette.CHORDS) {
+            if (!firstChord) chordPaletteJsBuilder.append(", ");
+            firstChord = false;
+            chordPaletteJsBuilder.append("[");
+            boolean firstNoteInChord = true;
+            for (var note : chord) {
+                if (!firstNoteInChord) chordPaletteJsBuilder.append(", ");
+                firstNoteInChord = false;
+                chordPaletteJsBuilder.append(jsQuote(ToneNotation.forNote(note)));
+            }
+            chordPaletteJsBuilder.append("]");
+        }
+        chordPaletteJsBuilder.append("]");
+        String chordPaletteJs = chordPaletteJsBuilder.toString();
+
+        return """
+                <script type="module">
+                    // RFC 0007 (cues) + RFC 0008 Phase 2 (keyboard play + per-theme prefs)
+                    // theme-audio runtime. Inlined to avoid a separate request for
+                    // ~120 lines of JS. The cue + key bindings are emitted by
+                    // AppHtmlGetAction from typed Java records.
+                    const AUDIO_BINDINGS = __AUDIO_BINDINGS__;
+                    const HOVER_BINDINGS = __HOVER_BINDINGS__;   // token → cue, triggered on mouseover entry
+                    const KEY_BINDINGS   = __KEY_BINDINGS__;     // event.code → classToken
+                    const KEY_LABELS     = __KEY_LABELS__;       // event.code → { label, target } for the panel
+                    const VOCAL_PALETTE  = __VOCAL_PALETTE__;    // 11 Tone.js note strings — C3..B5
+                    const CHORD_PALETTE  = __CHORD_PALETTE__;    // 6 chord arrays — diatonic C major
+                    const TONE_URL       = "__TONE_URL__";
+                    const THEME_SLUG     = __THEME_SLUG__;
+                    // Session-only random salt — re-rolls each tab load. Used to
+                    // map elements to palette pitches; same element + same salt
+                    // always picks the same variant within a session.
+                    const SESSION_SALT   = (Math.random() * 2147483647) | 0;
+                    const DURATION_MAP   = { "1n":"1n","2n":"2n","4n":"4n","8n":"8n","16n":"16n","32n":"32n","64n":"64n" };
+
+                    // Per-theme localStorage prefs (RFC 0008 §4.4). Each theme gets
+                    // its own mute + play-mode state; switching themes preserves them
+                    // independently. Older global `homing-audio-muted` is silently
+                    // dropped — first-time-each-theme starts unmuted.
+                    const PREF_MUTED     = "homing-theme:" + THEME_SLUG + ":muted";
+                    const PREF_PLAY_MODE = "homing-theme:" + THEME_SLUG + ":play-mode";
+
+                    let tonePromise = null;
+                    let audioReady = false;
+                    let clickBuffers = null;       // Map<classToken, AudioBuffer[]> — click cues (variants per token)
+                    let hoverBuffers = null;       // Map<classToken, AudioBuffer[]> — hover cues
+                    let audioContext = null;       // raw Web Audio context — borrowed from Tone
+                    const inFlightUntil = new Map();
+                    // Per-element hover debounce (RFC 0008 fast-sweep fix). Different
+                    // cards never throttle each other; the same card gets a tiny
+                    // safety window against cursor-jitter duplicate mouseover events.
+                    const hoverInFlight = new WeakMap();
+
+                    // Themes that use universal `body, body * { pointer-events: none }`
+                    // plumbing (Maple Bridge for moon hover, Retro 90s for icon hover)
+                    // block click events on every element not explicitly restored.
+                    // Every audio-bound class token needs pointer-events: auto so
+                    // clicks reach it. Restoring the parent isn't enough when the
+                    // element is a <g> with unclassed children (e.g. <g class="mb-temple">
+                    // contains 8 rects/paths/circles) — the click target is a child,
+                    // which has its own `body *` pointer-events: none unless we
+                    // explicitly restore descendants too. Inject one unlayered
+                    // <style> covering both the element and its descendants —
+                    // unlayered rules outrank any @layer at the same origin level.
+                    const peStyle = document.createElement("style");
+                    // Union of click + hover tokens — both kinds need pointer-events
+                    // restored so the universal `body * { pointer-events: none }`
+                    // plumbing (used by Maple Bridge / Retro 90s for backdrop
+                    // hover) doesn't block them. Set semantics dedup naturally.
+                    const peTokens = Array.from(new Set([
+                        ...Object.keys(AUDIO_BINDINGS),
+                        ...Object.keys(HOVER_BINDINGS)
+                    ]));
+                    const peRules = peTokens
+                            .map(t => "body ." + t + ", body ." + t + " * { pointer-events: auto; cursor: pointer; }")
+                            .join("\\n");
+                    // Default visual play feedback — a subtle compress-and-bounce
+                    // that reads as "this was struck." Themes override per-class
+                    // for instrument-specific feels (drum compress, cymbal shimmer).
+                    // transform: scale composes with the independent `scale:`
+                    // property used by hover effects, so hover-while-playing
+                    // multiplies cleanly.
+                    const playedDefaults =
+                        "@keyframes homing-audio-played { " +
+                        "  0%   { transform: scale(1); } " +
+                        "  30%  { transform: scale(0.94); } " +
+                        "  60%  { transform: scale(1.03); } " +
+                        "  100% { transform: scale(1); } " +
+                        "} " +
+                        // Only CLICK-bound tokens get the played animation;
+                        // hover triggers skipPulse so this rule isn't relevant
+                        // for hover-only bindings.
+                        Object.keys(AUDIO_BINDINGS)
+                            .map(t => "body ." + t + ".played { animation: homing-audio-played 220ms ease-out; transform-origin: center; transform-box: fill-box; }")
+                            .join("\\n");
+                    peStyle.textContent = peRules + "\\n" + playedDefaults;
+                    document.head.appendChild(peStyle);
+
+                    function muted()    { return localStorage.getItem(PREF_MUTED) === "1"; }
+                    function playMode() { return localStorage.getItem(PREF_PLAY_MODE) === "1"; }
+
+                    // Approximate seconds per Tone.js duration string, at default 120 BPM.
+                    // Used to size the offline-render duration per cue — we render long
+                    // enough to capture each note's held portion + its release tail.
+                    function durationSec(d) {
+                        switch (d) {
+                            case "1n":  return 2.0;
+                            case "2n":  return 1.0;
+                            case "4n":  return 0.5;
+                            case "8n":  return 0.25;
+                            case "16n": return 0.125;
+                            case "32n": return 0.0625;
+                            case "64n": return 0.03125;
+                            default:    return 0.5;
+                        }
+                    }
+
+                    // Generous offline-render duration: longest note's
+                    // (offset + held + release) + a small tail buffer.
+                    // For multi-partial cues (bells, chords), this covers the
+                    // slowest-decaying voice.
+                    function cueRenderDuration(cue) {
+                        let maxEnd = 0;
+                        const env = cue.env || { release: 0.5 };
+                        for (const hit of cue.notes) {
+                            const held = durationSec(DURATION_MAP[hit.duration] || hit.duration);
+                            const end = (hit.offsetMs / 1000) + held + (env.release || 0.5) + 0.05;
+                            if (end > maxEnd) maxEnd = end;
+                        }
+                        return Math.max(maxEnd, 0.1);
+                    }
+
+                    // Build a Tone synth voice for the given cue inside the current
+                    // active Tone context — used during Tone.Offline rendering, where
+                    // every Tone constructor attaches to the offline destination.
+                    // When cue.distortion > 0, route through a Tone.Distortion node
+                    // before destination for the gritty electric-guitar feel.
+                    function makeSynth(cue, tone) {
+                        let synth;
+                        switch (cue.kind) {
+                            case "OSC":      synth = new tone.Synth({ oscillator: { type: cue.type }, envelope: cue.env, volume: cue.volumeDb }); break;
+                            case "MEMBRANE": synth = new tone.MembraneSynth({ pitchDecay: cue.pitchDecay, octaves: cue.octaves, envelope: cue.env, volume: cue.volumeDb }); break;
+                            case "NOISE":    synth = new tone.NoiseSynth({ envelope: cue.env, volume: cue.volumeDb }); break;
+                        }
+                        if (cue.distortion && cue.distortion > 0) {
+                            // Tone.Distortion (waveshaper) feeding the offline destination.
+                            // Both nodes auto-route into the active offline context's
+                            // destination graph — same place .toDestination() would.
+                            const dist = new tone.Distortion(cue.distortion).toDestination();
+                            synth.connect(dist);
+                        } else {
+                            synth.toDestination();
+                        }
+                        return synth;
+                    }
+
+                    // Render ONE buffer for a cue at an optional palette entry.
+                    //   paletteEntry === null:
+                    //       Use cue.notes verbatim (single-buffer case).
+                    //   paletteEntry is a string (Tone.js note):
+                    //       Override every NoteHit's pitch with this single pitch
+                    //       (VOCAL palette case — same envelope, different pitch).
+                    //   paletteEntry is an array of strings (chord):
+                    //       Play all chord pitches simultaneously, using the
+                    //       cue's first NoteHit as the duration template
+                    //       (CHORD palette case — full chord per buffer).
+                    async function bakeOneBuffer(cue, tone, paletteEntry) {
+                        const dur = cueRenderDuration(cue);
+                        const buf = await tone.Offline(() => {
+                            if (Array.isArray(paletteEntry)) {
+                                // CHORD — play every chord pitch simultaneously.
+                                // Use the cue's first NoteHit as the duration
+                                // template; each chord note gets its own synth
+                                // voice for clean polyphonic mixing.
+                                const template = cue.notes[0];
+                                const noteDuration = DURATION_MAP[template.duration] || template.duration;
+                                for (const chordPitch of paletteEntry) {
+                                    const synth = makeSynth(cue, tone);
+                                    synth.triggerAttackRelease(chordPitch, noteDuration, 0);
+                                }
+                                return;
+                            }
+                            for (const hit of cue.notes) {
+                                const synth = makeSynth(cue, tone);
+                                const startSec = hit.offsetMs / 1000;
+                                if (cue.kind === "NOISE") {
+                                    synth.triggerAttackRelease(DURATION_MAP[hit.duration] || hit.duration, startSec);
+                                } else {
+                                    const pitch = paletteEntry !== null ? paletteEntry : hit.note;
+                                    synth.triggerAttackRelease(pitch, DURATION_MAP[hit.duration] || hit.duration, startSec);
+                                }
+                            }
+                        }, dur);
+                        return buf.get();
+                    }
+
+                    // Bake a cue to one OR MORE AudioBuffers. Branches on
+                    // paletteMode: VOCAL → one buffer per pitch in VOCAL_PALETTE;
+                    // CHORD → one buffer per chord in CHORD_PALETTE;
+                    // NONE (or NOISE regardless) → single buffer at declared pitches.
+                    // Returns an array — length 1 for single, 11 for VOCAL, 6 for CHORD.
+                    async function bakeCue(cue, tone) {
+                        if (cue.kind === "NOISE") {
+                            return [await bakeOneBuffer(cue, tone, null)];
+                        }
+                        if (cue.paletteMode === "VOCAL") {
+                            return Promise.all(
+                                VOCAL_PALETTE.map(pitch => bakeOneBuffer(cue, tone, pitch))
+                            );
+                        }
+                        if (cue.paletteMode === "CHORD") {
+                            return Promise.all(
+                                CHORD_PALETTE.map(chord => bakeOneBuffer(cue, tone, chord))
+                            );
+                        }
+                        return [await bakeOneBuffer(cue, tone, null)];
+                    }
+
+                    // Trigger a pre-baked cue. Each trigger creates a fresh
+                    // AudioBufferSourceNode — the natural one-shot polyphony
+                    // primitive of Web Audio. Source nodes auto-detach after
+                    // playback ends; no manual disposal needed. Rapid retriggers
+                    // overlap cleanly (the buffer plays N times concurrently, each
+                    // in its own node, summed at the destination).
+                    // Hash an element's textContent + session salt to a stable
+                    // index in [0, n). Used by hover triggers: same element +
+                    // same salt → same palette pitch every time within a
+                    // session; salt re-rolls per reload so the assignment
+                    // refreshes between visits.
+                    function hashIndex(el, n) {
+                        if (n <= 1) return 0;
+                        const text = (el.textContent || "").substring(0, 64);
+                        let h = SESSION_SALT;
+                        for (let i = 0; i < text.length; i++) {
+                            h = ((h << 5) - h + text.charCodeAt(i)) | 0;
+                        }
+                        return Math.abs(h) % n;
+                    }
+
+                    function playCue(token, buffers, opts) {
+                        const variants = buffers ? buffers.get(token) : null;
+                        if (!variants || variants.length === 0 || !audioContext) return;
+                        // Variant selection — three modes:
+                        //   1. Single-variant cue → that one buffer.
+                        //   2. Multi-variant cue + hover trigger → hash on element.
+                        //   3. Multi-variant cue + click trigger → random (humanization).
+                        let buffer;
+                        if (variants.length === 1) {
+                            buffer = variants[0];
+                        } else if (opts && opts.hoverElement) {
+                            buffer = variants[hashIndex(opts.hoverElement, variants.length)];
+                        } else {
+                            buffer = variants[Math.floor(Math.random() * variants.length)];
+                        }
+                        const source = audioContext.createBufferSource();
+                        source.buffer = buffer;
+                        source.connect(audioContext.destination);
+                        source.start();
+                        // Visual pulse for click/keyboard triggers; skip on hover
+                        // because the existing CSS hover-grow already provides
+                        // visual feedback — doubling them looks busy.
+                        if (!opts || !opts.skipPulse) pulse(token);
+                        // Tiny debounce — prevents accidental double-fire from
+                        // a single click release event. Short enough to let fast
+                        // drumming work (30 ms allows ~30 hits/second).
+                        inFlightUntil.set(token, Date.now() + 30);
+                    }
+
+                    // Visual play feedback — add transient `.played` class to
+                    // every element carrying this token, force reflow to restart
+                    // the CSS animation, clear after 220 ms. WeakMap tracks the
+                    // pending removal per element so rapid retriggers don't
+                    // cancel each other mid-animation. RFC 0008 Phase 2.
+                    const pulseTimers = new WeakMap();
+                    function pulse(token) {
+                        const els = document.querySelectorAll("." + CSS.escape(token));
+                        els.forEach((el) => {
+                            const prev = pulseTimers.get(el);
+                            if (prev) clearTimeout(prev);
+                            el.classList.remove("played");
+                            void el.offsetWidth;  // force reflow to reset CSS animation
+                            el.classList.add("played");
+                            pulseTimers.set(el, setTimeout(() => {
+                                el.classList.remove("played");
+                                pulseTimers.delete(el);
+                            }, 220));
+                        });
+                    }
+
+                    async function bakeMap(bindings, tone) {
+                        const out = new Map();
+                        const tokens = Object.keys(bindings);
+                        const buffers = await Promise.all(tokens.map(t => bakeCue(bindings[t], tone)));
+                        tokens.forEach((t, i) => out.set(t, buffers[i]));
+                        return out;
+                    }
+
+                    async function ensureAudio() {
+                        if (!tonePromise) tonePromise = import(TONE_URL);
+                        const tone = await tonePromise;
+                        if (!audioReady) {
+                            await tone.start();
+                            audioReady = true;
+                            // Borrow the raw AudioContext for direct AudioBufferSourceNode
+                            // creation on trigger. Tone manages its own context lifecycle;
+                            // we just read from it.
+                            audioContext = tone.getContext().rawContext;
+                            // Bake every click + hover cue in parallel. Each Tone.Offline
+                            // call renders its own short audio buffer. With ~5–15 cues per
+                            // theme and ~50–500 ms render time each, the total bake
+                            // completes in under a second on modest hardware.
+                            const [c, h] = await Promise.all([
+                                bakeMap(AUDIO_BINDINGS, tone),
+                                bakeMap(HOVER_BINDINGS, tone)
+                            ]);
+                            clickBuffers = c;
+                            hoverBuffers = h;
+                        }
+                        return tone;
+                    }
+
+                    // Combined selector — one CSS string matching any audio-bound class.
+                    // Element.closest() walks up the DOM tree matching this selector,
+                    // which is more robust than a manual parentNode loop (handles
+                    // SVG element boundaries, document fragments, etc., uniformly).
+                    const AUDIO_SELECTOR = Object.keys(AUDIO_BINDINGS).map(t => "." + t).join(",");
+
+                    document.body.addEventListener("click", async (e) => {
+                        if (muted()) return;
+                        if (!e.target || !e.target.closest) return;
+                        const matched = e.target.closest(AUDIO_SELECTOR);
+                        if (!matched) return;
+                        // Find which binding's class is on the matched element. With a
+                        // combined selector, multiple bindings could theoretically match
+                        // (one element with multiple bound classes); first match wins.
+                        let token = null;
+                        for (const t of Object.keys(AUDIO_BINDINGS)) {
+                            if (matched.classList.contains(t)) { token = t; break; }
+                        }
+                        if (!token) return;
+                        const now = Date.now();
+                        if ((inFlightUntil.get(token) || 0) > now) return;
+                        // ensureAudio() bakes every cue on first call; subsequent
+                        // calls short-circuit. playCue() reads from clickBuffers.
+                        await ensureAudio();
+                        playCue(token, clickBuffers);
+                    });
+
+                    // RFC 0008 Phase 2 — keyboard play. Only fires when play mode
+                    // is explicitly enabled (per-theme toggle, persisted to
+                    // localStorage). Modifier-key presses (Ctrl/Cmd/Alt + letter)
+                    // pass through so browser shortcuts and assistive tech keep
+                    // working. Tab / Escape / arrows / function keys are never
+                    // bindable — see KeyCombo.java exclusion list.
+                    document.addEventListener("keydown", async (e) => {
+                        if (!playMode() || muted()) return;
+                        if (e.ctrlKey || e.metaKey || e.altKey) return;
+                        if (e.repeat) return;  // key-held = single trigger, not auto-repeat
+                        const token = KEY_BINDINGS[e.code];
+                        if (!token) return;
+                        e.preventDefault();
+                        const now = Date.now();
+                        if ((inFlightUntil.get(token) || 0) > now) return;
+                        await ensureAudio();
+                        playCue(token, clickBuffers);
+                    });
+
+                    // Hover cues — RFC 0008 hover extension. mouseover bubbles
+                    // (mouseenter doesn't, so delegation requires mouseover).
+                    // The relatedTarget contained-by-current-target check filters
+                    // movement WITHIN an already-entered element down to a single
+                    // "entered" event.
+                    //
+                    // Throttling is PER-ELEMENT, not global: different cards never
+                    // throttle each other, so fast cursor sweeps fire a sound on
+                    // each card crossed. The same card has an 80 ms debounce to
+                    // suppress duplicate mouseover events caused by browser
+                    // cursor-jitter or subpixel re-entries.
+                    const HOVER_SELECTOR = Object.keys(HOVER_BINDINGS).map(t => "." + t).join(",");
+                    if (HOVER_SELECTOR.length > 0) {
+                        document.body.addEventListener("mouseover", async (e) => {
+                            if (muted()) return;
+                            if (!e.target || !e.target.closest) return;
+                            const matched = e.target.closest(HOVER_SELECTOR);
+                            if (!matched) return;
+                            // Filter "moved within element" — the relatedTarget is
+                            // where the cursor came from. If it's already inside
+                            // the matched element, this is in-bounds movement, not
+                            // a fresh entry.
+                            const related = e.relatedTarget;
+                            if (related && matched.contains(related)) return;
+                            // Per-element debounce — different cards always fire;
+                            // same card needs an 80 ms gap to re-fire.
+                            const now = Date.now();
+                            if ((hoverInFlight.get(matched) || 0) > now) return;
+                            hoverInFlight.set(matched, now + 80);
+                            let token = null;
+                            for (const t of Object.keys(HOVER_BINDINGS)) {
+                                if (matched.classList.contains(t)) { token = t; break; }
+                            }
+                            if (!token) return;
+                            await ensureAudio();
+                            // skipPulse — the existing CSS hover-grow already
+                            // provides visual feedback; adding the .played pulse
+                            // would compete with it.
+                            // hoverElement — passed so variants are selected via
+                            // hash on the specific card / list-item / TOC element,
+                            // making the same element always play its own pitch
+                            // within a session.
+                            playCue(token, hoverBuffers, {
+                                skipPulse: true,
+                                hoverElement: matched
+                            });
+                        });
+                    }
+
+                    // Theme control panel — RFC 0008 Phase 2. Two buttons next
+                    // to the theme picker: mute toggle (always present when a
+                    // theme has audio), play-mode toggle (only present when the
+                    // theme declares keyBindings). The play button's title
+                    // attribute shows the binding map as a tooltip — discoverable
+                    // without a full popover UI.
+                    function makeBtn(label, title) {
+                        const b = document.createElement("button");
+                        b.type = "button";
+                        b.textContent = label;
+                        b.title = title;
+                        b.style.cssText = "font:inherit;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--color-text-on-inverted);cursor:pointer;padding:2px 8px;border-radius:4px;margin-left:6px;transition:background 120ms ease;";
+                        return b;
+                    }
+
+                    function buildKeyTooltip() {
+                        let lines = ["Play mode — keyboard plays sounds.", "Press the key to fire its cue."];
+                        for (const code of Object.keys(KEY_LABELS)) {
+                            const k = KEY_LABELS[code];
+                            lines.push("  " + k.label + " → " + k.target);
+                        }
+                        return lines.join("\\n");
+                    }
+
+                    function installControlPanel() {
+                        const slot = document.getElementById("__theme_picker_slot__");
+                        if (!slot) return;
+
+                        // Mute toggle.
+                        const muteBtn = makeBtn("🔊", "Toggle audio");
+                        muteBtn.id = "__audio_toggle__";
+                        muteBtn.setAttribute("aria-label", "Toggle audio");
+                        const updateMute = () => { muteBtn.textContent = muted() ? "🔇" : "🔊"; };
+                        updateMute();
+                        muteBtn.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            localStorage.setItem(PREF_MUTED, muted() ? "0" : "1");
+                            updateMute();
+                        });
+                        slot.appendChild(muteBtn);
+
+                        // Play-mode toggle — only present when the theme declares
+                        // keyBindings. When ON, keydowns fire bound cues.
+                        if (Object.keys(KEY_BINDINGS).length > 0) {
+                            const playBtn = makeBtn("▷", buildKeyTooltip());
+                            playBtn.id = "__play_mode_toggle__";
+                            playBtn.setAttribute("aria-label", "Toggle keyboard play mode");
+                            const updatePlay = () => {
+                                playBtn.textContent = playMode() ? "▶" : "▷";
+                                playBtn.style.background = playMode() ? "rgba(255,230,80,0.25)" : "transparent";
+                                playBtn.style.borderColor = playMode() ? "rgba(255,230,80,0.6)" : "rgba(255,255,255,0.15)";
+                            };
+                            updatePlay();
+                            playBtn.addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                localStorage.setItem(PREF_PLAY_MODE, playMode() ? "0" : "1");
+                                updatePlay();
+                            });
+                            slot.appendChild(playBtn);
+                        }
+                    }
+                    if (document.readyState === "loading") {
+                        document.addEventListener("DOMContentLoaded", installControlPanel);
+                    } else {
+                        installControlPanel();
+                    }
+                </script>
+                """
+                // Named-placeholder substitution. Plain String.replace() makes
+                // `%` an ordinary character throughout the JS source — no more
+                // format-specifier collisions with CSS keyframes (0%, 30%, …),
+                // modulo operators (h % n), or any other `%` we might want to
+                // emit. The placeholder tokens are `__NAME__` style so they
+                // can't collide with anything in the typed cue JS, the Tone
+                // module URL, or theme slugs. One pass per placeholder; later
+                // replacements never re-scan earlier outputs.
+                .replace("__AUDIO_BINDINGS__", bindingsJs.toString())
+                .replace("__HOVER_BINDINGS__", hoverBindingsJs.toString())
+                .replace("__KEY_BINDINGS__",   keyBindingsJs.toString())
+                .replace("__KEY_LABELS__",     keyLabelsJs.toString())
+                .replace("__VOCAL_PALETTE__",  paletteJs)
+                .replace("__CHORD_PALETTE__",  chordPaletteJs)
+                .replace("__TONE_URL__",       toneUrl)
+                .replace("__THEME_SLUG__",     themeSlugJs);
+    }
+
+    /** Emit one {@link Cue} as a JS object literal. Sealed-switch exhaustive
+     *  over the three permits; field access is by record component, not by
+     *  reflection-on-name. */
+    private static String emitCueJs(Cue cue) {
+        return switch (cue) {
+            case OscCue o      -> emitOscCue(o);
+            case MembraneCue m -> emitMembraneCue(m);
+            case NoiseCue n    -> emitNoiseCue(n);
+        };
+    }
+
+    private static String emitOscCue(OscCue c) {
+        return "{ kind: \"OSC\", type: " + jsQuote(ToneNotation.forOsc(c.type())) +
+                ", env: " + emitEnvelope(c.env()) +
+                ", volumeDb: " + c.volumeDb() +
+                ", paletteMode: " + jsQuote(c.paletteMode().name()) +
+                ", distortion: " + c.distortion() +
+                ", notes: " + emitNotes(c.notes()) + " }";
+    }
+
+    private static String emitMembraneCue(MembraneCue c) {
+        return "{ kind: \"MEMBRANE\", pitchDecay: " + c.pitchDecay() +
+                ", octaves: " + c.octaves() +
+                ", env: " + emitEnvelope(c.env()) +
+                ", volumeDb: " + c.volumeDb() +
+                ", paletteMode: " + jsQuote(c.paletteMode().name()) +
+                ", notes: " + emitNotes(c.notes()) + " }";
+    }
+
+    private static String emitNoiseCue(NoiseCue c) {
+        // NoiseCue's paletteMode is structurally present but unused at
+        // bake time — pitch shift on un-pitched noise is imperceptible.
+        // Field omitted from JS for a cleaner cue object.
+        return "{ kind: \"NOISE\", env: " + emitEnvelope(c.env()) +
+                ", volumeDb: " + c.volumeDb() +
+                ", notes: " + emitNotes(c.notes()) + " }";
+    }
+
+    private static String emitEnvelope(hue.captains.singapura.js.homing.core.Envelope e) {
+        return "{ attack: " + e.attack() + ", decay: " + e.decay() +
+               ", sustain: " + e.sustain() + ", release: " + e.release() + " }";
+    }
+
+    private static String emitNotes(java.util.List<NoteHit> notes) {
+        StringBuilder sb = new StringBuilder("[");
+        boolean first = true;
+        for (var hit : notes) {
+            if (!first) sb.append(", ");
+            first = false;
+            sb.append("{ note: ").append(jsQuote(ToneNotation.forNote(hit.note())))
+              .append(", duration: ").append(jsQuote(ToneNotation.forDuration(hit.duration())))
+              .append(", offsetMs: ").append(hit.offsetMs())
+              .append(" }");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    /** JS string literal — backslash-escape quotes + backslashes. The runtime
+     *  never parses these; they're emitted from typed-enum constants and
+     *  ClickTarget records, so the content is always safe ASCII. */
+    private static String jsQuote(String s) {
+        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     private static String htmlEscape(String s) {

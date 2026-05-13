@@ -14,8 +14,14 @@ import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ReleasesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ArchitectureRfcsCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ContentRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.OperationsJourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.RfcJourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.RfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
+import hue.captains.singapura.js.homing.studio.es.VisualSystemRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.StudioLogo;
 import hue.captains.singapura.js.homing.studio.rename.RenamePlanData;
 import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001PlanData;
@@ -25,6 +31,7 @@ import hue.captains.singapura.js.homing.studio.rfc0004.Rfc0004PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0004ext1.Rfc0004Ext1PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0005.Rfc0005PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0005ext1.Rfc0005Ext1PlanData;
+import hue.captains.singapura.js.homing.studio.instruments.InstrumentsPlanData;
 import hue.captains.singapura.js.homing.studio.release.V1PlanData;
 
 import java.util.List;
@@ -51,7 +58,13 @@ public class StudioServer {
         List<Catalogue> catalogues = List.of(
                 StudioCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
+                RfcsCatalogue.INSTANCE,
+                ArchitectureRfcsCatalogue.INSTANCE,
+                ContentRfcsCatalogue.INSTANCE,
+                VisualSystemRfcsCatalogue.INSTANCE,
                 JourneysCatalogue.INSTANCE,
+                RfcJourneysCatalogue.INSTANCE,
+                OperationsJourneysCatalogue.INSTANCE,
                 BuildingBlocksCatalogue.INSTANCE,
                 ReleasesCatalogue.INSTANCE
         );
@@ -66,7 +79,8 @@ public class StudioServer {
                 Rfc0004Ext1PlanData.INSTANCE,
                 Rfc0005PlanData.INSTANCE,
                 Rfc0005Ext1PlanData.INSTANCE,
-                V1PlanData.INSTANCE
+                V1PlanData.INSTANCE,
+                InstrumentsPlanData.INSTANCE
         );
 
         // RFC 0005: brand as injectable per-installation config.

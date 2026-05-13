@@ -2,8 +2,8 @@ package hue.captains.singapura.js.homing.skills;
 
 import hue.captains.singapura.js.homing.studio.base.Doc;
 import hue.captains.singapura.js.homing.studio.base.DocProvider;
-import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
+import hue.captains.singapura.js.homing.studio.base.app.L0_Catalogue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +18,14 @@ import java.util.List;
  * surfaces it as a new tile here (and dumps it via the CLI). No per-skill
  * registration on this side.</p>
  */
-public record SkillsHome() implements Catalogue, DocProvider {
+public record SkillsHome() implements L0_Catalogue, DocProvider {
 
     public static final SkillsHome INSTANCE = new SkillsHome();
 
     @Override public String name()    { return "Homing Skills"; }
     @Override public String summary() { return "Skill recipes for working with the Homing framework — readable by humans here, dumpable as SKILL.md files for Claude Code agents via the CLI."; }
 
-    @Override public List<Entry> entries() {
+    @Override public List<Entry> leaves() {
         List<Entry> entries = new ArrayList<>();
         entries.add(Entry.of(SkillsAboutDoc.INSTANCE));
         for (SkillsManifest.Entry e : SkillsManifest.ALL) {

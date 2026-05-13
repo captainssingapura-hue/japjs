@@ -6,8 +6,14 @@ import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
 import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ArchitectureRfcsCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ContentRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.OperationsJourneysCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ReleasesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.RfcJourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.RfcsCatalogue;
+import hue.captains.singapura.js.homing.studio.es.VisualSystemRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +53,13 @@ class StudioCatalogueConstructsTest {
         var catalogues = List.of(
                 StudioCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
+                RfcsCatalogue.INSTANCE,
+                ArchitectureRfcsCatalogue.INSTANCE,
+                ContentRfcsCatalogue.INSTANCE,
+                VisualSystemRfcsCatalogue.INSTANCE,
                 JourneysCatalogue.INSTANCE,
+                RfcJourneysCatalogue.INSTANCE,
+                OperationsJourneysCatalogue.INSTANCE,
                 BuildingBlocksCatalogue.INSTANCE,
                 ReleasesCatalogue.INSTANCE
         );

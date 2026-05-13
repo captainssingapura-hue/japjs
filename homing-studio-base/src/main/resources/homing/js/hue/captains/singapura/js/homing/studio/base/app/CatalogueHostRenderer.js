@@ -62,6 +62,10 @@ function renderCatalogueHost(props) {
 function _renderCataloguePage(root, data, brandFallback) {
     var brand = data.brand || brandFallback;
 
+    // Browser tab title — `<catalogue> · <brand>`. Same pattern as DocReader
+    // and PlanHost. Replaces the static default served by AppHtmlGetAction.
+    document.title = data.name + (brand && brand.label ? " · " + brand.label : "");
+
     // Convert the registry-derived breadcrumb chain to the Header's expected shape.
     // The last crumb (current page) gets no href; preceding ones link to their
     // catalogue URL.

@@ -2,6 +2,9 @@ package hue.captains.singapura.js.homing.studio.base;
 
 import hue.captains.singapura.js.homing.server.EmptyParam;
 import hue.captains.singapura.js.homing.server.ResourceNotFound;
+import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
+import hue.captains.singapura.js.homing.studio.base.app.CatalogueRegistry;
 import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.Param;
 import hue.captains.singapura.tao.http.action.ParamMarshaller;
@@ -42,9 +45,22 @@ public class DocRefsGetAction
     public record Query(String id) implements Param._QueryString {}
 
     private final DocRegistry registry;
+    private final CatalogueRegistry catalogueRegistry;   // nullable
 
     public DocRefsGetAction(DocRegistry registry) {
+        this(registry, null);
+    }
+
+    /**
+     * RFC 0005-ext2: the catalogue registry powers the {@code breadcrumbs}
+     * field of the response, enabling DocReader to render a typed chain
+     * (root → ... → containing catalogue) above the doc title rather than
+     * a flat "Home" stub. May be {@code null} for studios with no catalogues
+     * configured — in that case the breadcrumbs array is empty.
+     */
+    public DocRefsGetAction(DocRegistry registry, CatalogueRegistry catalogueRegistry) {
         this.registry = Objects.requireNonNull(registry, "registry");
+        this.catalogueRegistry = catalogueRegistry;
     }
 
     @Override
@@ -74,7 +90,7 @@ public class DocRefsGetAction
             return CompletableFuture.failedFuture(notFound(raw, "No Doc registered with this UUID"));
         }
         try {
-            String body = serialize(doc);
+            String body = serialize(doc, catalogueRegistry);
             return CompletableFuture.completedFuture(new DocContent(body, "application/json; charset=utf-8"));
         } catch (Exception e) {
             return CompletableFuture.failedFuture(notFound(raw, "Failed to serialise references: " + e.getMessage()));
@@ -82,19 +98,54 @@ public class DocRefsGetAction
     }
 
     /**
-     * Serialise the Doc's metadata + references as JSON.
-     * Shape: {@code { "title": "...", "summary": "...", "category": "...", "references": [...] }}.
-     * The renderer uses {@code title} for breadcrumbs and the page meta line; the references
-     * array drives the per-Reference render in the References section.
+     * Serialise the Doc's metadata + references + breadcrumbs as JSON.
+     * Shape: {@code { "title": "...", "summary": "...", "category": "...",
+     *                "breadcrumbs": [{"text":"...","href":"..."}, ...],
+     *                "references": [...] }}.
+     *
+     * <p>The {@code breadcrumbs} array (RFC 0005-ext2) is the catalogue chain
+     * from the studio root down to the catalogue that contains the doc,
+     * inclusive. The renderer appends the doc title as the final (non-link)
+     * crumb. Empty when no {@link CatalogueRegistry} is wired or when the
+     * doc isn't referenced by any registered catalogue (DocBrowser-only docs).</p>
      */
-    static String serialize(Doc doc) {
+    static String serialize(Doc doc, CatalogueRegistry catalogueRegistry) {
         StringBuilder sb = new StringBuilder("{");
         sb.append("\"title\":")    .append(jstr(doc.title())).append(',');
         sb.append("\"summary\":")  .append(jstr(doc.summary())).append(',');
         sb.append("\"category\":") .append(jstr(doc.category())).append(',');
+        sb.append("\"breadcrumbs\":");
+        sb.append(serializeBreadcrumbs(doc, catalogueRegistry));
+        sb.append(',');
         sb.append("\"references\":");
         sb.append(serializeReferences(doc.references()));
         sb.append('}');
+        return sb.toString();
+    }
+
+    /** Two-arg form kept for tests/back-compat: no catalogue registry → empty breadcrumbs. */
+    static String serialize(Doc doc) { return serialize(doc, null); }
+
+    /**
+     * Serialise the breadcrumb chain (catalogues only — renderer appends the
+     * doc title). Each crumb has {@code text} (the catalogue name) and
+     * {@code href} (the catalogue URL).
+     */
+    static String serializeBreadcrumbs(Doc doc, CatalogueRegistry catalogueRegistry) {
+        StringBuilder sb = new StringBuilder("[");
+        if (catalogueRegistry != null) {
+            List<Catalogue> chain = catalogueRegistry.breadcrumbsForDoc(doc.uuid());
+            boolean first = true;
+            for (Catalogue c : chain) {
+                if (!first) sb.append(',');
+                first = false;
+                sb.append('{')
+                  .append("\"text\":").append(jstr(c.name())).append(',')
+                  .append("\"href\":").append(jstr(CatalogueAppHost.urlFor(c.getClass())))
+                  .append('}');
+            }
+        }
+        sb.append(']');
         return sb.toString();
     }
 

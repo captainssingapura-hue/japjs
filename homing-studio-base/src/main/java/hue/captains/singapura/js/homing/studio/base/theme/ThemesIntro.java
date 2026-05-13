@@ -30,7 +30,8 @@ public record ThemesIntro() implements AppModule<AppModule._None, ThemesIntro>, 
     public static final ThemesIntro INSTANCE = new ThemesIntro();
 
     @Override public String simpleName() { return "themes"; }
-    @Override public String title()      { return "studio · themes"; }
+    /** Page-kind label. {@code AppHtmlGetAction} appends the downstream brand. */
+    @Override public String title()      { return "themes"; }
 
     @Override
     public ImportsFor<ThemesIntro> imports() {

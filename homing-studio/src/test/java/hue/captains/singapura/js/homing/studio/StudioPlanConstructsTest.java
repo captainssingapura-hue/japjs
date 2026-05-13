@@ -5,6 +5,7 @@ import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
 import hue.captains.singapura.js.homing.studio.base.tracker.PlanRegistry;
 import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
+import hue.captains.singapura.js.homing.studio.instruments.InstrumentsPlanData;
 import hue.captains.singapura.js.homing.studio.rename.RenamePlanData;
 import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0002.Rfc0002PlanData;
@@ -47,7 +48,8 @@ class StudioPlanConstructsTest {
                 Rfc0004PlanData.INSTANCE,
                 Rfc0004Ext1PlanData.INSTANCE,
                 Rfc0005PlanData.INSTANCE,
-                V1PlanData.INSTANCE
+                V1PlanData.INSTANCE,
+                InstrumentsPlanData.INSTANCE
         );
 
         assertDoesNotThrow(() -> new PlanRegistry(plans, docRegistry));

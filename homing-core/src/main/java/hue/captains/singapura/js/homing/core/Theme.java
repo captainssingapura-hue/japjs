@@ -54,4 +54,25 @@ public interface Theme {
      * {@code SvgRef} pointing at an inline SVG illustration.</p>
      */
     default SvgRef<?> backdrop() { return null; }
+
+    /**
+     * Optional theme-audio binding — a {@link ThemeAudio} that maps
+     * typed {@link ClickTarget}s on this theme's surface to typed
+     * {@link Cue}s. RFC 0007.
+     *
+     * <p>Returning non-null causes the framework to:</p>
+     * <ol>
+     *   <li>Import the {@code ToneJs} bundled module on every page where
+     *       this theme is active.</li>
+     *   <li>Generate a small ES module containing this binding as a JS
+     *       object literal.</li>
+     *   <li>Inject a delegated click listener (the theme-audio runtime)
+     *       that plays the bound cue when the user clicks an element
+     *       carrying a target's {@link ClickTarget#classToken()}.</li>
+     * </ol>
+     *
+     * <p>Default {@code null} → no audio cues. Tone.js stays out of the
+     * page bundle entirely on audio-less themes.</p>
+     */
+    default ThemeAudio<?> audio() { return null; }
 }

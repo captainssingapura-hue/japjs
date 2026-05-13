@@ -31,10 +31,23 @@ In any catalogue declaration:
 
 ## What this doctrine permits
 
-- **Recursion to any depth.** A catalogue may contain catalogues to any depth; the same shape applies at every level.
-- **Multiple parents.** A catalogue can appear as an entry in more than one parent catalogue — identity is intrinsic, not parent-derived.
+- **Recursion to bounded depth.** A catalogue may contain sub-catalogues to a depth set by the framework's typed levels (`L0..L8` today, [see below](#typed-levels-rfc-0005-ext2)). The same shape applies at every level — what differs is the typed parent each level declares.
 - **Cross-doc references.** A doc may cite a catalogue via the typed reference mechanism, the same way it cites another doc.
 - **Themed rendering.** The default renderer supplies an elegant default; alternative renderers (per theme, per installation, per accessibility mode) replace the default without touching the catalogue data.
+
+---
+
+<a id="typed-levels-rfc-0005-ext2"></a>
+## Typed levels — the catalogue tree's shape ([RFC 0005-ext2](#ref:rfc-5-ext2))
+
+Catalogue is not a single interface. It is a sealed family of nine: `L0_Catalogue` (root), then `L1_Catalogue<P extends L0_Catalogue>`, `L2_Catalogue<P extends L1_Catalogue<?>>`, … up to `L8_Catalogue<P extends L7_Catalogue<?>>`. Every non-root level declares its parent's type as a generic parameter and exposes a typed `P parent()` accessor.
+
+Two consequences flow from this shape, and they're what the doctrine now commits to:
+
+- **One parent, fixed at compile time.** A given catalogue class is `L<N>_Catalogue<SomeParent>` — it can only declare one parent type. The "multiple parents" allowance the doctrine previously permitted is gone. Multi-parent was always a runtime check; the type system now refuses it outright. If two parents need to share a catalogue, they share a *Doc* (which has no level), not a catalogue.
+- **No cycles, no depth surprises.** `L<N>` parents must be `L<N-1>`. A cycle would require a finite type to extend itself; that doesn't reduce. Depth is bounded statically and breadcrumb chains are walked by following typed `parent()` — root to leaf in `N+1` calls, no traversal, no map lookup. The framework's recurring move — *lift runtime-discovered shape into the type system* — applied here as it was applied to the Layer ladder and KeyCombo.
+
+The breadcrumb chain (root → … → containing catalogue) is now a fact the framework can compute structurally and serve to renderers as data ([Defect 0004](#ref:def-4) tracks the absence of this prior to RFC 0005-ext2). Adding `L9` would require extending the sealed `permits` clause + an `L9_Catalogue` interface; the sealed-switch dispatch in `CatalogueRegistry` then forces the new case to be handled. This is the friction we want: depth grows only when the framework's contract is updated to know about it.
 
 ---
 
@@ -71,3 +84,5 @@ When designing a new "catalogue-shaped" thing, the test is: *does it have just i
 - [RFC 0001 — App Registry & Typed Nav](#ref:rfc-1) — the typed-Linkable model identity rests on.
 - [RFC 0004 — Typed Docs, UUIDs, and Visibility](#ref:rfc-4) — the same identity-as-wire-handle pattern, applied to docs.
 - [RFC 0004-ext1 — Managed Markdown References](#ref:rfc-4-ext1) — the Reference model identity-based linking flows through.
+- [RFC 0005-ext2 — Typed Catalogue Levels](#ref:rfc-5-ext2) — the sealed `L0..L8` family that gives the tree its shape and turns multi-parent / cycles / depth surprises into compile errors.
+- [Defect 0004 — Flat Breadcrumbs](#ref:def-4) — the bug that motivated the typed-levels refactor.

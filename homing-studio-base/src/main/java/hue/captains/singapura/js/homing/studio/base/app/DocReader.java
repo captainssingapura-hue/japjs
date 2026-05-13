@@ -43,7 +43,11 @@ public record DocReader() implements AppModule<DocReader.Params, DocReader>, Sel
 
     @Override public Class<Params> paramsType() { return Params.class; }
 
-    @Override public String title() { return "Homing · studio · doc"; }
+    /** Generic page-kind label. {@code AppHtmlGetAction} appends the downstream
+     *  studio's brand label from {@code AppMeta}, producing {@code "doc · <brand>"}.
+     *  Once the doc loads, {@code DocReaderRenderer} replaces this with the
+     *  doc's actual title. */
+    @Override public String title() { return "doc"; }
 
     /** Brand label shown in the header. Override in a subclass for custom branding. */
     public String brandLabel() { return "Homing · studio"; }
@@ -78,13 +82,19 @@ public record DocReader() implements AppModule<DocReader.Params, DocReader>, Sel
         // from StudioBrand at boot. This module no longer hardcodes its own
         // brandLabel() / homeUrl() — those defaults exist as a back-compat
         // safety net for the /brand action when no StudioBrand is registered.
+        //
+        // RFC 0005-ext2: the breadcrumb chain is supplied by /doc-refs (typed
+        // catalogue chain — root → ... → containing catalogue). We pass an
+        // empty crumbsAbove here; the renderer overrides it when info.breadcrumbs
+        // arrives. Studios with no catalogues registered get no chain (legacy
+        // behaviour — the brand link in the header is the only nav).
         return List.of(
                 "function appMain(rootElement) {",
                 "    fetch(\"/brand\").then(function(r) { return r.json(); }).then(function(brand) {",
                 "        rootElement.replaceChildren(renderDocReader({",
                 "            docId:       params.doc,",
                 "            brand:       { href: brand.homeUrl, label: brand.label, logo: brand.logo },",
-                "            crumbsAbove: [{ text: \"Home\", href: brand.homeUrl }]",
+                "            crumbsAbove: []",
                 "        }));",
                 "    });",
                 "}"

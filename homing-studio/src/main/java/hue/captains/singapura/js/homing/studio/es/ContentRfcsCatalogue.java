@@ -1,0 +1,28 @@
+package hue.captains.singapura.js.homing.studio.es;
+
+import hue.captains.singapura.js.homing.studio.base.app.Entry;
+import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0004Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0004Ext1Doc;
+
+import java.util.List;
+
+/**
+ * L2 sub-catalogue of {@link RfcsCatalogue} — RFCs about the framework's
+ * document model: typed Doc records, UUID identity, cross-doc references.
+ */
+public record ContentRfcsCatalogue() implements L2_Catalogue<RfcsCatalogue> {
+
+    public static final ContentRfcsCatalogue INSTANCE = new ContentRfcsCatalogue();
+
+    @Override public RfcsCatalogue parent() { return RfcsCatalogue.INSTANCE; }
+    @Override public String name()    { return "Documents"; }
+    @Override public String summary() { return "How content is typed, identified, and cross-linked — the doc model that survives renames and serves both human readers and Claude agents."; }
+
+    @Override public List<Entry> leaves() {
+        return List.of(
+                Entry.of(Rfc0004Doc.INSTANCE),
+                Entry.of(Rfc0004Ext1Doc.INSTANCE)
+        );
+    }
+}

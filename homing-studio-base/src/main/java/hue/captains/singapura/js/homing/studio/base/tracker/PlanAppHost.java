@@ -51,7 +51,9 @@ public record PlanAppHost() implements AppModule<PlanAppHost.Params, PlanAppHost
 
     @Override public String simpleName() { return "plan"; }
 
-    @Override public String title() { return "studio · plan"; }
+    /** Page-kind label. {@code AppHtmlGetAction} appends the downstream brand;
+     *  the renderer refines it to {@code "<plan-name> · <brand>"} on load. */
+    @Override public String title() { return "plan"; }
 
     @Override
     public ImportsFor<PlanAppHost> imports() {
