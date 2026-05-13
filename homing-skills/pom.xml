@@ -32,27 +32,19 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <resources>
-            <!-- Per the Dual-Audience Skills doctrine: the .md files live in
-                 ONE place at the repo root (.claude/skills/<slug>/SKILL.md)
-                 and the jar packages a copy at classpath path
-                 claude-skills/<slug>/SKILL.md. SkillDoc records override
-                 resourcePath() to read this same path; the dump CLI writes
-                 the same bytes back to a user-chosen target. Single source. -->
-            <resource>
-                <directory>${project.basedir}/../.claude/skills</directory>
-                <targetPath>claude-skills</targetPath>
-                <includes>
-                    <include>**/SKILL.md</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
+    <!-- Per the Dual-Audience Skills doctrine: SKILL.md files live INSIDE
+         this module at src/main/resources/claude-skills/<slug>/SKILL.md —
+         the canonical classpath location the jar exposes. SkillDoc records
+         override resourcePath() to read this same path; the dump CLI writes
+         the same bytes back to a user-chosen target. Single source, fully
+         self-contained module — `mvn -pl homing-skills install` produces
+         the same jar as the full reactor. No cross-module resource paths.
 
-    </build>
+         The repo-root .claude/skills/ used to mirror this content for
+         Claude Code's in-repo skill discovery. That mirror is now generated
+         on demand by running the dump CLI itself (SkillsCli main class,
+         with target arg pointing at .claude/skills). Framework dogfoods
+         its own dump path. -->
 
     <!-- Consumption model: a standard Maven artifact, not a runnable fat-jar.
          Downstream projects add it as a dependency and invoke `mvn exec:java`
