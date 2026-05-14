@@ -72,7 +72,7 @@ public class DemoStudioServer {
         // homeApp; the other three L0s are reachable only via the umbrella's
         // Navigable tiles (which point at /app?app=catalogue&id=<class>).
         // Each source studio's L0 keeps its own self-contained subtree.
-        List<Catalogue> catalogues = List.of(
+        List<Catalogue<?>> catalogues = List.of(
                 // Umbrella + three L1 categories (Learning / Tooling / Core).
                 // The categories hold Navigable tiles pointing at each source L0.
                 MultiStudioHome.INSTANCE,

@@ -23,7 +23,7 @@ import java.util.List;
  * 0.0.11.</p>
  */
 public record ReleasesCatalogue()
-        implements L1_Catalogue<StudioCatalogue>, DocProvider {
+        implements L1_Catalogue<StudioCatalogue, ReleasesCatalogue>, DocProvider {
 
     public static final ReleasesCatalogue INSTANCE = new ReleasesCatalogue();
 
@@ -33,11 +33,11 @@ public record ReleasesCatalogue()
     @Override public String badge()   { return "RELEASE"; }
     @Override public String icon()    { return "🏷️"; }
 
-    @Override public List<Entry> leaves() {
+    @Override public List<Entry<ReleasesCatalogue>> leaves() {
         // Newest first. Prepend new releases here.
         return List.of(
-                Entry.of(Release0_0_100Doc.INSTANCE),
-                Entry.of(Release0_0_11Doc.INSTANCE)
+                Entry.of(this, Release0_0_100Doc.INSTANCE),
+                Entry.of(this, Release0_0_11Doc.INSTANCE)
         );
     }
 

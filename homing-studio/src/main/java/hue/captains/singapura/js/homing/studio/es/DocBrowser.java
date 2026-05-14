@@ -27,6 +27,7 @@ import hue.captains.singapura.js.homing.studio.docs.doctrines.ManagedDomOpsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.OwnedReferencesDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PlanContainerDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.FunctionalObjectsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.WeighedComplexityDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.DualAudienceSkillsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.EncapsulatedComponentsDoc;
@@ -55,6 +56,7 @@ import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0008Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0009Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0010Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0011Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0012Doc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingShellFlexibilityWhitepaperDoc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingWhitepaperDoc;
 
@@ -104,6 +106,7 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(Rfc0009Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0010Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0011Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0012Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
 
             entry(BrandReadmeDoc.INSTANCE,     "Brand", StudioStyles.st_badge_brand.class),
             entry(RenameToHomingDoc.INSTANCE,  "Brand", StudioStyles.st_badge_brand.class),
@@ -134,6 +137,7 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(CatalogueContainerDoc.INSTANCE, "Doctrines", StudioStyles.st_badge_reference.class),
             entry(PlanContainerDoc.INSTANCE,      "Doctrines", StudioStyles.st_badge_reference.class),
             entry(WeighedComplexityDoc.INSTANCE,  "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(FunctionalObjectsDoc.INSTANCE,  "Doctrines", StudioStyles.st_badge_reference.class),
 
             entry(HomingVsReactVueDoc.INSTANCE, "Reference", StudioStyles.st_badge_reference.class),
             entry(UserGuideDoc.INSTANCE,        "Reference", StudioStyles.st_badge_reference.class)

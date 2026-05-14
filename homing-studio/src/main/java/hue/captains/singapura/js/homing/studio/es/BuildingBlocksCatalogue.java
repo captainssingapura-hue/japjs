@@ -21,7 +21,7 @@ import java.util.List;
  * studio's {@code DocRegistry}.
  */
 public record BuildingBlocksCatalogue()
-        implements L1_Catalogue<StudioCatalogue>, DocProvider {
+        implements L1_Catalogue<StudioCatalogue, BuildingBlocksCatalogue>, DocProvider {
 
     public static final BuildingBlocksCatalogue INSTANCE = new BuildingBlocksCatalogue();
 
@@ -31,14 +31,14 @@ public record BuildingBlocksCatalogue()
     @Override public String badge()   { return "BLOCKS"; }
     @Override public String icon()    { return "🧱"; }
 
-    @Override public List<Entry> leaves() {
+    @Override public List<Entry<BuildingBlocksCatalogue>> leaves() {
         return List.of(
-                Entry.of(AtomsDoc.INSTANCE),
-                Entry.of(CatalogueKitDoc.INSTANCE),
-                Entry.of(PlanKitDoc.INSTANCE),
-                Entry.of(DocKitsDoc.INSTANCE),
-                Entry.of(TrackerKitDoc.INSTANCE),
-                Entry.of(BootstrapAndConformanceDoc.INSTANCE)
+                Entry.of(this, AtomsDoc.INSTANCE),
+                Entry.of(this, CatalogueKitDoc.INSTANCE),
+                Entry.of(this, PlanKitDoc.INSTANCE),
+                Entry.of(this, DocKitsDoc.INSTANCE),
+                Entry.of(this, TrackerKitDoc.INSTANCE),
+                Entry.of(this, BootstrapAndConformanceDoc.INSTANCE)
         );
     }
 

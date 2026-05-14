@@ -20,17 +20,17 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class CatalogueGetActionRfc0009Test {
 
-    record HomeCatalogue() implements L0_Catalogue {
+    record HomeCatalogue() implements L0_Catalogue<HomeCatalogue> {
         public static final HomeCatalogue INSTANCE = new HomeCatalogue();
         @Override public String name() { return "Home"; }
         @Override public String icon() { return "🏠"; }
-        @Override public List<L1_Catalogue<HomeCatalogue>> subCatalogues() {
+        @Override public List<? extends L1_Catalogue<HomeCatalogue, ?>> subCatalogues() {
             return List.of(BrandedChildCatalogue.INSTANCE, PlainChildCatalogue.INSTANCE);
         }
     }
 
     /** Overrides both badge() and icon() — RFC 0009 happy path. */
-    record BrandedChildCatalogue() implements L1_Catalogue<HomeCatalogue> {
+    record BrandedChildCatalogue() implements L1_Catalogue<HomeCatalogue, BrandedChildCatalogue> {
         public static final BrandedChildCatalogue INSTANCE = new BrandedChildCatalogue();
         @Override public HomeCatalogue parent() { return HomeCatalogue.INSTANCE; }
         @Override public String name()  { return "Studios"; }
@@ -39,7 +39,7 @@ class CatalogueGetActionRfc0009Test {
     }
 
     /** Overrides neither — falls back to defaults. */
-    record PlainChildCatalogue() implements L1_Catalogue<HomeCatalogue> {
+    record PlainChildCatalogue() implements L1_Catalogue<HomeCatalogue, PlainChildCatalogue> {
         public static final PlainChildCatalogue INSTANCE = new PlainChildCatalogue();
         @Override public HomeCatalogue parent() { return HomeCatalogue.INSTANCE; }
         @Override public String name() { return "Plain"; }
@@ -55,7 +55,7 @@ class CatalogueGetActionRfc0009Test {
                         PlainChildCatalogue.INSTANCE));
     }
 
-    private String serialize(Catalogue c) throws Exception {
+    private String serialize(Catalogue<?> c) throws Exception {
         var action = new CatalogueGetAction(registry());
         var body = action.execute(new CatalogueGetAction.Query(c.getClass().getName()),
                                    new EmptyParam.NoHeaders()).get().body();

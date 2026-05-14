@@ -134,17 +134,19 @@ public class DocRefsGetAction
     static String serializeBreadcrumbs(Doc doc, CatalogueRegistry catalogueRegistry) {
         StringBuilder sb = new StringBuilder("[");
         if (catalogueRegistry != null) {
-            List<Catalogue> chain = catalogueRegistry.breadcrumbsForDoc(doc.uuid());
+            List<Catalogue<?>> chain = catalogueRegistry.breadcrumbsForDoc(doc.uuid());
             boolean first = true;
-            for (Catalogue c : chain) {
+            for (Catalogue<?> c : chain) {
                 if (!first) sb.append(',');
                 first = false;
                 // RFC 0009: prefix crumb text with the catalogue's icon glyph.
                 String icon = c.icon();
                 String text = (icon == null || icon.isEmpty()) ? c.name() : icon + " " + c.name();
+                @SuppressWarnings("unchecked")
+                Class<? extends Catalogue<?>> cClass = (Class<? extends Catalogue<?>>) c.getClass();
                 sb.append('{')
                   .append("\"text\":").append(jstr(text)).append(',')
-                  .append("\"href\":").append(jstr(CatalogueAppHost.urlFor(c.getClass())))
+                  .append("\"href\":").append(jstr(CatalogueAppHost.urlFor(cClass)))
                   .append('}');
             }
         }

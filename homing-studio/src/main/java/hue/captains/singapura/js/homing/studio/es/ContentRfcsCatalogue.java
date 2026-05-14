@@ -11,7 +11,8 @@ import java.util.List;
  * L2 sub-catalogue of {@link RfcsCatalogue} — RFCs about the framework's
  * document model: typed Doc records, UUID identity, cross-doc references.
  */
-public record ContentRfcsCatalogue() implements L2_Catalogue<RfcsCatalogue> {
+public record ContentRfcsCatalogue()
+        implements L2_Catalogue<RfcsCatalogue, ContentRfcsCatalogue> {
 
     public static final ContentRfcsCatalogue INSTANCE = new ContentRfcsCatalogue();
 
@@ -19,10 +20,10 @@ public record ContentRfcsCatalogue() implements L2_Catalogue<RfcsCatalogue> {
     @Override public String name()    { return "Documents"; }
     @Override public String summary() { return "How content is typed, identified, and cross-linked — the doc model that survives renames and serves both human readers and Claude agents."; }
 
-    @Override public List<Entry> leaves() {
+    @Override public List<Entry<ContentRfcsCatalogue>> leaves() {
         return List.of(
-                Entry.of(Rfc0004Doc.INSTANCE),
-                Entry.of(Rfc0004Ext1Doc.INSTANCE)
+                Entry.of(this, Rfc0004Doc.INSTANCE),
+                Entry.of(this, Rfc0004Ext1Doc.INSTANCE)
         );
     }
 }

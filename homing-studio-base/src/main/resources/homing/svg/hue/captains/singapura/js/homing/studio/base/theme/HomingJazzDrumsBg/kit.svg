@@ -116,6 +116,121 @@
          ============================================================ -->
     <line x1="1000" y1="780" x2="1000" y2="380" stroke="var(--jd-hardware)" stroke-width="3"/>
     <ellipse cx="1000" cy="780" rx="60" ry="6" fill="var(--jd-hardware)"/>
+
+    <!-- ===========================================================
+         RFC 0008 ext — Auto-play guitar.
+         Telecaster shape, body resting on the floor at far-left,
+         leaning slightly left so the neck angles AWAY from the hi-hat.
+         Placed BEFORE the drum groups so drums paint on top — guitar
+         lives "at the back" of the scene naturally.
+         The whole <g> is the click target; visual states
+         (.autoplaying / .muted-autoplay) are toggled by the runtime.
+         =========================================================== -->
+    <g class="jd-auto-guitar" transform="translate(80 750) rotate(-10 0 0)"
+       style="cursor:pointer;">
+        <title>Auto-play guitar — click to toggle</title>
+
+        <!-- Soft glow halo, only visible when .autoplaying is set -->
+        <ellipse class="jd-auto-guitar-halo" cx="0" cy="-100" rx="90" ry="220"
+                 fill="#b88a5a" opacity="0"/>
+
+        <!-- Solid body — Telecaster outline, butterscotch blonde. -->
+        <path class="jd-auto-guitar-body"
+              d="M 10,-150
+                 L 28,-148
+                 C 50,-142 60,-115 56,-85
+                 C 53,-55 60,-25 50,-8
+                 C 38,8 -38,8 -50,-8
+                 C -60,-25 -56,-55 -55,-85
+                 C -60,-115 -50,-142 -28,-148
+                 L -10,-150 Z"
+              fill="#c98a40" stroke="#3a1e0e" stroke-width="1.5"/>
+
+        <!-- Tele pickguard — cream/white, distinctive asymmetric shape -->
+        <path class="jd-auto-guitar-pickguard"
+              d="M -8,-150
+                 L -30,-148
+                 C -48,-138 -54,-110 -52,-85
+                 C -50,-65 -42,-50 -28,-44
+                 C -16,-40 -6,-42 0,-48
+                 L 4,-95
+                 L 8,-145 Z"
+              fill="#f5ebc8" stroke="#1c1108" stroke-width="0.6"/>
+
+        <!-- Neck pickup (single-coil rectangle, embedded in pickguard) -->
+        <rect x="-32" y="-118" width="22" height="9" rx="1"
+              fill="#cfcfcf" stroke="#1c1108" stroke-width="0.4"/>
+        <line x1="-30" y1="-116" x2="-12" y2="-116" stroke="#1c1108" stroke-width="0.3"/>
+        <line x1="-30" y1="-113" x2="-12" y2="-113" stroke="#1c1108" stroke-width="0.3"/>
+
+        <!-- Bridge plate (silver) with saddles -->
+        <rect x="-2" y="-48" width="34" height="22" rx="1"
+              fill="#bbbbbb" stroke="#3a1e0e" stroke-width="0.8"/>
+        <line x1="0"  y1="-42" x2="30" y2="-42" stroke="#1c1108" stroke-width="0.3"/>
+        <line x1="0"  y1="-38" x2="30" y2="-38" stroke="#1c1108" stroke-width="0.3"/>
+        <line x1="0"  y1="-34" x2="30" y2="-34" stroke="#1c1108" stroke-width="0.3"/>
+        <line x1="0"  y1="-30" x2="30" y2="-30" stroke="#1c1108" stroke-width="0.3"/>
+
+        <!-- Control plate (silver strip — Tele has 2 knobs + 3-way switch on its own plate) -->
+        <g transform="rotate(-12 18 -107)">
+            <rect x="4" y="-112" width="28" height="9" rx="1"
+                  fill="#bbbbbb" stroke="#1c1108" stroke-width="0.5"/>
+            <circle cx="10" cy="-107" r="2.2" fill="#1c1108"/>
+            <circle cx="20" cy="-107" r="2.2" fill="#1c1108"/>
+            <rect x="27" y="-110" width="4" height="5" rx="0.5" fill="#1c1108"/>
+        </g>
+
+        <!-- Output jack on the side edge -->
+        <circle cx="38" cy="-65" r="2.5" fill="#bbbbbb" stroke="#1c1108" stroke-width="0.5"/>
+
+        <!-- Maple neck — light blonde -->
+        <path d="M -9,-150 L 9,-150 L 8,-295 L -8,-295 Z"
+              fill="#d8b078" stroke="#3a1e0e" stroke-width="1"/>
+
+        <!-- Frets -->
+        <line x1="-9" y1="-165" x2="9" y2="-165" stroke="#6a4a30" stroke-width="0.5"/>
+        <line x1="-9" y1="-185" x2="9" y2="-185" stroke="#6a4a30" stroke-width="0.5"/>
+        <line x1="-9" y1="-205" x2="9" y2="-205" stroke="#6a4a30" stroke-width="0.5"/>
+        <line x1="-9" y1="-225" x2="9" y2="-225" stroke="#6a4a30" stroke-width="0.5"/>
+        <line x1="-9" y1="-245" x2="9" y2="-245" stroke="#6a4a30" stroke-width="0.5"/>
+        <line x1="-9" y1="-265" x2="9" y2="-265" stroke="#6a4a30" stroke-width="0.5"/>
+        <line x1="-9" y1="-285" x2="9" y2="-285" stroke="#6a4a30" stroke-width="0.5"/>
+
+        <!-- Position markers (dot inlays at frets 5, 7, 9) -->
+        <circle cx="0" cy="-195" r="1.4" fill="#6a4a30"/>
+        <circle cx="0" cy="-235" r="1.4" fill="#6a4a30"/>
+
+        <!-- Strings — six lines from headstock to bridge -->
+        <line x1="-6"   y1="-318" x2="-9"  y2="-30" stroke="#dddddd" stroke-width="0.55"/>
+        <line x1="-3.6" y1="-318" x2="-5"  y2="-30" stroke="#dddddd" stroke-width="0.55"/>
+        <line x1="-1.2" y1="-318" x2="-1"  y2="-30" stroke="#dddddd" stroke-width="0.55"/>
+        <line x1="1.2"  y1="-318" x2="3"   y2="-30" stroke="#dddddd" stroke-width="0.55"/>
+        <line x1="3.6"  y1="-318" x2="7"   y2="-30" stroke="#dddddd" stroke-width="0.55"/>
+        <line x1="6"    y1="-318" x2="11"  y2="-30" stroke="#dddddd" stroke-width="0.55"/>
+
+        <!-- Tele headstock — paddle shape, all 6 tuners on one side (signature). -->
+        <path d="M -9,-295
+                 L 9,-295
+                 L 12,-300
+                 L 14,-335
+                 L -2,-340
+                 L -10,-330 Z"
+              fill="#d8b078" stroke="#3a1e0e" stroke-width="1"/>
+
+        <!-- 6 tuning pegs along the top edge of the headstock -->
+        <circle cx="0"  cy="-318" r="1.7" fill="#aaaaaa" stroke="#1c1108" stroke-width="0.4"/>
+        <circle cx="3"  cy="-323" r="1.7" fill="#aaaaaa" stroke="#1c1108" stroke-width="0.4"/>
+        <circle cx="6"  cy="-328" r="1.7" fill="#aaaaaa" stroke="#1c1108" stroke-width="0.4"/>
+        <circle cx="9"  cy="-332" r="1.7" fill="#aaaaaa" stroke="#1c1108" stroke-width="0.4"/>
+        <circle cx="12" cy="-336" r="1.7" fill="#aaaaaa" stroke="#1c1108" stroke-width="0.4"/>
+        <circle cx="-4" cy="-322" r="1.7" fill="#aaaaaa" stroke="#1c1108" stroke-width="0.4"/>
+
+        <!-- Fender-style spaghetti logo (small text) -->
+        <text x="0" y="-308" font-family="cursive,serif" font-size="3.5"
+              fill="#3a1e0e" text-anchor="middle"
+              style="font-style: italic;">Telecaster</text>
+    </g>
+
     <g class="drum-ride">
         <ellipse cx="1000" cy="370" rx="120" ry="22" fill="url(#jd-cymbal-grad)"/>
         <ellipse cx="1000" cy="370" rx="120" ry="22" fill="none"
@@ -261,5 +376,6 @@
         <circle cx="900" cy="578" r="4" fill="var(--jd-hardware-hi)"/>
         <circle cx="970" cy="600" r="4" fill="var(--jd-hardware-hi)"/>
     </g>
+
 
 </svg>

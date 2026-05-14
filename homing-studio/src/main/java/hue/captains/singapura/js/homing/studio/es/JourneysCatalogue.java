@@ -18,7 +18,7 @@ import java.util.List;
  * {@code Homing · studio › Journeys › RFCs › <plan name>} (or
  * {@code … › Operations › <plan name>}).</p>
  */
-public record JourneysCatalogue() implements L1_Catalogue<StudioCatalogue> {
+public record JourneysCatalogue() implements L1_Catalogue<StudioCatalogue, JourneysCatalogue> {
 
     public static final JourneysCatalogue INSTANCE = new JourneysCatalogue();
 
@@ -28,7 +28,7 @@ public record JourneysCatalogue() implements L1_Catalogue<StudioCatalogue> {
     @Override public String badge()   { return "JOURNEY"; }
     @Override public String icon()    { return "🛤️"; }
 
-    @Override public List<L2_Catalogue<JourneysCatalogue>> subCatalogues() {
+    @Override public List<? extends L2_Catalogue<JourneysCatalogue, ?>> subCatalogues() {
         return List.of(
                 RfcJourneysCatalogue.INSTANCE,
                 OperationsJourneysCatalogue.INSTANCE

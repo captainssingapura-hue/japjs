@@ -55,7 +55,7 @@ public class StudioServer {
         );
 
         // RFC 0005: explicit catalogue list registered alongside.
-        List<Catalogue> catalogues = List.of(
+        List<Catalogue<?>> catalogues = List.of(
                 StudioCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
                 RfcsCatalogue.INSTANCE,

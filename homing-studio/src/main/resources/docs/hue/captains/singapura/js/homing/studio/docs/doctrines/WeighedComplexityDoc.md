@@ -32,6 +32,10 @@ How many call sites must change *now*, and how many lock in *forever* once the c
 
 A 5-line change to a sealed interface can require hundreds of changes downstream. A 100-line new file with no public API changes nothing about existing code.
 
+**Important nuance: mechanical retypes in a properly engineered codebase are *cheap*, not expensive.** When a change cascades across N files but the cascade is type-checked, IDE-supported, and per-file mechanical (a generic parameter added in a known position, a sealed sum's switches becoming non-exhaustive), the cost is closer to a single semantic edit than to N separate engineering acts. The blast radius is real but each individual edit is rounding-error. Don't double-count mechanical cascades as if they were ad-hoc rewrites.
+
+The genuinely high-cost case is when the cascade is *not* mechanical — when each call site needs different per-context reasoning, or when the change crosses into code authored by people who don't share the framework's conventions. Both are absent inside a single well-engineered codebase pre-1.0.
+
 ### 3. Reversibility
 
 How hard it is to undo if the design turns out to be wrong.
@@ -56,6 +60,8 @@ How much every future author pays for this change, every time they touch the aff
 | Internal complexity hidden behind a typed factory | Type signature complexity visible at every call site |
 
 The tax is paid not just by the framework's own catalogues, but by every downstream studio's catalogues, every test fixture, every example in every skill — *for as long as the framework lives*. Migration cost ends; authoring tax compounds.
+
+**Counterweight: a tax that matches the framework's existing idiom is barely a tax.** If the codebase has already committed to typed-everything (Layer ladder, KeyCombo, typed catalogue levels, badge/icon), adding one more typed primitive to the same family doesn't surprise the author — they already think in CRTP, they already wrap with `Class<T>`, they already use `<Self extends This<Self>>` bounds. The marginal authoring cost of a *consistent* type-system commitment is near zero; the cost of an *inconsistent* opt-out (saying "this one is untyped to save lines") is higher because it forces the author to ask why this case differs. Consistency is the multiplier on tax: a 50% tax in a typed-everything codebase costs less than a 5% tax in a mixed-paradigm codebase.
 
 ### 5. Failure mode
 
@@ -121,6 +127,8 @@ For any non-trivial design proposal, write down — *before* defending the desig
 If any component is **high cognitive density + high blast radius + low reversibility + perpetual authoring tax**, the design is on probation. It can still ship — but it needs to be paying for *something* commensurate.
 
 When in doubt, ask: *"How many people will pay this cost, how often, and how irreversibly?"* If the answer surprises you, the line count was lying.
+
+**And — symmetrically — when the cost looks high but the change is mechanical AND the new shape matches the codebase's existing typed idiom, suspect that you're overcounting.** The discipline cuts both ways: a heavy line count can be cheap, and a light line count can be expensive. The dimensions are the truth-tellers; LOC and "feels like a lot of files" are not.
 
 ---
 

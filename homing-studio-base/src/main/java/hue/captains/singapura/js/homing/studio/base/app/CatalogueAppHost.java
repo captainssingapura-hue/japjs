@@ -45,7 +45,7 @@ public record CatalogueAppHost() implements AppModule<CatalogueAppHost.Params, C
      * (other AppModules, downstream apps) that needs to link to a catalogue without
      * hand-building the path.
      */
-    public static String urlFor(Class<? extends Catalogue> catalogueClass) {
+    public static String urlFor(Class<? extends Catalogue<?>> catalogueClass) {
         return "/app?app=" + INSTANCE.simpleName() + "&id=" + catalogueClass.getName();
     }
 

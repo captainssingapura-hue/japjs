@@ -40,7 +40,7 @@ public final class SkillsStudioServer {
                 ThemesIntro.INSTANCE
         );
 
-        List<Catalogue> catalogues = List.of(SkillsHome.INSTANCE);
+        List<Catalogue<?>> catalogues = List.of(SkillsHome.INSTANCE);
         List<Plan> plans = List.of();
 
         StudioBrand brand = new StudioBrand("Homing · skills", SkillsHome.class);

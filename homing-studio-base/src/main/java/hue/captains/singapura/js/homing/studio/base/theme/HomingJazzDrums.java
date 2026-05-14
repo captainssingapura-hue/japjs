@@ -4,9 +4,17 @@ import hue.captains.singapura.js.homing.core.ClickTarget;
 import hue.captains.singapura.js.homing.core.Component;
 import hue.captains.singapura.js.homing.core.CssVar;
 import hue.captains.singapura.js.homing.core.Cue;
+import hue.captains.singapura.js.homing.core.Envelope;
 import hue.captains.singapura.js.homing.core.KeyCombo;
 import hue.captains.singapura.js.homing.core.Layer;
 import hue.captains.singapura.js.homing.core.MediaGated;
+import hue.captains.singapura.js.homing.core.Note;
+import hue.captains.singapura.js.homing.core.NoteDuration;
+import hue.captains.singapura.js.homing.core.NoteHit;
+import hue.captains.singapura.js.homing.core.OscCue;
+import hue.captains.singapura.js.homing.core.OscType;
+import hue.captains.singapura.js.homing.core.PaletteMode;
+import hue.captains.singapura.js.homing.core.Progression;
 import hue.captains.singapura.js.homing.core.Prose;
 import hue.captains.singapura.js.homing.core.Reset;
 import hue.captains.singapura.js.homing.core.State;
@@ -17,6 +25,7 @@ import hue.captains.singapura.js.homing.core.ThemeGlobals;
 import hue.captains.singapura.js.homing.core.ThemeOverlay;
 import hue.captains.singapura.js.homing.core.ThemeVariables;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -166,6 +175,57 @@ public record HomingJazzDrums() implements Theme {
                     Map.entry(KeyCombo.KEY_L, new PowerHigh())      // D power chord
             );
         }
+
+        // ----------------------------------------------------------------
+        //  Auto-play guitar — chord progressions looped through the
+        //  jazzbox at the far left of the kit. RFC 0008 extension.
+        // ----------------------------------------------------------------
+
+        /** Six jazz chord progressions referencing indices into
+         *  {@link hue.captains.singapura.js.homing.core.ChordPalette#CHORDS}.
+         *  Each carries a mood colour the runtime applies as a subtle 15%
+         *  overlay while that progression is playing. Per-cycle the runtime
+         *  picks a new random progression — mood shifts with it. */
+        @Override default List<Progression> progressions() {
+            return List.of(
+                    // ii–V–I — the canonical jazz cadence.   Dm – G  – C
+                    new Progression("ii-V-I",       new int[]{1, 4, 0},          2.0, "#6a4f8b"),
+                    // iii–vi–ii–V — extended back-cycle.     Em – Am – Dm – G
+                    new Progression("iii-vi-ii-V",  new int[]{2, 5, 1, 4},       2.0, "#c2904a"),
+                    // 50s pop — I–vi–IV–V.                   C  – Am – F  – G
+                    new Progression("50s Pop",      new int[]{0, 5, 3, 4},       2.0, "#c97b63"),
+                    // Modern pop — vi–IV–I–V.                Am – F  – C  – G
+                    new Progression("Modern Pop",   new int[]{5, 3, 0, 4},       2.0, "#4a8f8a"),
+                    // Rhythm Changes A — I–vi–ii–V cycling.  C  – Am – Dm – G
+                    new Progression("Rhythm Changes", new int[]{0, 5, 1, 4},     1.5, "#3a6f4f"),
+                    // Jazz Blues — classic 12-bar shape (no diminished in palette,
+                    // so quick-IV substitution stands in for the IV7).
+                    new Progression("Jazz Blues",   new int[]{0, 0, 0, 0, 3, 3, 0, 0, 4, 3, 0, 4}, 1.2, "#3a5f8f")
+            );
+        }
+
+        /** Soft jazzbox voice — triangle wave through the chord palette
+         *  rendered as a 1-3-5-3 broken-chord arpeggio (~0.72 s per chord).
+         *  Each note has enough release to ring against the next, giving a
+         *  legato fingerpicked feel rather than a blocky stab. */
+        @Override default Cue progressionVoice() {
+            return new OscCue(
+                    OscType.TRIANGLE,
+                    // Snappier attack + shorter decay; longer release lets
+                    // each arpeggiated note overlap the next musically.
+                    new Envelope(0.005, 0.2, 0.3, 0.9),
+                    // Each note plays alone (not summed like a chord stab),
+                    // so volume bumps to compensate. -10 dB rings clearly
+                    // without overwhelming the drums.
+                    -10.0,
+                    PaletteMode.CHORD,
+                    0.0,
+                    // Template hit — pitch + duration override per chord by
+                    // the bake step's arpeggio walk. Quarter-note duration
+                    // matches the 0.18 s arpeggio stride.
+                    List.of(new NoteHit(Note.C4, NoteDuration.QUARTER, 0))
+            );
+        }
     }
 
     /** Standard implementation — picks from the {@link Cues} stdlib.
@@ -301,6 +361,36 @@ public record HomingJazzDrums() implements Theme {
                 .st-header, .st-card, .st-list-item, .st-toc-item,
                 .st-doc, .st-doc *, .st-sidebar, .st-sidebar *,
                 .st-doc-meta, .st-doc-meta * { pointer-events: auto; }
+
+                /* RFC 0008 ext — auto-play guitar (Telecaster, far-left,
+                 * resting on floor, leaning slightly left).
+                 *
+                 * Position lives in the SVG file as transform="translate(80 750)
+                 * rotate(-10 0 0)"; CSS animations re-state that base transform
+                 * because CSS transforms override the SVG attribute rather than
+                 * composing with it. Keep the values in sync if the SVG moves. */
+                .jd-auto-guitar, .jd-auto-guitar * { pointer-events: auto; cursor: pointer; }
+
+                /* Idle hover — small upward lift */
+                .jd-auto-guitar { transition: transform 200ms ease, filter 200ms ease; }
+                .jd-auto-guitar:hover {
+                    transform: translate(80px, 746px) rotate(-10deg);
+                    filter: brightness(1.10);
+                }
+
+                /* Playing state — gentle bob + halo glow */
+                @keyframes jd-guitar-bob {
+                    0%, 100% { transform: translate(80px, 750px) rotate(-10deg); }
+                    50%      { transform: translate(80px, 747px) rotate(-10deg); }
+                }
+                .jd-auto-guitar.autoplaying { animation: jd-guitar-bob 2.4s ease-in-out infinite; }
+                .jd-auto-guitar.autoplaying .jd-auto-guitar-halo {
+                    opacity: 0.32;
+                    transition: opacity 400ms ease;
+                }
+                /* Muted-while-playing — desaturated, dimmed */
+                .jd-auto-guitar.muted-autoplay { filter: grayscale(0.5) brightness(0.7); }
+                .jd-auto-guitar.muted-autoplay .jd-auto-guitar-halo { opacity: 0.12; }
                 """;
 
         /** Dark-mode adaptation — the stage dims further; brass tones stay

@@ -25,7 +25,7 @@ import java.util.Objects;
  *
  * @since RFC 0005
  */
-public record StudioBrand(String label, Class<? extends Catalogue> homeApp, SvgRef<?> logo) {
+public record StudioBrand(String label, Class<? extends Catalogue<?>> homeApp, SvgRef<?> logo) {
 
     public StudioBrand {
         Objects.requireNonNull(label,   "label");
@@ -37,7 +37,7 @@ public record StudioBrand(String label, Class<? extends Catalogue> homeApp, SvgR
     }
 
     /** Back-compat — installations that don't ship a logo yet. */
-    public StudioBrand(String label, Class<? extends Catalogue> homeApp) {
+    public StudioBrand(String label, Class<? extends Catalogue<?>> homeApp) {
         this(label, homeApp, null);
     }
 }

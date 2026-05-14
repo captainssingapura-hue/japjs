@@ -5,53 +5,77 @@ import hue.captains.singapura.js.homing.studio.base.Doc;
 import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
 
 /**
- * Typed wrapper for {@link Catalogue} leaf entries. Sealed to three kinds
- * reflecting the catalogue tree's leaf shapes:
+ * Typed leaf entry inside a {@link Catalogue}. RFC 0011: parameterised by the
+ * host catalogue's type {@code C}, so an {@code Entry<C>} can only appear in
+ * {@code C}'s {@code leaves()} list. Misplaced entries become compile errors.
+ *
+ * <p>Sealed to four variants reflecting the catalogue tree's leaf shapes:</p>
  *
  * <ul>
- *   <li>{@link OfDoc} — a static {@link Doc} (markdown content shipped per RFC 0004).</li>
+ *   <li>{@link OfDoc} — a static {@link Doc} (markdown content per RFC 0004).</li>
  *   <li>{@link OfApp} — a living "doc" — any {@link AppModule} with its own page.</li>
- *   <li>{@link OfPlan} — a structured living plan (RFC 0005-ext1) — questions, phased actions, acceptance.</li>
+ *   <li>{@link OfPlan} — a structured living plan (RFC 0005-ext1).</li>
+ *   <li>{@link OfStudio} — a typed re-attachment of a source L0 catalogue as a
+ *       leaf in this catalogue, via a {@link StudioProxy} (RFC 0011).</li>
  * </ul>
  *
- * <p>The conceptual model: "doc" spans a spectrum from static (markdown) to
- * living (Plan trackers, custom apps). All three {@code Entry} kinds are
- * "content the user navigates to" — leaves of the catalogue tree. Sub-trees
- * (other catalogues) live in {@link Catalogue#subCatalogues()}, typed by
- * their level (RFC 0005-ext2). The renderer pattern-matches exhaustively
- * over the three sealed subtypes; the compile-time {@code switch}
- * exhaustiveness check guarantees complete coverage.</p>
+ * <p>The generic factories — {@code Entry.of(host, target)} — take the host
+ * catalogue as a type witness; the compiler infers {@code C} from the
+ * {@code this} reference at the call site. The host argument is discarded
+ * at runtime (the entry doesn't carry it back as data — it's known by
+ * virtue of being in {@code host.leaves()}).</p>
  *
- * <p><b>Why {@code OfApp} accepts any {@link AppModule} directly</b>: every
- * AppModule is, by design, navigable — it has a {@code simpleName()} URL token,
- * a {@code title()} for display, and (post-v1) {@code name()} + {@code summary()}
- * defaulted methods for tile listings. There is no separate marker interface to
- * opt in. The catalogue author chooses what to list; type-level gating against
- * "infrastructure" apps (e.g. {@code CatalogueAppHost} which needs an {@code id}
- * param to be useful) is a content concern, not a type concern.</p>
- *
- * <p>Convenience factories keep call sites clean.</p>
- *
- * @since RFC 0005 (extended in RFC 0005-ext1 to add OfPlan; v1 unifies OfApp
- *        on AppModule directly; RFC 0005-ext2 removes the {@code OfCatalogue}
- *        variant — sub-catalogues moved to a typed sibling accessor).
+ * @param <C> the host catalogue's type
+ * @since RFC 0005 (RFC 0005-ext1 OfPlan; RFC 0005-ext2 removed OfCatalogue;
+ *        RFC 0011 typed by host + OfStudio variant for cross-tree composition)
  */
-public sealed interface Entry {
+public sealed interface Entry<C extends Catalogue<C>> {
 
     /** A static Doc — markdown content shipped on the classpath. */
-    record OfDoc(Doc doc) implements Entry {}
+    record OfDoc<C extends Catalogue<C>, D extends Doc>
+                 (D doc) implements Entry<C> {}
 
     /** A living "doc" — an AppModule bound to its typed Params with tile display data. */
-    record OfApp(Navigable<?, ?> nav) implements Entry {}
+    record OfApp<C extends Catalogue<C>,
+                 P extends AppModule._Param,
+                 M extends AppModule<P, M>>
+                 (Navigable<P, M> nav) implements Entry<C> {}
 
-    /** A structured living plan (RFC 0005-ext1) — questions, phased actions, acceptance. */
-    record OfPlan(Plan plan) implements Entry {}
+    /** A structured living plan (RFC 0005-ext1). */
+    record OfPlan<C extends Catalogue<C>, P extends Plan>
+                  (P plan) implements Entry<C> {}
+
+    /** RFC 0011 — a typed re-attachment of a source {@link L0_Catalogue} as a leaf
+     *  in this catalogue's tree, via a {@link StudioProxy}. The proxy carries
+     *  display fields plus a typed reference to the wrapped L0 INSTANCE;
+     *  {@link CatalogueRegistry} uses it to augment breadcrumbs for any page
+     *  reached via the source L0. */
+    record OfStudio<C extends Catalogue<C>, S extends L0_Catalogue<S>>
+                    (StudioProxy<S> proxy) implements Entry<C> {}
 
     // -----------------------------------------------------------------------
-    // Convenience factories
+    // Convenience factories — `host` is a type witness for inference, discarded.
     // -----------------------------------------------------------------------
 
-    static Entry of(Doc doc)               { return new OfDoc(doc); }
-    static Entry of(Navigable<?, ?> nav)   { return new OfApp(nav); }
-    static Entry of(Plan plan)             { return new OfPlan(plan); }
+    static <C extends Catalogue<C>, D extends Doc>
+           Entry<C> of(C host, D doc) {
+        return new OfDoc<>(doc);
+    }
+
+    static <C extends Catalogue<C>,
+            P extends AppModule._Param,
+            M extends AppModule<P, M>>
+           Entry<C> of(C host, Navigable<P, M> nav) {
+        return new OfApp<>(nav);
+    }
+
+    static <C extends Catalogue<C>, P extends Plan>
+           Entry<C> of(C host, P plan) {
+        return new OfPlan<>(plan);
+    }
+
+    static <C extends Catalogue<C>, S extends L0_Catalogue<S>>
+           Entry<C> of(C host, StudioProxy<S> proxy) {
+        return new OfStudio<>(proxy);
+    }
 }

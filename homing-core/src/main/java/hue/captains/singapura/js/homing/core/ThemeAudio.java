@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.core;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,4 +62,31 @@ public interface ThemeAudio<TH extends Theme> {
      * is explicit and reversible.</p>
      */
     default Map<KeyCombo, ClickTarget<TH>> keyBindings() { return Map.of(); }
+
+    /**
+     * Optional chord progressions (RFC 0008 extension) — when non-empty AND
+     * {@link #progressionVoice()} is non-null, the framework's runtime renders
+     * an "auto-play guitar" UI surface (clicking the theme's guitar element
+     * toggles loop playback) and a "Key" slider for transposing the progressions
+     * across diatonic root pitches.
+     *
+     * <p>Each {@link Progression} is a sequence of indices into
+     * {@link ChordPalette#CHORDS}. The runtime loops indefinitely while
+     * auto-play is on, picking a new random progression each cycle.
+     * Persisted to per-theme {@code localStorage}:
+     * {@code homing-theme:<slug>:autoplay} (toggle state),
+     * {@code homing-theme:<slug>:root-offset} (semitone offset).</p>
+     *
+     * <p>Honour mute as global authority: when muted, the scheduler skips
+     * chord playback but the toggle / slider state remain authoritative.</p>
+     */
+    default List<Progression> progressions() { return List.of(); }
+
+    /**
+     * Voice used to render each chord in the progressions. Should declare
+     * {@code paletteMode = PaletteMode.CHORD} so the framework bakes one
+     * buffer per chord in {@link ChordPalette#CHORDS}. Default null = no
+     * auto-play even if {@link #progressions()} is non-empty.
+     */
+    default Cue progressionVoice() { return null; }
 }

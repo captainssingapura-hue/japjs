@@ -18,18 +18,18 @@ import java.util.List;
  * surfaces it as a new tile here (and dumps it via the CLI). No per-skill
  * registration on this side.</p>
  */
-public record SkillsHome() implements L0_Catalogue, DocProvider {
+public record SkillsHome() implements L0_Catalogue<SkillsHome>, DocProvider {
 
     public static final SkillsHome INSTANCE = new SkillsHome();
 
     @Override public String name()    { return "Homing Skills"; }
     @Override public String summary() { return "Skill recipes for working with the Homing framework — readable by humans here, dumpable as SKILL.md files for Claude Code agents via the CLI."; }
 
-    @Override public List<Entry> leaves() {
-        List<Entry> entries = new ArrayList<>();
-        entries.add(Entry.of(SkillsAboutDoc.INSTANCE));
+    @Override public List<Entry<SkillsHome>> leaves() {
+        List<Entry<SkillsHome>> entries = new ArrayList<>();
+        entries.add(Entry.of(this, SkillsAboutDoc.INSTANCE));
         for (SkillsManifest.Entry e : SkillsManifest.ALL) {
-            entries.add(Entry.of(e.doc()));
+            entries.add(Entry.of(this, e.doc()));
         }
         return List.copyOf(entries);
     }

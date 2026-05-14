@@ -32,8 +32,8 @@ public record Rfc0011Doc() implements ClasspathMarkdownDoc {
     public static final Rfc0011Doc INSTANCE = new Rfc0011Doc();
 
     @Override public UUID   uuid()    { return ID; }
-    @Override public String title()   { return "RFC 0011 — Studio Proxy + Typed Reverse-Ref"; }
-    @Override public String summary() { return "A typed StudioProxy<S> record + Entry.OfStudio variant + StudioProxyManager reverse-ref let a source L0 be attached as a leaf in an umbrella tree, with breadcrumbs automatically prepending the umbrella chain. No CRTP cascade, no migration of existing catalogues — the heavier alternative was re-costed against the Weighed Complexity doctrine and rejected. Closes the cross-boundary breadcrumb gap left open by RFC 0010 §5."; }
+    @Override public String title()   { return "RFC 0011 — Typed Entry-Host Binding + Studio Proxy"; }
+    @Override public String summary() { return "Catalogue gets CRTP self-bound (Catalogue<Self>) and Entry gets a host type parameter (Entry<C>), so the framework knows at compile time which catalogue an entry belongs to. A typed StudioProxy<S> record + Entry.OfStudio<C,S> variant + StudioProxyManager reverse-ref let a source L0 be attached as a leaf in an umbrella tree, with breadcrumbs automatically prepending the umbrella chain. Every existing catalogue record gains one type argument — mechanical retype, cheap in this codebase per the Weighed Complexity nuance on blast radius. Closes the cross-boundary breadcrumb gap left open by RFC 0010 §5."; }
     @Override public String category(){ return "RFC"; }
 
     @Override public List<Reference> references() {

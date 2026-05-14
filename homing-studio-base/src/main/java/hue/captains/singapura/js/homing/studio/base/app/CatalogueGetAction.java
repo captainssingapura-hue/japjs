@@ -80,8 +80,8 @@ public class CatalogueGetAction
             return CompletableFuture.failedFuture(notFound(fqn, "Class is not a Catalogue"));
         }
         @SuppressWarnings("unchecked")
-        Class<? extends Catalogue> cls = (Class<? extends Catalogue>) raw;
-        Catalogue catalogue = registry.resolve(cls);
+        Class<? extends Catalogue<?>> cls = (Class<? extends Catalogue<?>>) raw;
+        Catalogue<?> catalogue = registry.resolve(cls);
         if (catalogue == null) {
             return CompletableFuture.failedFuture(notFound(fqn, "Catalogue not registered"));
         }
@@ -94,7 +94,7 @@ public class CatalogueGetAction
         }
     }
 
-    String serialize(Catalogue c) {
+    String serialize(Catalogue<?> c) {
         StringBuilder sb = new StringBuilder("{");
         sb.append("\"name\":")   .append(jstr(c.name())).append(',');
         sb.append("\"summary\":").append(jstr(c.summary())).append(',');
@@ -113,9 +113,11 @@ public class CatalogueGetAction
         // Breadcrumbs (root → leaf). RFC 0009: prefix the visible text with
         // each catalogue's icon() glyph when non-empty.
         sb.append("\"breadcrumbs\":[");
-        List<Catalogue> crumbs = registry.breadcrumbs(c.getClass());
+        @SuppressWarnings("unchecked")
+        Class<? extends Catalogue<?>> cClass = (Class<? extends Catalogue<?>>) c.getClass();
+        List<Catalogue<?>> crumbs = registry.breadcrumbs(cClass);
         boolean firstCrumb = true;
-        for (Catalogue ck : crumbs) {
+        for (Catalogue<?> ck : crumbs) {
             if (!firstCrumb) sb.append(',');
             firstCrumb = false;
             String url = (ck.getClass() == c.getClass()) ? "" : catalogueUrl(ck.getClass().getName());
@@ -132,7 +134,7 @@ public class CatalogueGetAction
         boolean firstEntry = true;
 
         // ---- Sub-catalogues ----
-        for (Catalogue child : c.subCatalogues()) {
+        for (Catalogue<?> child : c.subCatalogues()) {
             if (!firstEntry) sb.append(',');
             firstEntry = false;
             // RFC 0009: per-instance badge (default "CATALOGUE", may be
@@ -148,11 +150,11 @@ public class CatalogueGetAction
         }
 
         // ---- Leaves ----
-        for (Entry e : c.leaves()) {
+        for (Entry<?> e : c.leaves()) {
             if (!firstEntry) sb.append(',');
             firstEntry = false;
             switch (e) {
-                case Entry.OfDoc(Doc d) -> {
+                case Entry.OfDoc<?, ?>(Doc d) -> {
                     sb.append("{\"kind\":\"doc\",")
                       .append("\"title\":")   .append(jstr(d.title())).append(',')
                       .append("\"summary\":") .append(jstr(d.summary())).append(',')
@@ -160,9 +162,7 @@ public class CatalogueGetAction
                       .append("\"url\":")     .append(jstr(docReaderUrl(d.uuid().toString())))
                       .append('}');
                 }
-                case Entry.OfApp(Navigable<?, ?> nav) -> {
-                    // Navigable carries the bound (App, Params, name, summary) tuple —
-                    // its url() returns the fully-formed URL with query string baked in.
+                case Entry.OfApp<?, ?, ?>(Navigable<?, ?> nav) -> {
                     sb.append("{\"kind\":\"app\",")
                       .append("\"name\":")    .append(jstr(nav.name())).append(',')
                       .append("\"summary\":") .append(jstr(nav.summary())).append(',')
@@ -170,12 +170,7 @@ public class CatalogueGetAction
                       .append("\"url\":")     .append(jstr(nav.url()))
                       .append('}');
                 }
-                case Entry.OfPlan(hue.captains.singapura.js.homing.studio.base.tracker.Plan plan) -> {
-                    // RFC 0005-ext1: Plan tile in a catalogue listing. URL goes to
-                    // the shared PlanAppHost. Renders as a Card (same shape as Doc
-                    // entries) so a catalogue listing reads uniformly — `category`
-                    // is the plan's `kicker()` (e.g. "RFC 0001"), or "PLAN" as
-                    // fallback when no kicker is set.
+                case Entry.OfPlan<?, ?>(hue.captains.singapura.js.homing.studio.base.tracker.Plan plan) -> {
                     String badge = (plan.kicker() == null || plan.kicker().isBlank())
                             ? "PLAN" : plan.kicker();
                     sb.append("{\"kind\":\"plan\",")
@@ -183,6 +178,19 @@ public class CatalogueGetAction
                       .append("\"summary\":") .append(jstr(plan.summary())).append(',')
                       .append("\"category\":").append(jstr(badge)).append(',')
                       .append("\"url\":")     .append(jstr(planUrl(plan.getClass().getName())))
+                      .append('}');
+                }
+                case Entry.OfStudio<?, ?>(StudioProxy<?> proxy) -> {
+                    // RFC 0011: studio-kind card. URL points at the wrapped
+                    // source L0's own catalogue page; the proxy's display
+                    // fields (name / summary / badge / icon) render the tile.
+                    sb.append("{\"kind\":\"studio\",")
+                      .append("\"name\":")    .append(jstr(proxy.icon().isEmpty()
+                                                      ? proxy.name()
+                                                      : proxy.icon() + " " + proxy.name())).append(',')
+                      .append("\"summary\":") .append(jstr(proxy.summary())).append(',')
+                      .append("\"category\":").append(jstr(proxy.badge())).append(',')
+                      .append("\"url\":")     .append(jstr(catalogueUrl(proxy.source().getClass().getName())))
                       .append('}');
                 }
             }
@@ -196,7 +204,7 @@ public class CatalogueGetAction
     }
 
     /** RFC 0009: breadcrumb crumb text — icon glyph prefix + name. */
-    static String crumbTextOf(Catalogue c) {
+    static String crumbTextOf(Catalogue<?> c) {
         String icon = c.icon();
         return (icon == null || icon.isEmpty()) ? c.name() : icon + " " + c.name();
     }

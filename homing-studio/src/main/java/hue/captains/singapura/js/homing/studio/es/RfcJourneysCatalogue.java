@@ -20,7 +20,8 @@ import java.util.List;
  * to depth 2 (RFC 0005-ext2). The breadcrumb chain rendered above any RFC
  * plan now reads {@code Homing · studio › Journeys › RFCs › RFC 0001}.</p>
  */
-public record RfcJourneysCatalogue() implements L2_Catalogue<JourneysCatalogue> {
+public record RfcJourneysCatalogue()
+        implements L2_Catalogue<JourneysCatalogue, RfcJourneysCatalogue> {
 
     public static final RfcJourneysCatalogue INSTANCE = new RfcJourneysCatalogue();
 
@@ -28,15 +29,15 @@ public record RfcJourneysCatalogue() implements L2_Catalogue<JourneysCatalogue> 
     @Override public String name()    { return "RFCs"; }
     @Override public String summary() { return "Plans attached to numbered RFCs and their extensions — the architectural decisions in flight, with phased execution and acceptance criteria."; }
 
-    @Override public List<Entry> leaves() {
+    @Override public List<Entry<RfcJourneysCatalogue>> leaves() {
         return List.of(
-                Entry.of(Rfc0001PlanData.INSTANCE),
-                Entry.of(Rfc0002PlanData.INSTANCE),
-                Entry.of(Rfc0002Ext1PlanData.INSTANCE),
-                Entry.of(Rfc0004PlanData.INSTANCE),
-                Entry.of(Rfc0004Ext1PlanData.INSTANCE),
-                Entry.of(Rfc0005PlanData.INSTANCE),
-                Entry.of(Rfc0005Ext1PlanData.INSTANCE)
+                Entry.of(this, Rfc0001PlanData.INSTANCE),
+                Entry.of(this, Rfc0002PlanData.INSTANCE),
+                Entry.of(this, Rfc0002Ext1PlanData.INSTANCE),
+                Entry.of(this, Rfc0004PlanData.INSTANCE),
+                Entry.of(this, Rfc0004Ext1PlanData.INSTANCE),
+                Entry.of(this, Rfc0005PlanData.INSTANCE),
+                Entry.of(this, Rfc0005Ext1PlanData.INSTANCE)
         );
     }
 }

@@ -401,6 +401,36 @@ public class AppHtmlGetAction
         chordPaletteJsBuilder.append("]");
         String chordPaletteJs = chordPaletteJsBuilder.toString();
 
+        // RFC 0008 extension — chord progressions for auto-play guitar.
+        // Themes opt in via ThemeAudio.progressions() + progressionVoice().
+        // Both empty/null = no autoplay subsystem ships meaningful data;
+        // the runtime guards itself with .length checks so the dead JS is
+        // harmless overhead (~80 bytes).
+        StringBuilder progressionsJsBuilder = new StringBuilder("[");
+        boolean firstProgression = true;
+        for (var p : audio.progressions()) {
+            if (!firstProgression) progressionsJsBuilder.append(",");
+            firstProgression = false;
+            progressionsJsBuilder.append("\n        { name: ").append(jsQuote(p.name()))
+                                 .append(", chordIndices: [");
+            boolean firstIdx = true;
+            for (int idx : p.chordIndices()) {
+                if (!firstIdx) progressionsJsBuilder.append(",");
+                firstIdx = false;
+                progressionsJsBuilder.append(idx);
+            }
+            progressionsJsBuilder.append("], secondsPerChord: ").append(p.secondsPerChord())
+                                 .append(", moodColor: ")
+                                 .append(p.moodColor() == null ? "null" : jsQuote(p.moodColor()))
+                                 .append(" }");
+        }
+        progressionsJsBuilder.append("\n    ]");
+        String progressionsJs = progressionsJsBuilder.toString();
+
+        // Progression voice — null when the theme doesn't opt in.
+        Cue progressionVoice = audio.progressionVoice();
+        String progressionVoiceJs = (progressionVoice == null) ? "null" : emitCueJs(progressionVoice);
+
         return """
                 <script type="module">
                     // RFC 0007 (cues) + RFC 0008 Phase 2 (keyboard play + per-theme prefs)
@@ -413,6 +443,8 @@ public class AppHtmlGetAction
                     const KEY_LABELS     = __KEY_LABELS__;       // event.code → { label, target } for the panel
                     const VOCAL_PALETTE  = __VOCAL_PALETTE__;    // 11 Tone.js note strings — C3..B5
                     const CHORD_PALETTE  = __CHORD_PALETTE__;    // 6 chord arrays — diatonic C major
+                    const PROGRESSIONS   = __PROGRESSIONS__;     // RFC 0008 ext — list of {name, chordIndices, secondsPerChord, moodColor}
+                    const PROGRESSION_VOICE = __PROGRESSION_VOICE__; // null when theme didn't opt in
                     const TONE_URL       = "__TONE_URL__";
                     const THEME_SLUG     = __THEME_SLUG__;
                     // Session-only random salt — re-rolls each tab load. Used to
@@ -487,6 +519,119 @@ public class AppHtmlGetAction
                     function muted()    { return localStorage.getItem(PREF_MUTED) === "1"; }
                     function playMode() { return localStorage.getItem(PREF_PLAY_MODE) === "1"; }
 
+                    // RFC 0008 ext — auto-play guitar state (only relevant when
+                    // PROGRESSIONS is non-empty AND PROGRESSION_VOICE is non-null).
+                    const PREF_AUTOPLAY = "homing-theme:" + THEME_SLUG + ":autoplay";
+                    const PREF_ROOT_KEY = "homing-theme:" + THEME_SLUG + ":root-key";
+                    const DIATONIC_OFFSETS = [0, 2, 4, 5, 7, 9, 11];     // C D E F G A B
+                    const DIATONIC_LABELS  = ["C", "D", "E", "F", "G", "A", "B"];
+                    function autoplay()       { return localStorage.getItem(PREF_AUTOPLAY) === "1"; }
+                    function setAutoplay(v)   { localStorage.setItem(PREF_AUTOPLAY, v ? "1" : "0"); }
+                    function rootKey()        { return parseInt(localStorage.getItem(PREF_ROOT_KEY) || "0", 10); }
+                    function setRootKey(v)    { localStorage.setItem(PREF_ROOT_KEY, String(v)); }
+                    let progressionBuffers = null;     // AudioBuffer[] — one per CHORD_PALETTE entry
+                    let autoplayTimer      = null;
+                    let currentProgression = null;
+                    let chordIndex         = 0;
+                    let moodOverlay        = null;     // div, injected lazily
+
+                    function ensureMoodOverlay() {
+                        if (moodOverlay) return moodOverlay;
+                        moodOverlay = document.createElement("div");
+                        moodOverlay.id = "__theme_mood_overlay__";
+                        // Behind chrome, above the theme backdrop. Fixed-position
+                        // wash, low opacity — "hint not the main flavor."
+                        moodOverlay.style.cssText =
+                            "position:fixed;inset:0;pointer-events:none;" +
+                            "background-color:transparent;opacity:0;" +
+                            "transition:background-color 1.5s ease, opacity 1.5s ease;" +
+                            "z-index:9999;mix-blend-mode:multiply;";
+                        document.body.appendChild(moodOverlay);
+                        return moodOverlay;
+                    }
+                    function applyMoodColor(color) {
+                        const ov = ensureMoodOverlay();
+                        if (color) {
+                            ov.style.backgroundColor = color;
+                            ov.style.opacity = "0.20";
+                        } else {
+                            ov.style.opacity = "0";
+                        }
+                    }
+
+                    function setGuitarVisualState(state) {
+                        const g = document.querySelector(".jd-auto-guitar");
+                        if (!g) return;
+                        g.classList.remove("autoplaying", "muted-autoplay");
+                        if (state === "playing") g.classList.add("autoplaying");
+                        if (state === "muted-playing") g.classList.add("autoplaying", "muted-autoplay");
+                    }
+
+                    function pickRandomProgression() {
+                        return PROGRESSIONS[Math.floor(Math.random() * PROGRESSIONS.length)];
+                    }
+
+                    function playProgressionChord(chordIdx) {
+                        if (muted() || !progressionBuffers || !audioContext) return;
+                        const buffer = progressionBuffers[chordIdx];
+                        if (!buffer) return;
+                        const source = audioContext.createBufferSource();
+                        source.buffer = buffer;
+                        // Web Audio playbackRate = 2^(semitones/12) — cheap transposition.
+                        const semitones = DIATONIC_OFFSETS[rootKey()] || 0;
+                        source.playbackRate.value = Math.pow(2, semitones / 12);
+                        source.connect(audioContext.destination);
+                        source.start();
+                    }
+
+                    function scheduleNextChord() {
+                        if (!autoplay()) return;       // toggled off mid-cycle
+                        if (!currentProgression || chordIndex >= currentProgression.chordIndices.length) {
+                            // Cycle complete (or first call) — pick new random
+                            // progression and rotate the mood (D3: per-cycle).
+                            currentProgression = pickRandomProgression();
+                            chordIndex = 0;
+                            applyMoodColor(currentProgression.moodColor);
+                        }
+                        playProgressionChord(currentProgression.chordIndices[chordIndex]);
+                        // Even when muted, update visual state so the user sees
+                        // the dimmed-playing glow on the guitar.
+                        setGuitarVisualState(muted() ? "muted-playing" : "playing");
+                        chordIndex++;
+                        autoplayTimer = setTimeout(scheduleNextChord,
+                                                   currentProgression.secondsPerChord * 1000);
+                    }
+
+                    async function startAutoplay() {
+                        // Random root per toggle (D2). Persist so reload keeps it
+                        // until the user manually slides.
+                        setRootKey(Math.floor(Math.random() * DIATONIC_OFFSETS.length));
+                        updateKeySliderUi();
+                        await ensureAudio();
+                        currentProgression = null;     // forces pickRandomProgression on first tick
+                        chordIndex = 0;
+                        scheduleNextChord();
+                    }
+                    function stopAutoplay() {
+                        if (autoplayTimer) { clearTimeout(autoplayTimer); autoplayTimer = null; }
+                        currentProgression = null;
+                        applyMoodColor(null);
+                        setGuitarVisualState("idle");
+                    }
+                    async function toggleAutoplay() {
+                        const wasOn = autoplay();
+                        setAutoplay(!wasOn);
+                        if (wasOn) stopAutoplay();
+                        else       await startAutoplay();
+                    }
+
+                    function updateKeySliderUi() {
+                        const label  = document.getElementById("__key_slider_label__");
+                        const slider = document.getElementById("__key_slider__");
+                        if (label)  label.textContent = "Key: " + DIATONIC_LABELS[rootKey()];
+                        if (slider) slider.value = String(rootKey());
+                    }
+
                     // Approximate seconds per Tone.js duration string, at default 120 BPM.
                     // Used to size the offline-render duration per cue — we render long
                     // enough to capture each note's held portion + its release tail.
@@ -514,6 +659,13 @@ public class AppHtmlGetAction
                             const held = durationSec(DURATION_MAP[hit.duration] || hit.duration);
                             const end = (hit.offsetMs / 1000) + held + (env.release || 0.5) + 0.05;
                             if (end > maxEnd) maxEnd = end;
+                        }
+                        // CHORD palette renders as a 4-step arpeggio (0.18 s
+                        // stride). Extend the buffer to fit all four attacks
+                        // plus the last note's full release tail.
+                        if (cue.paletteMode === "CHORD") {
+                            const arpeggioSpan = 4 * 0.18;   // ≈ 0.72 s
+                            maxEnd = maxEnd + arpeggioSpan;
                         }
                         return Math.max(maxEnd, 0.1);
                     }
@@ -556,15 +708,28 @@ public class AppHtmlGetAction
                         const dur = cueRenderDuration(cue);
                         const buf = await tone.Offline(() => {
                             if (Array.isArray(paletteEntry)) {
-                                // CHORD — play every chord pitch simultaneously.
-                                // Use the cue's first NoteHit as the duration
-                                // template; each chord note gets its own synth
-                                // voice for clean polyphonic mixing.
+                                // CHORD — broken-chord arpeggio. Notes ascend
+                                // one at a time with a small stagger, then we
+                                // descend back through the middle note for an
+                                // up-down feel (1-3-5-3 for a triad). Each note
+                                // gets its own synth voice so they overlap
+                                // musically as the envelope rings out.
                                 const template = cue.notes[0];
                                 const noteDuration = DURATION_MAP[template.duration] || template.duration;
-                                for (const chordPitch of paletteEntry) {
+                                const ARPEGGIO_STEP = 0.18;     // seconds between attacks
+                                // Build the arpeggio order — for a triad
+                                // [root, third, fifth] play [0, 1, 2, 1] so
+                                // each chord lasts ~4 steps (~720 ms) and
+                                // feels rhythmic rather than blocky.
+                                const arpOrder = paletteEntry.length === 3
+                                    ? [0, 1, 2, 1]
+                                    : Array.from({ length: paletteEntry.length }, (_, i) => i);
+                                for (let i = 0; i < arpOrder.length; i++) {
                                     const synth = makeSynth(cue, tone);
-                                    synth.triggerAttackRelease(chordPitch, noteDuration, 0);
+                                    synth.triggerAttackRelease(
+                                        paletteEntry[arpOrder[i]],
+                                        noteDuration,
+                                        i * ARPEGGIO_STEP);
                                 }
                                 return;
                             }
@@ -703,6 +868,13 @@ public class AppHtmlGetAction
                             ]);
                             clickBuffers = c;
                             hoverBuffers = h;
+                            // RFC 0008 ext — bake chord progression buffers if the
+                            // theme opted in. Returns AudioBuffer[] (one per chord
+                            // in CHORD_PALETTE) — bakeCue handles paletteMode=CHORD
+                            // expansion.
+                            if (PROGRESSION_VOICE) {
+                                progressionBuffers = await bakeCue(PROGRESSION_VOICE, tone);
+                            }
                         }
                         return tone;
                     }
@@ -714,8 +886,17 @@ public class AppHtmlGetAction
                     const AUDIO_SELECTOR = Object.keys(AUDIO_BINDINGS).map(t => "." + t).join(",");
 
                     document.body.addEventListener("click", async (e) => {
-                        if (muted()) return;
                         if (!e.target || !e.target.closest) return;
+                        // RFC 0008 ext — guitar toggle. The guitar element itself
+                        // is the toggle; mute does NOT gate the state change (the
+                        // user can configure autoplay while muted, and the
+                        // scheduler honours mute by skipping chord playback).
+                        const guitar = e.target.closest(".jd-auto-guitar");
+                        if (guitar && PROGRESSIONS.length > 0 && PROGRESSION_VOICE) {
+                            await toggleAutoplay();
+                            return;
+                        }
+                        if (muted()) return;
                         const matched = e.target.closest(AUDIO_SELECTOR);
                         if (!matched) return;
                         // Find which binding's class is on the matched element. With a
@@ -862,6 +1043,49 @@ public class AppHtmlGetAction
                             });
                             slot.appendChild(playBtn);
                         }
+
+                        // RFC 0008 ext — Key slider. Only present when the theme
+                        // ships progressions (auto-play opt-in). 7 diatonic root
+                        // positions; the runtime applies the offset to chord
+                        // playback via AudioBufferSourceNode.playbackRate.
+                        if (PROGRESSIONS.length > 0 && PROGRESSION_VOICE) {
+                            const wrap = document.createElement("div");
+                            wrap.style.cssText = "display:flex;align-items:center;gap:6px;margin-left:6px;color:var(--color-text-on-inverted);";
+                            const label = document.createElement("span");
+                            label.id = "__key_slider_label__";
+                            label.style.cssText = "font:13px system-ui,sans-serif;min-width:48px;";
+                            const slider = document.createElement("input");
+                            slider.id = "__key_slider__";
+                            slider.type = "range";
+                            slider.min = "0";
+                            slider.max = String(DIATONIC_OFFSETS.length - 1);
+                            slider.step = "1";
+                            slider.value = String(rootKey());
+                            slider.style.cssText = "width:80px;cursor:pointer;";
+                            slider.title = "Transpose auto-play chord progression";
+                            slider.addEventListener("input", (e) => {
+                                e.stopPropagation();
+                                setRootKey(parseInt(slider.value, 10));
+                                updateKeySliderUi();
+                            });
+                            wrap.appendChild(label);
+                            wrap.appendChild(slider);
+                            slot.appendChild(wrap);
+                            updateKeySliderUi();
+                        }
+
+                        // Resume auto-play state from a prior session — the user
+                        // toggled it on, then reloaded. Honour the persisted state
+                        // but wait for a user gesture (click anywhere on the page)
+                        // before actually starting audio — Web Audio policy.
+                        if (autoplay() && PROGRESSIONS.length > 0 && PROGRESSION_VOICE) {
+                            const resumeOnGesture = () => {
+                                document.removeEventListener("click", resumeOnGesture, true);
+                                if (autoplay()) startAutoplay();
+                            };
+                            document.addEventListener("click", resumeOnGesture, true);
+                            setGuitarVisualState(muted() ? "muted-playing" : "playing");
+                        }
                     }
                     if (document.readyState === "loading") {
                         document.addEventListener("DOMContentLoaded", installControlPanel);
@@ -884,6 +1108,8 @@ public class AppHtmlGetAction
                 .replace("__KEY_LABELS__",     keyLabelsJs.toString())
                 .replace("__VOCAL_PALETTE__",  paletteJs)
                 .replace("__CHORD_PALETTE__",  chordPaletteJs)
+                .replace("__PROGRESSIONS__",   progressionsJs)
+                .replace("__PROGRESSION_VOICE__", progressionVoiceJs)
                 .replace("__TONE_URL__",       toneUrl)
                 .replace("__THEME_SLUG__",     themeSlugJs);
     }

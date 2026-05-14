@@ -1,18 +1,18 @@
 package hue.captains.singapura.js.homing.demo.studio.multi;
 
 import hue.captains.singapura.js.homing.skills.SkillsHome;
-import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
 import hue.captains.singapura.js.homing.studio.base.app.L1_Catalogue;
-import hue.captains.singapura.js.homing.studio.base.app.Navigable;
+import hue.captains.singapura.js.homing.studio.base.app.StudioProxy;
 
 import java.util.List;
 
 /**
- * L1 category — agent-side tooling and integrations. Holds the
- * {@link SkillsHome} Navigable tile (Claude-Code skill bundle).
+ * L1 category — agent-side tooling and integrations. Holds a
+ * {@link StudioProxy} wrapping {@link SkillsHome}.
  */
-public record ToolingStudioCategory() implements L1_Catalogue<MultiStudioHome> {
+public record ToolingStudioCategory()
+        implements L1_Catalogue<MultiStudioHome, ToolingStudioCategory> {
 
     public static final ToolingStudioCategory INSTANCE = new ToolingStudioCategory();
 
@@ -22,13 +22,14 @@ public record ToolingStudioCategory() implements L1_Catalogue<MultiStudioHome> {
     @Override public String badge()   { return "TOOLING"; }
     @Override public String icon()    { return "🤖"; }
 
-    @Override public List<Entry> leaves() {
+    @Override public List<Entry<ToolingStudioCategory>> leaves() {
         return List.of(
-                Entry.of(new Navigable<>(
-                        CatalogueAppHost.INSTANCE,
-                        new CatalogueAppHost.Params(SkillsHome.class.getName()),
-                        "📜 Skills",
-                        "Claude-Code skill bundle — dump-as-SKILL.md from the CLI or browse them here. Dual-Audience Skills doctrine in flesh."))
+                Entry.of(this, new StudioProxy<>(
+                        SkillsHome.INSTANCE,
+                        "Skills",
+                        "Claude-Code skill bundle — dump-as-SKILL.md from the CLI or browse them here.",
+                        "STUDIO",
+                        "📜"))
         );
     }
 }

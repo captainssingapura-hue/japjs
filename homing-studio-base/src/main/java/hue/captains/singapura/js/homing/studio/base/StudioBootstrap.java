@@ -60,7 +60,7 @@ public final class StudioBootstrap {
 
     /** Minimal entry — port + apps; uses {@link StudioThemeRegistry} and {@link HomingDefault}; no catalogues. */
     public static void start(int port, List<AppModule<?, ?>> apps) {
-        start(port, apps, List.<Catalogue>of(), List.<Plan>of(), null,
+        start(port, apps, List.<Catalogue<?>>of(), List.<Plan>of(), null,
                 StudioThemeRegistry.INSTANCE, HomingDefault.INSTANCE, Map.of(), Map.of());
     }
 
@@ -69,13 +69,13 @@ public final class StudioBootstrap {
                              List<AppModule<?, ?>> apps,
                              ThemeRegistry themeRegistry,
                              Theme defaultTheme) {
-        start(port, apps, List.<Catalogue>of(), List.<Plan>of(), null, themeRegistry, defaultTheme, Map.of(), Map.of());
+        start(port, apps, List.<Catalogue<?>>of(), List.<Plan>of(), null, themeRegistry, defaultTheme, Map.of(), Map.of());
     }
 
     /** With catalogues + brand (RFC 0005). Catalogues registered explicitly per D1; brand provided alongside per D2. */
     public static void start(int port,
                              List<AppModule<?, ?>> apps,
-                             List<Catalogue> catalogues,
+                             List<Catalogue<?>> catalogues,
                              StudioBrand brand) {
         start(port, apps, catalogues, List.of(), brand,
                 StudioThemeRegistry.INSTANCE, HomingDefault.INSTANCE, Map.of(), Map.of());
@@ -84,7 +84,7 @@ public final class StudioBootstrap {
     /** With catalogues + plans + brand (RFC 0005-ext1). Plans registered explicitly. */
     public static void start(int port,
                              List<AppModule<?, ?>> apps,
-                             List<Catalogue> catalogues,
+                             List<Catalogue<?>> catalogues,
                              List<Plan> plans,
                              StudioBrand brand) {
         start(port, apps, catalogues, plans, brand,
@@ -104,7 +104,7 @@ public final class StudioBootstrap {
     /** Full form with catalogues + plans — RFC 0005-ext1's preferred entry point. */
     public static void start(int port,
                              List<AppModule<?, ?>> apps,
-                             List<Catalogue> catalogues,
+                             List<Catalogue<?>> catalogues,
                              List<Plan> plans,
                              StudioBrand brand,
                              ThemeRegistry themeRegistry,
@@ -171,7 +171,7 @@ public final class StudioBootstrap {
     public static ActionRegistry<RoutingContext> buildRegistry(
             QueryParamResolver nameResolver,
             SimpleAppResolver appResolver,
-            List<Catalogue> catalogues,
+            List<Catalogue<?>> catalogues,
             List<Plan> plans,
             StudioBrand brand,
             ThemeRegistry themeRegistry,
@@ -200,7 +200,7 @@ public final class StudioBootstrap {
                 docProviders.add(p);
             }
         }
-        for (Catalogue c : catalogues) {
+        for (Catalogue<?> c : catalogues) {
             if (c instanceof hue.captains.singapura.js.homing.studio.base.DocProvider p) {
                 docProviders.add(p);
             }

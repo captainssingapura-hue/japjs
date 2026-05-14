@@ -16,7 +16,8 @@ import java.util.List;
  * system end-to-end: typed CSS, themes, wallpapers, audio cues, interactive
  * theme experiences.
  */
-public record VisualSystemRfcsCatalogue() implements L2_Catalogue<RfcsCatalogue> {
+public record VisualSystemRfcsCatalogue()
+        implements L2_Catalogue<RfcsCatalogue, VisualSystemRfcsCatalogue> {
 
     public static final VisualSystemRfcsCatalogue INSTANCE = new VisualSystemRfcsCatalogue();
 
@@ -24,14 +25,14 @@ public record VisualSystemRfcsCatalogue() implements L2_Catalogue<RfcsCatalogue>
     @Override public String name()    { return "Visual System"; }
     @Override public String summary() { return "Typed CSS groups, semantic tokens, themeable primitives, wallpaper backdrops, audio cues, and interactive theme experiences — the studio's sensory layer end-to-end."; }
 
-    @Override public List<Entry> leaves() {
+    @Override public List<Entry<VisualSystemRfcsCatalogue>> leaves() {
         return List.of(
-                Entry.of(Rfc0002Doc.INSTANCE),
-                Entry.of(Rfc0002Ext1Doc.INSTANCE),
-                Entry.of(Rfc0003Doc.INSTANCE),
-                Entry.of(Rfc0006Doc.INSTANCE),
-                Entry.of(Rfc0007Doc.INSTANCE),
-                Entry.of(Rfc0008Doc.INSTANCE)
+                Entry.of(this, Rfc0002Doc.INSTANCE),
+                Entry.of(this, Rfc0002Ext1Doc.INSTANCE),
+                Entry.of(this, Rfc0003Doc.INSTANCE),
+                Entry.of(this, Rfc0006Doc.INSTANCE),
+                Entry.of(this, Rfc0007Doc.INSTANCE),
+                Entry.of(this, Rfc0008Doc.INSTANCE)
         );
     }
 }
