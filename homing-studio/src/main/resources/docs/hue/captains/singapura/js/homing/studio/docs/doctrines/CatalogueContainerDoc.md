@@ -69,6 +69,14 @@ When in doubt, ask: *"can this be expressed as an ordered list of Doc-or-Catalog
 
 ---
 
+## Open extensions — the Umbrella one level up
+
+The same "open set of types, closed structural shape" principle that governs a single catalogue tree also governs how multiple studios compose into one deployable server. Per [RFC 0012](#ref:rfc-12), studios compose into a typed tree via the `Umbrella<S>` ADT — leaves are studios, branches are pure organisational categories. The tree is constructed by the deployer at composition time; the framework reads it as input.
+
+The Umbrella's permitted shape is fixed (`Group` / `Solo`), but the set of studios it can carry is open — any `Studio<L0>` implementation slots in. Visual chrome for each node is supplied by `Fixtures.chromeFor(node)`, mirroring the renderer-owns-presentation rule that catalogues themselves obey. The Catalogue-as-Container doctrine extends, in the same shape, to Studio-as-leaf-of-Umbrella: identity-by-class, structure-only data, no presentation directives carried, framework handles rendering.
+
+---
+
 ## How to think about it
 
 A catalogue is a typed tree node. It has identity (so it can be pointed at), it lists ordered children (Docs and other catalogues), and it knows nothing about how it looks. Everything else — the title shown in headers, the icons in tiles, the URLs in hrefs, the section grouping — is either intrinsic to its entries or computed by the renderer.
@@ -85,4 +93,5 @@ When designing a new "catalogue-shaped" thing, the test is: *does it have just i
 - [RFC 0004 — Typed Docs, UUIDs, and Visibility](#ref:rfc-4) — the same identity-as-wire-handle pattern, applied to docs.
 - [RFC 0004-ext1 — Managed Markdown References](#ref:rfc-4-ext1) — the Reference model identity-based linking flows through.
 - [RFC 0005-ext2 — Typed Catalogue Levels](#ref:rfc-5-ext2) — the sealed `L0..L8` family that gives the tree its shape and turns multi-parent / cycles / depth surprises into compile errors.
+- [RFC 0012 — Typed Studio Composition](#ref:rfc-12) — lifts this doctrine one level up. The Umbrella ADT places studios at the leaves of the same "open set, closed shape" container pattern, with `Fixtures.chromeFor` supplying the rendering separation catalogues already obey.
 - [Defect 0004 — Flat Breadcrumbs](#ref:def-4) — the bug that motivated the typed-levels refactor.

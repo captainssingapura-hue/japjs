@@ -272,11 +272,13 @@ public final class CatalogueRegistry {
 
     /**
      * RFC 0011: if this chain's root is hosted by an umbrella catalogue, prepend
-     * the umbrella's chain and suppress the source L0's duplicate label.
+     * the umbrella's chain so the breadcrumb spans both trees.
      *
      * <p>chain[0] is always the L0 root (typed-walk via parent() invariant).
-     * If isHosted(rootClass), replace chain[0] with umbrella-chain (already ends
-     * at the host catalogue) + chain[1..].</p>
+     * If isHosted(rootClass), prepend umbrella-chain (umbrella-root → … → host)
+     * to the full source chain (source L0 → … → leaf). The source L0 is kept —
+     * it's a meaningful navigation rung between the host tile and the source
+     * sub-tree (e.g. {@code Homing Studios / Core / Homing / Building Blocks}).</p>
      */
     @SuppressWarnings("unchecked")
     private List<Catalogue<?>> augmentForProxy(List<Catalogue<?>> chain) {
@@ -287,8 +289,9 @@ public final class CatalogueRegistry {
                 (Class<? extends L0_Catalogue<?>>) root.getClass();
         if (!proxyManager.isHosted(rootClass)) return List.copyOf(chain);
         Catalogue<?> host = proxyManager.hostFor(rootClass);
-        // Walk the host's own typed chain (root → … → host). The proxy occupies
-        // the source L0's slot, so we drop the source L0 from the original chain.
+        // Walk the host's own typed chain (umbrella-root → … → host), then
+        // append the full source chain (source L0 → … → leaf). The source L0
+        // sits between the host tile and its descendants as a navigation rung.
         List<Catalogue<?>> umbrella = new ArrayList<>();
         Catalogue<?> cursor = host;
         while (cursor != null) {
@@ -297,7 +300,7 @@ public final class CatalogueRegistry {
         }
         Collections.reverse(umbrella);
         List<Catalogue<?>> out = new ArrayList<>(umbrella);
-        out.addAll(chain.subList(1, chain.size()));
+        out.addAll(chain);
         return List.copyOf(out);
     }
 

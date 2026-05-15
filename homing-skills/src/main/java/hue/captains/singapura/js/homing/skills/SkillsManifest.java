@@ -43,7 +43,8 @@ public final class SkillsManifest {
             new Entry("create-homing-studio",    CreateHomingStudioSkillDoc.INSTANCE),
             new Entry("create-homing-theme",     CreateHomingThemeSkillDoc.INSTANCE),
             new Entry("create-homing-component", CreateHomingComponentSkillDoc.INSTANCE),
-            new Entry("migrate-from-0-0-11",     MigrateFrom0_0_11SkillDoc.INSTANCE)
+            new Entry("migrate-from-0-0-11",     MigrateFrom0_0_11SkillDoc.INSTANCE),
+            new Entry("migrate-from-0-0-100",    MigrateFrom0_0_100SkillDoc.INSTANCE)
     );
 
     private SkillsManifest() {}

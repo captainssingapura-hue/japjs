@@ -8,6 +8,7 @@ import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0004Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0004Ext1Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0005Ext2Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0012Doc;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +30,7 @@ public record CatalogueContainerDoc() implements ClasspathMarkdownDoc {
                 new DocReference("rfc-4",      Rfc0004Doc.INSTANCE),
                 new DocReference("rfc-4-ext1", Rfc0004Ext1Doc.INSTANCE),
                 new DocReference("rfc-5-ext2", Rfc0005Ext2Doc.INSTANCE),
+                new DocReference("rfc-12",     Rfc0012Doc.INSTANCE),
                 new DocReference("def-4",      Defect0004Doc.INSTANCE)
         );
     }
