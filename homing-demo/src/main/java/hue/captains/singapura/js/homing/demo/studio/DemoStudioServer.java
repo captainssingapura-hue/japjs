@@ -1,61 +1,42 @@
 package hue.captains.singapura.js.homing.demo.studio;
 
-import hue.captains.singapura.js.homing.core.AppModule;
-import hue.captains.singapura.js.homing.core.SvgRef;
-import hue.captains.singapura.js.homing.demo.es.CuteAnimal;
-import hue.captains.singapura.js.homing.studio.base.StudioBootstrap;
-import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
-import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
-import hue.captains.singapura.js.homing.studio.base.app.DocReader;
-import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
-import hue.captains.singapura.js.homing.studio.base.theme.ThemesIntro;
-import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
-import hue.captains.singapura.js.homing.studio.base.tracker.PlanAppHost;
+import hue.captains.singapura.js.homing.demo.studio.multi.MultiStudio;
+import hue.captains.singapura.js.homing.skills.SkillsStudio;
+import hue.captains.singapura.js.homing.studio.HomingStudio;
+import hue.captains.singapura.js.homing.studio.base.Bootstrap;
+import hue.captains.singapura.js.homing.studio.base.DefaultFixtures;
+import hue.captains.singapura.js.homing.studio.base.DefaultRuntimeParams;
+import hue.captains.singapura.js.homing.studio.base.Studio;
+import hue.captains.singapura.js.homing.studio.base.Umbrella;
 
 import java.util.List;
 
 /**
- * Dedicated demo studio — proves that {@code homing-studio-base} can be
- * consumed by an unrelated module (this one — the demo) with no plumbing
- * beyond the public API. Exists to satisfy the First-User Discipline:
- * the framework needs an in-tree consumer that isn't {@code homing-studio}.
+ * RFC 0012 — multi-studio demo server. Composes four typed studios under
+ * one umbrella: {@link MultiStudio} (the launcher providing
+ * {@code MultiStudioHome} and the three category L1s) plus three
+ * contributors ({@link DemoBaseStudio}, {@link SkillsStudio},
+ * {@link HomingStudio}). Brand resolution falls through to MultiStudio's
+ * standalone brand — the turtle-logoed multi-studio umbrella.
  *
- * <p>The brand mark is {@code CuteAnimal.turtle} — a typed {@link SvgRef}
- * pointing at an SVG asset originally drawn for the SVG-extruder demo.
- * Reusing it as a logo validates that {@code SvgRef} works against assets
- * that weren't designed for branding.</p>
- *
- * <p>Runs on port {@code 8082} so it can run alongside the legacy
- * {@code WonderlandDemoServer} (8080) and the main studio (8080) without
- * conflict.</p>
+ * <p>Listens on port 8082 alongside the standalone single-studio servers.</p>
  */
-public class DemoStudioServer {
+public final class DemoStudioServer {
+
+    private DemoStudioServer() {}
 
     public static void main(String[] args) {
 
-        // The four shared AppModules every studio gets. No app-specific code in this server.
-        List<AppModule<?, ?>> apps = List.of(
-                CatalogueAppHost.INSTANCE,
-                PlanAppHost.INSTANCE,
-                DocReader.INSTANCE,
-                ThemesIntro.INSTANCE
-        );
+        Umbrella<Studio<?>> umbrella = new Umbrella.Group<>(
+                "Homing Multi-Studio Demo",
+                "Three source studios composed onto one server, launched from a typed umbrella.",
+                List.of(
+                        new Umbrella.Solo<>(MultiStudio.INSTANCE),
+                        new Umbrella.Solo<>(DemoBaseStudio.INSTANCE),
+                        new Umbrella.Solo<>(SkillsStudio.INSTANCE),
+                        new Umbrella.Solo<>(HomingStudio.INSTANCE)
+                ));
 
-        // The home catalogue. One entry — the intro doc — plus a link to the
-        // shared themes-intro page. Demo-style: minimal, illustrative, dogfood.
-        List<Catalogue> catalogues = List.of(
-                DemoStudio.INSTANCE
-        );
-
-        // No plans tracked here — the demo studio is a consumer, not a project artefact.
-        List<Plan> plans = List.of();
-
-        // Brand: turtle as the logo, demonstrates SvgRef against a third-party-style asset.
-        StudioBrand brand = new StudioBrand(
-                "Homing · demo",
-                DemoStudio.class,
-                new SvgRef<>(CuteAnimal.INSTANCE, new CuteAnimal.turtle()));
-
-        StudioBootstrap.start(8082, apps, catalogues, plans, brand);
+        new Bootstrap<>(new DefaultFixtures<>(umbrella), new DefaultRuntimeParams(8082)).start();
     }
 }

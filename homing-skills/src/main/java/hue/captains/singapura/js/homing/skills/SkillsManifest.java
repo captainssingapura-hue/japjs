@@ -34,10 +34,17 @@ public final class SkillsManifest {
      *  meta-skill comes first because it's the first thing a downstream user
      *  needs to know — how to consume this bundle. */
     public static final List<Entry> ALL = List.of(
-            new Entry("use-homing-skills",    UseHomingSkillsSkillDoc.INSTANCE),
-            new Entry("create-homing-studio", CreateHomingStudioSkillDoc.INSTANCE),
-            new Entry("create-homing-theme",  CreateHomingThemeSkillDoc.INSTANCE),
-            new Entry("migrate-from-0-0-11", MigrateFrom0_0_11SkillDoc.INSTANCE)
+            // Bootstrap + index first — these are the agent's entry points
+            // when first encountering a homing-skills-using project.
+            new Entry("homing-skills-bootstrap", HomingSkillsBootstrapDoc.INSTANCE),
+            new Entry("homing-skills-index",     HomingSkillsIndexDoc.INSTANCE),
+            // Then the domain skills.
+            new Entry("use-homing-skills",       UseHomingSkillsSkillDoc.INSTANCE),
+            new Entry("create-homing-studio",    CreateHomingStudioSkillDoc.INSTANCE),
+            new Entry("create-homing-theme",     CreateHomingThemeSkillDoc.INSTANCE),
+            new Entry("create-homing-component", CreateHomingComponentSkillDoc.INSTANCE),
+            new Entry("migrate-from-0-0-11",     MigrateFrom0_0_11SkillDoc.INSTANCE),
+            new Entry("migrate-from-0-0-100",    MigrateFrom0_0_100SkillDoc.INSTANCE)
     );
 
     private SkillsManifest() {}

@@ -14,15 +14,17 @@ import java.util.List;
  * {@link ContentRfcsCatalogue}, {@link VisualSystemRfcsCatalogue} — exercising
  * a second L1→L2 sub-tree parallel to {@link JourneysCatalogue}.</p>
  */
-public record RfcsCatalogue() implements L1_Catalogue<StudioCatalogue> {
+public record RfcsCatalogue() implements L1_Catalogue<StudioCatalogue, RfcsCatalogue> {
 
     public static final RfcsCatalogue INSTANCE = new RfcsCatalogue();
 
     @Override public StudioCatalogue parent() { return StudioCatalogue.INSTANCE; }
     @Override public String name()    { return "RFCs"; }
     @Override public String summary() { return "Every RFC the framework has shipped, grouped by theme. The architectural decisions behind Homing — what changed, why, and how."; }
+    @Override public String badge()   { return "RFC"; }
+    @Override public String icon()    { return "📐"; }
 
-    @Override public List<L2_Catalogue<RfcsCatalogue>> subCatalogues() {
+    @Override public List<? extends L2_Catalogue<RfcsCatalogue, ?>> subCatalogues() {
         return List.of(
                 ArchitectureRfcsCatalogue.INSTANCE,
                 ContentRfcsCatalogue.INSTANCE,

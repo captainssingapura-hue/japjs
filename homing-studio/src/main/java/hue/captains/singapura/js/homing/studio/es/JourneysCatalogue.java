@@ -18,15 +18,17 @@ import java.util.List;
  * {@code Homing · studio › Journeys › RFCs › <plan name>} (or
  * {@code … › Operations › <plan name>}).</p>
  */
-public record JourneysCatalogue() implements L1_Catalogue<StudioCatalogue> {
+public record JourneysCatalogue() implements L1_Catalogue<StudioCatalogue, JourneysCatalogue> {
 
     public static final JourneysCatalogue INSTANCE = new JourneysCatalogue();
 
     @Override public StudioCatalogue parent() { return StudioCatalogue.INSTANCE; }
     @Override public String name()    { return "Journeys"; }
     @Override public String summary() { return "Live trackers for every multi-phase plan in this project — grouped by RFC vs. cross-cutting operations."; }
+    @Override public String badge()   { return "JOURNEY"; }
+    @Override public String icon()    { return "🛤️"; }
 
-    @Override public List<L2_Catalogue<JourneysCatalogue>> subCatalogues() {
+    @Override public List<? extends L2_Catalogue<JourneysCatalogue, ?>> subCatalogues() {
         return List.of(
                 RfcJourneysCatalogue.INSTANCE,
                 OperationsJourneysCatalogue.INSTANCE

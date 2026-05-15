@@ -13,7 +13,8 @@ import java.util.List;
  * plans (refactors, releases, feature initiatives) that aren't tied to a
  * specific numbered RFC.
  */
-public record OperationsJourneysCatalogue() implements L2_Catalogue<JourneysCatalogue> {
+public record OperationsJourneysCatalogue()
+        implements L2_Catalogue<JourneysCatalogue, OperationsJourneysCatalogue> {
 
     public static final OperationsJourneysCatalogue INSTANCE = new OperationsJourneysCatalogue();
 
@@ -21,11 +22,11 @@ public record OperationsJourneysCatalogue() implements L2_Catalogue<JourneysCata
     @Override public String name()    { return "Operations"; }
     @Override public String summary() { return "Cross-cutting initiatives: large refactors, release rollups, developer-tool builds. The plans that don't fit under a single RFC."; }
 
-    @Override public List<Entry> leaves() {
+    @Override public List<Entry<OperationsJourneysCatalogue>> leaves() {
         return List.of(
-                Entry.of(RenamePlanData.INSTANCE),
-                Entry.of(V1PlanData.INSTANCE),
-                Entry.of(InstrumentsPlanData.INSTANCE)
+                Entry.of(this, RenamePlanData.INSTANCE),
+                Entry.of(this, V1PlanData.INSTANCE),
+                Entry.of(this, InstrumentsPlanData.INSTANCE)
         );
     }
 }

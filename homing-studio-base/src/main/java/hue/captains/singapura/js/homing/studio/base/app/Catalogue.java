@@ -51,43 +51,40 @@ import java.util.List;
  *
  * @since RFC 0005 (sub-catalogue / leaf split: RFC 0005-ext2)
  */
-public sealed interface Catalogue
+public sealed interface Catalogue<Self extends Catalogue<Self>>
         permits L0_Catalogue,
                 L1_Catalogue, L2_Catalogue, L3_Catalogue, L4_Catalogue,
                 L5_Catalogue, L6_Catalogue, L7_Catalogue, L8_Catalogue {
 
     /**
      * Human-readable label identifying this catalogue. Used as the page heading and
-     * in tile listings by parent catalogues. Not presentation — this is the
-     * catalogue's name; how it's styled is the renderer's call.
+     * in tile listings by parent catalogues.
      */
     String name();
 
-    /**
-     * Optional one-line summary shown in parent-catalogue tile listings. Default
-     * empty (renderer omits the summary line).
-     */
     default String summary() { return ""; }
 
     /**
-     * Typed sub-catalogue children. Default empty; each level interface (L0..L7)
-     * narrows the return type to the next level down — so a concrete catalogue's
-     * override is constrained to children of exactly one level deeper. L8 is
-     * terminal (no L9 type exists).
-     *
-     * <p>Authoring example (inside an L0 catalogue):</p>
-     * <pre>{@code
-     * @Override public List<L1_Catalogue<StudioCatalogue>> subCatalogues() {
-     *     return List.of(DoctrineCatalogue.INSTANCE, JourneysCatalogue.INSTANCE);
-     * }
-     * }</pre>
+     * RFC 0009 — text label flowing into the parent catalogue's card-tile
+     * {@code category} JSON field. Default {@code "CATALOGUE"}.
      */
-    default List<? extends Catalogue> subCatalogues() { return List.of(); }
+    default String badge() { return "CATALOGUE"; }
 
     /**
-     * Leaf entries — Docs, Plans, Apps. Sub-catalogues live in
-     * {@link #subCatalogues()}, not here. The {@link Entry} sum is sealed to
-     * the three leaf kinds; the renderer pattern-matches exhaustively over them.
+     * RFC 0009 — short glyph prefixed into the breadcrumb crumb. Default empty.
      */
-    default List<Entry> leaves() { return List.of(); }
+    default String icon() { return ""; }
+
+    /**
+     * Typed sub-catalogue children — each level interface narrows the return
+     * type to the next level down. RFC 0005-ext2.
+     */
+    default List<? extends Catalogue<?>> subCatalogues() { return List.of(); }
+
+    /**
+     * Leaf entries, typed by host (this catalogue's {@code Self}). RFC 0011
+     * — an {@code Entry<Self>} can only be constructed for this catalogue,
+     * so misplaced entries become compile errors.
+     */
+    default List<Entry<Self>> leaves() { return List.of(); }
 }

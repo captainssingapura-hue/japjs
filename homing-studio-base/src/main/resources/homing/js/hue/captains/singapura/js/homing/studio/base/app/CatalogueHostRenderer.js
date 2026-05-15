@@ -148,6 +148,19 @@ function _renderEntry(entry) {
             link:    "Open →"
         });
     }
+    if (entry.kind === "studio") {
+        // RFC 0011: a typed re-attachment of a source L0 catalogue. The
+        // server already emitted the proxy's icon prefixed into entry.name,
+        // and the URL points at the wrapped source L0's page. Renders as
+        // a Card (uniform with the other kinds) — badge defaults to "STUDIO".
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary,
+            badge:   entry.category || null,
+            link:    "Enter →"
+        });
+    }
     // Unknown kind — render as a plain text fallback so the page doesn't break.
     var fallback = document.createElement("div");
     css.addClass(fallback, st_error);

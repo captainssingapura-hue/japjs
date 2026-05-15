@@ -11,17 +11,20 @@ If you find yourself wanting to write a `.js` file, stop — you've left this sk
 
 ## Surface area you'll touch
 
-A minimal studio is **4–5 files**:
+A minimal studio is **5–6 files**:
 
 | File | Purpose | Manual JS? |
 |---|---|---|
 | `pom.xml` | depends on `homing-studio-base` | — |
 | `MyHomeCatalogue.java` | typed `Catalogue` record + `DocProvider` | no |
 | `MyIntroDoc.java` + `MyIntroDoc.md` | typed `Doc` record + classpath markdown body | no |
-| `MyStudioServer.java` | `main()` calling `StudioBootstrap.start(...)` | no |
+| `MyStudio.java` | typed `Studio<L0>` record — home, apps, plans, brand | no |
+| `MyStudioServer.java` | `main()` constructing a `Bootstrap<>` + `start()` | no |
 | (optional) `MyStudioLogo.java` + `<logo>.svg` | typed `SvgGroup` for brand mark | no |
 
 That's the entire surface. No `.js`, no HTML templates, no custom CSS class declarations beyond what `homing-studio-base` ships.
+
+The `Studio<L0>` record (RFC 0012) is the typed binding between your catalogue tree and the framework — it declares your home, your intrinsic apps, your plans, your brand, all in one place. The server's `main()` is then three lines: construct an `Umbrella`, wrap in `DefaultFixtures`, hand to `Bootstrap`.
 
 ## Step-by-step
 
@@ -45,35 +48,43 @@ Add to the studio's `pom.xml`:
 
 ### 3. Home Catalogue
 
+Per RFC 0005-ext2 (shipped in 0.0.100), `Catalogue` is sealed — every concrete catalogue picks a typed level (`L0_Catalogue` for the studio root, `L1_Catalogue<Root>` for direct children, etc.) and exposes children through two methods: `subCatalogues()` for typed sub-trees and `leaves()` for Docs / Plans / AppModule entries.
+
 ```java
 package com.example.studio;
 
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.studio.base.Doc;
 import hue.captains.singapura.js.homing.studio.base.DocProvider;
-import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
+import hue.captains.singapura.js.homing.studio.base.app.L0_Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.L1_Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.Navigable;
 import hue.captains.singapura.js.homing.studio.base.theme.ThemesIntro;
 
 import java.util.List;
 
-public record MyHomeCatalogue() implements Catalogue, DocProvider {
+public record MyHomeCatalogue() implements L0_Catalogue, DocProvider {
 
     public static final MyHomeCatalogue INSTANCE = new MyHomeCatalogue();
 
     @Override public String name()    { return "My Studio"; }
     @Override public String summary() { return "One-line description shown on the home page."; }
 
-    @Override public List<Entry> entries() {
+    /** Typed L1 sub-catalogues. Only declare this if you have any —
+     *  otherwise inherit the empty default. */
+    @Override public List<L1_Catalogue<MyHomeCatalogue>> subCatalogues() {
+        return List.of(
+                // MyDoctrineCatalogue.INSTANCE
+        );
+    }
+
+    /** Docs, Plans, AppModules — everything that's not a sub-catalogue. */
+    @Override public List<Entry> leaves() {
         return List.of(
                 Entry.of(MyIntroDoc.INSTANCE),                              // a Doc
-                // Sub-catalogues take just the catalogue:
-                // Entry.of(MyDoctrineCatalogue.INSTANCE),
-                // Plans take just the plan:
-                // Entry.of(MyMigrationPlanData.INSTANCE),
-                // AppModules need a Navigable wrapper supplying the tile name + summary:
-                Entry.of(new Navigable<>(
+                // Entry.of(MyMigrationPlanData.INSTANCE),                  // a Plan
+                Entry.of(new Navigable<>(                                   // an AppModule
                         ThemesIntro.INSTANCE,
                         AppModule._None.INSTANCE,
                         "Themes",
@@ -81,17 +92,38 @@ public record MyHomeCatalogue() implements Catalogue, DocProvider {
         );
     }
 
-    /** RFC 0004: every Doc referenced by an Entry.OfDoc must come from a registered DocProvider. */
+    /** RFC 0004: every Doc referenced from leaves() must come from a registered DocProvider. */
     @Override public List<Doc> docs() {
         return List.of(MyIntroDoc.INSTANCE);
     }
 }
 ```
 
+A non-root sub-catalogue picks `L1_Catalogue<MyHomeCatalogue>` (one level deeper than its parent) and declares the typed `parent()`:
+
+```java
+public record MyDoctrineCatalogue() implements L1_Catalogue<MyHomeCatalogue> {
+
+    public static final MyDoctrineCatalogue INSTANCE = new MyDoctrineCatalogue();
+
+    @Override public MyHomeCatalogue parent() { return MyHomeCatalogue.INSTANCE; }
+    @Override public String name()           { return "Doctrines"; }
+
+    // L2 children would go here via subCatalogues() — most studios won't need this.
+
+    @Override public List<Entry> leaves() {
+        return List.of(Entry.of(MyDoctrineDoc.INSTANCE));
+    }
+}
+```
+
 **Rules**:
 - Catalogue is a record (stateless). Identity = the Java class.
-- Implement `DocProvider` and return the same Docs you reference, or boot will fail with "Catalogue X references Doc Y which is not in the DocRegistry".
+- The root catalogue (the one passed to `StudioBrand`) is **L0**. Direct children are **L1**, then L2, L3, … up to L8.
+- Non-root catalogues **must** declare `public ParentClass parent() { return ParentClass.INSTANCE; }` — the framework reads it to derive breadcrumbs.
+- Implement `DocProvider` and return the same Docs you reference from `leaves()`, or boot will fail with "Catalogue X references Doc Y which is not in the DocRegistry".
 - Use `Entry.of(navigable)` for AppModule entries — supply tile name + summary at the binding site, not on the AppModule.
+- The renderer surfaces sub-catalogues *before* leaves. If you want a specific position, restructure rather than rely on insertion order.
 
 ### 4. Intro Doc
 
@@ -161,60 +193,102 @@ Drop the SVG at `src/main/resources/homing/svg/com/example/studio/MyStudioLogo/l
 - Hardcode brand colours via `fill="#hex"` attributes. Do NOT use `var(--color-accent)` as a bare attribute (XML attributes don't process CSS vars). Use `style="fill: #hex"` if you need CSS context.
 - No `<!-- comment with -- in it -->` — XML comments forbid `--`.
 
-### 6. Server
+### 6. Studio record (RFC 0012)
+
+The `Studio<L0>` record is your studio's typed declaration of what it brings to a server — home catalogue, intrinsic apps, plans, themes, and standalone brand. Six accessors, one INSTANCE field, written once and rarely touched.
+
+`com/example/studio/MyStudio.java`:
 
 ```java
 package com.example.studio;
 
-import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.SvgRef;
-import hue.captains.singapura.js.homing.studio.base.StudioBootstrap;
-import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
-import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
-import hue.captains.singapura.js.homing.studio.base.app.DocReader;
+import hue.captains.singapura.js.homing.studio.base.Studio;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
-import hue.captains.singapura.js.homing.studio.base.theme.ThemesIntro;
-import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
-import hue.captains.singapura.js.homing.studio.base.tracker.PlanAppHost;
 
-import java.util.List;
+public record MyStudio() implements Studio<MyHomeCatalogue> {
 
-public class MyStudioServer {
-    public static void main(String[] args) {
+    public static final MyStudio INSTANCE = new MyStudio();
 
-        // Built-in AppModules every studio gets. Add your own custom AppModules
-        // here only if you have app-level pages that aren't Catalogue / Plan / Doc.
-        List<AppModule<?, ?>> apps = List.of(
-                CatalogueAppHost.INSTANCE,   // /app?app=catalogue&id=<fqn>
-                PlanAppHost.INSTANCE,        // /app?app=plan&id=<fqn>
-                DocReader.INSTANCE,          // /app?app=doc-reader&doc=<uuid>
-                ThemesIntro.INSTANCE         // /app?app=themes
-        );
+    @Override public MyHomeCatalogue home() { return MyHomeCatalogue.INSTANCE; }
 
-        // Your catalogues — order doesn't matter; the brand picks the home one.
-        List<Catalogue> catalogues = List.of(
-                MyHomeCatalogue.INSTANCE
-        );
+    // apps(), plans(), themes() all default to empty — override only when you add some.
 
-        // Your plans — pass List.of() if none yet.
-        List<Plan> plans = List.of();
-
-        // Brand: label + home catalogue class + optional typed SVG logo.
-        StudioBrand brand = new StudioBrand(
+    @Override public StudioBrand standaloneBrand() {
+        return new StudioBrand(
                 "My Studio",
                 MyHomeCatalogue.class,
                 new SvgRef<>(MyStudioLogo.INSTANCE, new MyStudioLogo.logo())
                 // Drop the SvgRef arg if no custom logo — defaults to a coloured square.
         );
+    }
+}
+```
 
-        StudioBootstrap.start(8080, apps, catalogues, plans, brand);
+**Rules**:
+- `home()` is the only required method — it names your L0 catalogue.
+- `catalogues()` defaults to a BFS walk from `home().subCatalogues()` — override only if you have orphan catalogues unreachable from the home tree.
+- `apps()` is for your studio's intrinsic apps (e.g. a custom DocBrowser-style page). The harness apps (CatalogueAppHost, PlanAppHost, DocReader, ThemesIntro) are layered on by `DefaultFixtures` — don't list them here.
+- `plans()` is empty by default; supply your `List<Plan>` here if any.
+- `standaloneBrand()` is what appears when this studio runs standalone. Under a multi-studio umbrella, the umbrella's brand wins.
+
+### 7. Server
+
+The server constructs an `Umbrella` (just a `Solo` for a single-studio deploy), wraps it in `DefaultFixtures`, and hands the pair to `Bootstrap`. Three lines.
+
+```java
+package com.example.studio;
+
+import hue.captains.singapura.js.homing.studio.base.Bootstrap;
+import hue.captains.singapura.js.homing.studio.base.DefaultFixtures;
+import hue.captains.singapura.js.homing.studio.base.DefaultRuntimeParams;
+import hue.captains.singapura.js.homing.studio.base.Studio;
+import hue.captains.singapura.js.homing.studio.base.Umbrella;
+
+public final class MyStudioServer {
+    private MyStudioServer() {}
+
+    public static void main(String[] args) {
+        Umbrella<Studio<?>> umbrella = new Umbrella.Solo<>(MyStudio.INSTANCE);
+        new Bootstrap<>(new DefaultFixtures<>(umbrella), new DefaultRuntimeParams(8080)).start();
     }
 }
 ```
 
 **Port**: pick something — 8080 is conventional. If running alongside another studio, pick a different port.
 
-### 7. Verify
+**Multi-studio composition**: compose multiple studios under one umbrella by switching `Solo` to `Group`:
+
+```java
+Umbrella<Studio<?>> umbrella = new Umbrella.Group<>(
+        "My Multi-Studio Deploy",
+        "Two studios composed onto one server.",
+        List.of(
+                new Umbrella.Solo<>(MyStudio.INSTANCE),
+                new Umbrella.Solo<>(OtherStudio.INSTANCE)
+        ));
+new Bootstrap<>(new DefaultFixtures<>(umbrella), new DefaultRuntimeParams(8080)).start();
+```
+
+The Bootstrap unions every studio's catalogues, apps, and plans automatically. Brand defaults to the first studio's `standaloneBrand()`.
+
+**Custom harness**: to add framework-level apps or actions on top of the defaults, write your own `Fixtures<Studio<?>>` implementation:
+
+```java
+public record MyFixtures(Umbrella<Studio<?>> umbrella) implements Fixtures<Studio<?>> {
+    @Override public List<AppModule<?,?>> harnessApps() {
+        var defaults = new DefaultFixtures<>(umbrella).harnessApps();
+        return Stream.concat(defaults.stream(), Stream.of(MyExtraApp.INSTANCE)).toList();
+    }
+    @Override public NodeChrome chromeFor(Umbrella<Studio<?>> node) {
+        return new DefaultFixtures<>(umbrella).chromeFor(node);   // or customize
+    }
+}
+```
+
+Pass `new MyFixtures(umbrella)` to `Bootstrap` instead of `new DefaultFixtures<>(umbrella)`.
+
+### 8. Verify
 
 ```bash
 mvn install
@@ -269,9 +343,9 @@ class MyManagerInjectionConformanceTest extends ManagerInjectionConformanceTest 
 ## What to add next
 
 - **More docs**: each new typed `Doc` record + matching `.md` file. Add to `MyHomeCatalogue.docs()` so the registry can validate references.
-- **Sub-catalogues**: add another `Catalogue` record (e.g. `MyDoctrineCatalogue`), register in `StudioBootstrap.start(...)` `catalogues` list, expose as `Entry.of(MyDoctrineCatalogue.INSTANCE)` from a parent.
-- **Plan trackers**: see `PlanKitDoc` (Building Blocks catalogue) — two files (`Steps.java` + `PlanData.java`), register in `plans` list.
-- **Custom themes**: see the `create-homing-theme` skill.
+- **Sub-catalogues**: add another catalogue record one level deeper (e.g. `MyDoctrineCatalogue implements L1_Catalogue<MyHomeCatalogue>`), and add it to the parent's `subCatalogues()` method. Per RFC 0012, your `MyStudio.catalogues()` default walks the closure automatically — you don't list catalogues anywhere else. Children type-checked: an L2 catalogue can't be listed as a parent's L1 child.
+- **Plan trackers**: see `PlanKitDoc` (Building Blocks catalogue) — two files (`Steps.java` + `PlanData.java`), append to `MyStudio.plans()`.
+- **Custom themes**: see the `create-homing-theme` skill. Returned from `MyStudio.themes()`.
 
 ## What to never do
 
@@ -279,7 +353,8 @@ class MyManagerInjectionConformanceTest extends ManagerInjectionConformanceTest 
 - **Bypass `StudioBrand`** — don't hardcode brand strings in your renderers. Brand data comes from `/brand` server-side and threads through everywhere automatically.
 - **Skip the conformance tests** — they're 4-line subclasses each and catch entire classes of silent-from-CI / broken-in-browser bugs.
 - **Reuse another studio's UUIDs** for your Docs — UUIDs are wire-stable identities; collisions cause registry errors.
-- **Treat the StudioBootstrap.start(port, apps) overload as preferred** — it exists for back-compat (no catalogues / no brand / no `/`-redirect); the 5-arg overload above is the canonical one.
+- **Reach for `public static` methods anywhere in the studio code** — per the Functional Objects doctrine and RFC 0012, the framework has no public static methods; downstream studios follow suit. Carry behaviour on `INSTANCE` fields of records.
+- **Hand-list catalogues, apps, or plans in `MyStudioServer.main()`** — that's the old shape. Everything lives on `MyStudio` now; the server is three lines.
 
 ## Reference reading inside a running studio
 

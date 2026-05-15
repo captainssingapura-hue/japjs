@@ -65,7 +65,7 @@ public class StudioActionRegistry implements ActionRegistry<RoutingContext> {
      */
     public StudioActionRegistry(ModuleNameResolver nameResolver,
                                 SimpleAppResolver appResolver,
-                                java.util.List<Catalogue> catalogues,
+                                java.util.List<Catalogue<?>> catalogues,
                                 StudioBrand brand) {
         // RFC 0002-ext1 Phase 10/12: pass StudioThemeRegistry through to the
         // inner HomingActionRegistry so AppHtmlGetAction renders the theme
