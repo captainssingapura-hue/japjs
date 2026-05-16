@@ -2,8 +2,10 @@ package hue.captains.singapura.js.homing.studio;
 
 import hue.captains.singapura.js.homing.conformance.DocConformanceTest;
 import hue.captains.singapura.js.homing.studio.base.DocProvider;
+import hue.captains.singapura.js.homing.studio.es.ArchitectureCaseStudiesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
+import hue.captains.singapura.js.homing.studio.es.PrivacySecurityCaseStudiesCatalogue;
 
 import java.util.List;
 
@@ -18,6 +20,8 @@ class StudioDocConformanceTest extends DocConformanceTest {
     protected List<DocProvider> docProviders() {
         return List.of(
                 DocBrowser.INSTANCE,
+                ArchitectureCaseStudiesCatalogue.INSTANCE,
+                PrivacySecurityCaseStudiesCatalogue.INSTANCE,
                 BuildingBlocksCatalogue.INSTANCE
         );
     }

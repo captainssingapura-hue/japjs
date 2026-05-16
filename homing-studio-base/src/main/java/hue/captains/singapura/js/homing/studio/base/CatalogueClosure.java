@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base;
 
 import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import java.util.Set;
  * List<Catalogue<?>> all = CatalogueClosure.INSTANCE.walk(StudioCatalogue.INSTANCE);
  * }</pre>
  */
-public record CatalogueClosure() {
+public record CatalogueClosure() implements StatelessFunctionalObject {
 
     public static final CatalogueClosure INSTANCE = new CatalogueClosure();
 

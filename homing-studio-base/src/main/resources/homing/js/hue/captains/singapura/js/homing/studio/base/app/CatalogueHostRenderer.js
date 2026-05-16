@@ -17,6 +17,7 @@ var href = HrefManagerInstance;
 
 function renderCatalogueHost(props) {
     var catalogueId   = props.catalogueId;
+    var context       = props.context || "";
     var brandFallback = props.brandFallback || { label: "studio", homeUrl: "/" };
 
     var root = document.createElement("div");
@@ -40,7 +41,9 @@ function renderCatalogueHost(props) {
         return root;
     }
 
-    fetch("/catalogue?id=" + encodeURIComponent(catalogueId))
+    var url = "/catalogue?id=" + encodeURIComponent(catalogueId);
+    if (context) url += "&context=" + encodeURIComponent(context);
+    fetch(url)
         .then(function(r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();

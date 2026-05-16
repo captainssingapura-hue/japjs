@@ -3,9 +3,17 @@ package hue.captains.singapura.js.homing.studio;
 import hue.captains.singapura.js.homing.studio.base.DocRegistry;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueRegistry;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
+import hue.captains.singapura.js.homing.studio.es.ArchitectureCaseStudiesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.AudienceDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
+import hue.captains.singapura.js.homing.studio.es.CaseStudiesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.CodeDoctrinesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ContainerDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
+import hue.captains.singapura.js.homing.studio.es.PrivacySecurityCaseStudiesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.TrustDoctrinesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ViewDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ArchitectureRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ContentRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
@@ -45,6 +53,8 @@ class StudioCatalogueConstructsTest {
         // doc providers (the catalogue side + DocBrowser).
         var docRegistry = new DocRegistry(java.util.stream.Stream.of(
                         DocBrowser.INSTANCE.docs(),
+                        ArchitectureCaseStudiesCatalogue.INSTANCE.docs(),
+                        PrivacySecurityCaseStudiesCatalogue.INSTANCE.docs(),
                         BuildingBlocksCatalogue.INSTANCE.docs(),
                         ReleasesCatalogue.INSTANCE.docs())
                 .flatMap(List::stream)
@@ -53,6 +63,11 @@ class StudioCatalogueConstructsTest {
         var catalogues = List.of(
                 StudioCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
+                AudienceDoctrinesCatalogue.INSTANCE,
+                ViewDoctrinesCatalogue.INSTANCE,
+                ContainerDoctrinesCatalogue.INSTANCE,
+                CodeDoctrinesCatalogue.INSTANCE,
+                TrustDoctrinesCatalogue.INSTANCE,
                 RfcsCatalogue.INSTANCE,
                 ArchitectureRfcsCatalogue.INSTANCE,
                 ContentRfcsCatalogue.INSTANCE,
@@ -60,6 +75,9 @@ class StudioCatalogueConstructsTest {
                 JourneysCatalogue.INSTANCE,
                 RfcJourneysCatalogue.INSTANCE,
                 OperationsJourneysCatalogue.INSTANCE,
+                CaseStudiesCatalogue.INSTANCE,
+                ArchitectureCaseStudiesCatalogue.INSTANCE,
+                PrivacySecurityCaseStudiesCatalogue.INSTANCE,
                 BuildingBlocksCatalogue.INSTANCE,
                 ReleasesCatalogue.INSTANCE
         );

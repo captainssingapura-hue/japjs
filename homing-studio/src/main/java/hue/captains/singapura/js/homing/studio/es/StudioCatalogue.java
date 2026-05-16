@@ -24,6 +24,7 @@ public record StudioCatalogue() implements L0_Catalogue<StudioCatalogue> {
                 DoctrineCatalogue.INSTANCE,
                 RfcsCatalogue.INSTANCE,
                 JourneysCatalogue.INSTANCE,
+                CaseStudiesCatalogue.INSTANCE,
                 BuildingBlocksCatalogue.INSTANCE,
                 ReleasesCatalogue.INSTANCE
         );

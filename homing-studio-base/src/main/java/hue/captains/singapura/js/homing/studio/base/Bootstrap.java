@@ -11,6 +11,12 @@ import hue.captains.singapura.js.homing.server.RootRedirectGetAction;
 import hue.captains.singapura.js.homing.server.ThemeRegistry;
 import hue.captains.singapura.js.homing.studio.base.app.BrandGetAction;
 import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
+import hue.captains.singapura.js.homing.studio.base.graph.StudioGraph;
+import hue.captains.singapura.js.homing.studio.base.graph.StudioGraphBuilder;
+import hue.captains.singapura.js.homing.studio.base.graph.DiagnosticsCatalogue;
+import hue.captains.singapura.js.homing.studio.base.graph.DiagnosticsHub;
+import hue.captains.singapura.js.homing.studio.base.graph.StudioGraphInspector;
+import hue.captains.singapura.js.homing.studio.base.graph.StudioGraphMarkdownAction;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueGetAction;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueRegistry;
@@ -24,6 +30,7 @@ import hue.captains.singapura.tao.http.action.ActionRegistry;
 import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.PostAction;
 import hue.captains.singapura.tao.http.vertx.VertxActionHost;
+import hue.captains.singapura.tao.ontology.ValueObject;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.ArrayList;
@@ -60,7 +67,7 @@ import java.util.Objects;
  */
 public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         F fixtures,
-        RuntimeParams params) {
+        RuntimeParams params) implements ValueObject {
 
     public Bootstrap {
         Objects.requireNonNull(fixtures, "fixtures");
@@ -89,6 +96,21 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
     }
 
     /**
+     * Build the typed in-memory object graph from this Bootstrap's composed
+     * studio set (RFC 0014). Eager construction; the returned graph is
+     * immutable and queryable via Stream-based primitives.
+     *
+     * <p>Internally delegates to {@link StudioGraphBuilder#INSTANCE}'s
+     * functional-object walk over the typed primitives reachable from this
+     * Bootstrap — Fixtures → Umbrella → Studios → Catalogues → Entries →
+     * Docs / AppModules / Plans, plus typed cross-references (DocReferences,
+     * Phase dependencies).</p>
+     */
+    public StudioGraph graph() {
+        return StudioGraphBuilder.INSTANCE.build(this);
+    }
+
+    /**
      * Compose the studio set into an {@link ActionRegistry} without starting
      * Vert.x — useful for tests, or for downstream that wants its own host.
      */
@@ -98,14 +120,22 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
             throw new IllegalArgumentException("Bootstrap.compose: umbrella has no studios");
         }
 
-        // --- Union apps: each studio's intrinsic apps + harness apps. Dedup by class.
-        var apps = unionAppsByClass(studios, fixtures.harnessApps());
+        // --- Union apps: each studio's intrinsic apps + harness apps + (when
+        // diagnostics is enabled) the StudioGraphInspector. Dedup by class.
+        var harnessApps = new ArrayList<>(fixtures.harnessApps());
+        if (params.diagnosticsEnabled()) harnessApps.add(StudioGraphInspector.INSTANCE);
+        var apps = unionAppsByClass(studios, harnessApps);
         if (apps.isEmpty()) {
             throw new IllegalArgumentException("Bootstrap.compose: at least one AppModule required");
         }
 
         // --- Union catalogues: each studio's catalogues(). Dedup by class.
-        var catalogues = unionCataloguesByClass(studios);
+        // RFC 0014: when diagnostics is enabled, the framework's own
+        // DiagnosticsCatalogue (an L0) joins the union so its tiles surface
+        // alongside the downstream studio's root catalogue(s) — multi-L0
+        // navigation is supported, so this doesn't displace anything.
+        var catalogues = new ArrayList<Catalogue<?>>(unionCataloguesByClass(studios));
+        if (params.diagnosticsEnabled()) catalogues.add(DiagnosticsCatalogue.INSTANCE);
 
         // --- Union plans: each studio's plans(). Dedup by class.
         var plans = unionPlansByClass(studios);
@@ -162,7 +192,17 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         final CatalogueRegistry catalogueRegistry;
         if (!catalogues.isEmpty()) {
             catalogueRegistry = new CatalogueRegistry(brand, docRegistry, catalogues);
-            catalogueAction = new CatalogueGetAction(catalogueRegistry);
+            // RFC 0014: when diagnostics is enabled the framework injects a
+            // three-tier tile pyramid via the augmentation map — Diagnostics
+            // tile on the home L0; per-studio parent tiles (or direct view
+            // tiles in single-studio) on the DiagnosticsCatalogue page;
+            // per-studio Object Graph + Type View on the &context=<studio>
+            // variant of the same catalogue. See DiagnosticsHub.
+            var diagnosticsAugmentations = params.diagnosticsEnabled()
+                    ? new DiagnosticsHub(studios, brand.homeApp()).augmentations()
+                    : java.util.Map.<hue.captains.singapura.js.homing.studio.base.app.CatalogueAugmentation.AugKey,
+                                     hue.captains.singapura.js.homing.studio.base.app.CatalogueAugmentation>of();
+            catalogueAction = new CatalogueGetAction(catalogueRegistry, diagnosticsAugmentations);
         } else {
             catalogueRegistry = null;
             catalogueAction   = null;
@@ -180,6 +220,11 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
             planAction = null;
         }
 
+        // --- RFC 0014 diagnostic surface (gated by params.diagnosticsEnabled()).
+        // Default off; enable via -Dhoming.diagnostics=true or a custom RuntimeParams subtype.
+        final StudioGraphMarkdownAction graphMarkdownAction =
+                params.diagnosticsEnabled() ? new StudioGraphMarkdownAction(this) : null;
+
         // --- Compose final ActionRegistry.
         final var harnessGetActions  = fixtures.harnessGetActions();
         final var harnessPostActions = fixtures.harnessPostActions();
@@ -195,6 +240,7 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
                 all.put("/brand",       brandAction);
                 if (catalogueAction != null) all.put("/catalogue", catalogueAction);
                 if (planAction      != null) all.put("/plan",      planAction);
+                if (graphMarkdownAction != null) all.put("/graph-md", graphMarkdownAction);
                 all.putAll(harnessGetActions);
                 return Map.copyOf(all);
             }
@@ -208,9 +254,9 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         };
     }
 
-    // ----- composition helpers -----
+    // ----- composition helpers (instance methods so jOntology's Immutable enforcer accepts the record) -----
 
-    private static List<AppModule<?, ?>> unionAppsByClass(
+    private List<AppModule<?, ?>> unionAppsByClass(
             List<? extends Studio<?>> studios,
             List<AppModule<?, ?>> harnessApps) {
         // Harness apps first — they're the framework's spine, studios layer on top.
@@ -222,7 +268,7 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         return List.copyOf(byClass.values());
     }
 
-    private static void putAppDedup(Map<Class<?>, AppModule<?, ?>> byClass, AppModule<?, ?> app) {
+    private void putAppDedup(Map<Class<?>, AppModule<?, ?>> byClass, AppModule<?, ?> app) {
         var existing = byClass.putIfAbsent(app.getClass(), app);
         if (existing != null && existing != app) {
             throw new IllegalStateException(
@@ -232,7 +278,7 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         }
     }
 
-    private static List<Catalogue<?>> unionCataloguesByClass(List<? extends Studio<?>> studios) {
+    private List<Catalogue<?>> unionCataloguesByClass(List<? extends Studio<?>> studios) {
         var byClass = new LinkedHashMap<Class<?>, Catalogue<?>>();
         for (var studio : studios) {
             for (Catalogue<?> c : studio.catalogues()) {
@@ -242,7 +288,7 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         return List.copyOf(byClass.values());
     }
 
-    private static List<Plan> unionPlansByClass(List<? extends Studio<?>> studios) {
+    private List<Plan> unionPlansByClass(List<? extends Studio<?>> studios) {
         var byClass = new LinkedHashMap<Class<?>, Plan>();
         for (var studio : studios) {
             for (Plan p : studio.plans()) {

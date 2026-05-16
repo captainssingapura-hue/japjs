@@ -10,6 +10,7 @@ import hue.captains.singapura.js.homing.studio.base.DocContent;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,17 +46,38 @@ import java.util.concurrent.CompletableFuture;
 public class CatalogueGetAction
         implements GetAction<RoutingContext, CatalogueGetAction.Query, EmptyParam.NoHeaders, DocContent> {
 
-    public record Query(String id) implements Param._QueryString {}
+    /**
+     * @param id      registered catalogue's class FQN
+     * @param context optional scoping tag — when present, picks a different
+     *                augmentation slot in the {@link CatalogueAugmentation}
+     *                map so the same catalogue class can project multiple
+     *                framework-managed variants (e.g. per-studio diagnostics)
+     */
+    public record Query(String id, String context) implements Param._QueryString {}
 
     private final CatalogueRegistry registry;
+    /**
+     * Per-(class, context) augmentation. Reserved for framework-managed
+     * injections (e.g. RFC 0014 diagnostics tile pyramid). Empty for normal
+     * serving — back-compat constructor passes {@code Map.of()}.
+     */
+    private final Map<CatalogueAugmentation.AugKey, CatalogueAugmentation> augmentations;
 
     public CatalogueGetAction(CatalogueRegistry registry) {
+        this(registry, Map.of());
+    }
+
+    public CatalogueGetAction(CatalogueRegistry registry,
+                              Map<CatalogueAugmentation.AugKey, CatalogueAugmentation> augmentations) {
         this.registry = Objects.requireNonNull(registry, "registry");
+        this.augmentations = Map.copyOf(Objects.requireNonNull(augmentations, "augmentations"));
     }
 
     @Override
     public ParamMarshaller._QueryString<RoutingContext, Query> queryStrMarshaller() {
-        return ctx -> new Query(ctx.request().getParam("id"));
+        return ctx -> new Query(
+                ctx.request().getParam("id"),
+                ctx.request().getParam("context"));
     }
 
     @Override
@@ -86,7 +108,7 @@ public class CatalogueGetAction
             return CompletableFuture.failedFuture(notFound(fqn, "Catalogue not registered"));
         }
         try {
-            String body = serialize(catalogue);
+            String body = serialize(catalogue, query.context());
             return CompletableFuture.completedFuture(new DocContent(body, "application/json; charset=utf-8"));
         } catch (Exception e) {
             return CompletableFuture.failedFuture(notFound(fqn,
@@ -94,7 +116,10 @@ public class CatalogueGetAction
         }
     }
 
-    String serialize(Catalogue<?> c) {
+    /** Back-compat overload used by tests that don't exercise the context scoping. */
+    String serialize(Catalogue<?> c) { return serialize(c, null); }
+
+    String serialize(Catalogue<?> c, String context) {
         StringBuilder sb = new StringBuilder("{");
         sb.append("\"name\":")   .append(jstr(c.name())).append(',');
         sb.append("\"summary\":").append(jstr(c.summary())).append(',');
@@ -130,11 +155,19 @@ public class CatalogueGetAction
         // Entries — RFC 0005-ext2 Option A: typed sub-catalogues first
         // (rendered as catalogue cards), then leaves (Doc / App / Plan).
         // Within each group the catalogue's declared order is preserved.
+        // RFC 0014: when an augmentation has replace=true, the typed entries
+        // are suppressed and only the synthetic ones render. Used to project
+        // per-context variants of a catalogue (e.g. per-studio diagnostics).
+        @SuppressWarnings("unchecked")
+        Class<? extends Catalogue<?>> cKey = (Class<? extends Catalogue<?>>) c.getClass();
+        CatalogueAugmentation aug = augmentations.get(new CatalogueAugmentation.AugKey(cKey, context));
+        boolean suppressTyped = aug != null && aug.replace();
+
         sb.append("\"entries\":[");
         boolean firstEntry = true;
 
         // ---- Sub-catalogues ----
-        for (Catalogue<?> child : c.subCatalogues()) {
+        if (!suppressTyped) for (Catalogue<?> child : c.subCatalogues()) {
             if (!firstEntry) sb.append(',');
             firstEntry = false;
             // RFC 0009: per-instance badge (default "CATALOGUE", may be
@@ -150,7 +183,7 @@ public class CatalogueGetAction
         }
 
         // ---- Leaves ----
-        for (Entry<?> e : c.leaves()) {
+        if (!suppressTyped) for (Entry<?> e : c.leaves()) {
             if (!firstEntry) sb.append(',');
             firstEntry = false;
             switch (e) {
@@ -195,6 +228,25 @@ public class CatalogueGetAction
                 }
             }
         }
+
+        // ---- Synthetic entries (framework augmentation; e.g. RFC 0014 diagnostics injection).
+        // Appended last so the studio's declared tiles stay where the studio put them
+        // (when replace=false). When replace=true, the typed entries above were
+        // suppressed and these are the only entries rendered.
+        if (aug != null) {
+            for (SyntheticEntry s : aug.entries()) {
+                if (!firstEntry) sb.append(',');
+                firstEntry = false;
+                sb.append('{')
+                  .append("\"kind\":")    .append(jstr(s.kind())).append(',')
+                  .append("\"name\":")    .append(jstr(s.name())).append(',')
+                  .append("\"summary\":") .append(jstr(s.summary())).append(',')
+                  .append("\"category\":").append(jstr(s.category())).append(',')
+                  .append("\"url\":")     .append(jstr(s.url()))
+                  .append('}');
+            }
+        }
+
         sb.append("]}");
         return sb.toString();
     }

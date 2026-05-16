@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -35,7 +37,7 @@ import java.util.UUID;
  *
  * @since RFC 0004
  */
-public interface Doc {
+public interface Doc extends StatelessFunctionalObject {
 
     /**
      * Stable surrogate identity for this Doc on the wire. Unique within a {@link DocRegistry}.

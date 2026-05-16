@@ -1,21 +1,17 @@
 package hue.captains.singapura.js.homing.studio.es;
 
-import hue.captains.singapura.js.homing.studio.base.app.Entry;
 import hue.captains.singapura.js.homing.studio.base.app.L1_Catalogue;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.CatalogueContainerDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.DualAudienceSkillsDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.FirstUserDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.FunctionalObjectsDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.ManagedDomOpsDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.OwnedReferencesDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.PlanContainerDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.PureComponentViewsDoc;
-import hue.captains.singapura.js.homing.studio.docs.doctrines.WeighedComplexityDoc;
+import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
 
 import java.util.List;
 
-/** Sub-catalogue listing the foundational doctrines. */
+/**
+ * Sub-catalogue grouping every foundational doctrine into typed L2
+ * categories — Authoring Audience, View Architecture, Container Patterns,
+ * Code Discipline, Privacy &amp; Trust. The doctrines themselves live as
+ * leaves of their respective L2 sub-catalogues; this L1 holds only the
+ * categorisation.
+ */
 public record DoctrineCatalogue() implements L1_Catalogue<StudioCatalogue, DoctrineCatalogue> {
 
     public static final DoctrineCatalogue INSTANCE = new DoctrineCatalogue();
@@ -26,18 +22,13 @@ public record DoctrineCatalogue() implements L1_Catalogue<StudioCatalogue, Doctr
     @Override public String badge()   { return "DOCTRINE"; }
     @Override public String icon()    { return "📚"; }
 
-    @Override public List<Entry<DoctrineCatalogue>> leaves() {
+    @Override public List<? extends L2_Catalogue<DoctrineCatalogue, ?>> subCatalogues() {
         return List.of(
-                Entry.of(this, FirstUserDoc.INSTANCE),
-                Entry.of(this, DualAudienceSkillsDoc.INSTANCE),
-                Entry.of(this, PureComponentViewsDoc.INSTANCE),
-                Entry.of(this, MethodsOverPropsDoc.INSTANCE),
-                Entry.of(this, ManagedDomOpsDoc.INSTANCE),
-                Entry.of(this, OwnedReferencesDoc.INSTANCE),
-                Entry.of(this, CatalogueContainerDoc.INSTANCE),
-                Entry.of(this, PlanContainerDoc.INSTANCE),
-                Entry.of(this, WeighedComplexityDoc.INSTANCE),
-                Entry.of(this, FunctionalObjectsDoc.INSTANCE)
+                AudienceDoctrinesCatalogue.INSTANCE,
+                ViewDoctrinesCatalogue.INSTANCE,
+                ContainerDoctrinesCatalogue.INSTANCE,
+                CodeDoctrinesCatalogue.INSTANCE,
+                TrustDoctrinesCatalogue.INSTANCE
         );
     }
 }

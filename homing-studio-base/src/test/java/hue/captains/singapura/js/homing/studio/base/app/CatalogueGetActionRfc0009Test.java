@@ -57,7 +57,7 @@ class CatalogueGetActionRfc0009Test {
 
     private String serialize(Catalogue<?> c) throws Exception {
         var action = new CatalogueGetAction(registry());
-        var body = action.execute(new CatalogueGetAction.Query(c.getClass().getName()),
+        var body = action.execute(new CatalogueGetAction.Query(c.getClass().getName(), null),
                                    new EmptyParam.NoHeaders()).get().body();
         return body;
     }

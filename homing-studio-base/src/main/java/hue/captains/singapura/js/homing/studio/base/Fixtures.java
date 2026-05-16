@@ -8,6 +8,7 @@ import hue.captains.singapura.js.homing.studio.base.theme.HomingDefault;
 import hue.captains.singapura.js.homing.studio.base.theme.StudioThemeRegistry;
 import hue.captains.singapura.tao.http.action.GetAction;
 import hue.captains.singapura.tao.http.action.PostAction;
+import hue.captains.singapura.tao.ontology.Immutable;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Map;
@@ -26,7 +27,7 @@ import java.util.Map;
  *
  * @param <S> the studio type at the umbrella's leaves; usually {@code Studio<?>}
  */
-public interface Fixtures<S extends Studio<?>> {
+public interface Fixtures<S extends Studio<?>> extends Immutable {
 
     /** The studio tree being served. */
     Umbrella<S> umbrella();

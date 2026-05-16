@@ -3,6 +3,7 @@ package hue.captains.singapura.js.homing.studio.base.app;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.studio.base.Doc;
 import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
+import hue.captains.singapura.tao.ontology.Immutable;
 
 /**
  * Typed leaf entry inside a {@link Catalogue}. RFC 0011: parameterised by the
@@ -29,7 +30,7 @@ import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
  * @since RFC 0005 (RFC 0005-ext1 OfPlan; RFC 0005-ext2 removed OfCatalogue;
  *        RFC 0011 typed by host + OfStudio variant for cross-tree composition)
  */
-public sealed interface Entry<C extends Catalogue<C>> {
+public sealed interface Entry<C extends Catalogue<C>> extends Immutable {
 
     /** A static Doc — markdown content shipped on the classpath. */
     record OfDoc<C extends Catalogue<C>, D extends Doc>

@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base.tracker;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 import java.util.List;
 
 /**
@@ -33,7 +35,7 @@ import java.util.List;
  *
  * @since RFC 0005-ext1 (extended from the original tracker kit)
  */
-public interface Plan {
+public interface Plan extends StatelessFunctionalObject {
 
     // -------------------------------------------------------------------------
     // Identity-display (compiler-enforced)

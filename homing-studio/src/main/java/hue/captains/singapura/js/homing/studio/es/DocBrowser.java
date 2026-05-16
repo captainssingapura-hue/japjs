@@ -28,6 +28,10 @@ import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDo
 import hue.captains.singapura.js.homing.studio.docs.doctrines.OwnedReferencesDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PlanContainerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FunctionalObjectsDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.ExplicitOverImplicitDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.NoStealthDataDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.QualityWithoutSurveillanceDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.StatelessServerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.WeighedComplexityDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.DualAudienceSkillsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.EncapsulatedComponentsDoc;
@@ -57,6 +61,8 @@ import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0009Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0010Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0011Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0012Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0013Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0014Doc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingShellFlexibilityWhitepaperDoc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingWhitepaperDoc;
 
@@ -107,6 +113,8 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(Rfc0010Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0011Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0012Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0013Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0014Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
 
             entry(BrandReadmeDoc.INSTANCE,     "Brand", StudioStyles.st_badge_brand.class),
             entry(RenameToHomingDoc.INSTANCE,  "Brand", StudioStyles.st_badge_brand.class),
@@ -138,6 +146,10 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(PlanContainerDoc.INSTANCE,      "Doctrines", StudioStyles.st_badge_reference.class),
             entry(WeighedComplexityDoc.INSTANCE,  "Doctrines", StudioStyles.st_badge_reference.class),
             entry(FunctionalObjectsDoc.INSTANCE,  "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(NoStealthDataDoc.INSTANCE,      "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(StatelessServerDoc.INSTANCE,    "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(QualityWithoutSurveillanceDoc.INSTANCE, "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(ExplicitOverImplicitDoc.INSTANCE,       "Doctrines", StudioStyles.st_badge_reference.class),
 
             entry(HomingVsReactVueDoc.INSTANCE, "Reference", StudioStyles.st_badge_reference.class),
             entry(UserGuideDoc.INSTANCE,        "Reference", StudioStyles.st_badge_reference.class)

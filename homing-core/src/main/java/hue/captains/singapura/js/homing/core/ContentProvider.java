@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 import java.util.List;
 
 /**
@@ -7,6 +9,6 @@ import java.util.List;
  *  <br> excluding imports and exports which will be manged separately.
  * @param <M>
  */
-public interface ContentProvider<M extends EsModule> {
+public interface ContentProvider<M extends EsModule> extends StatelessFunctionalObject {
     List<String> content();
 }

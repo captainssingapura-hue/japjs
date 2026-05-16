@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base.app;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 import java.util.List;
 
 /**
@@ -52,6 +54,7 @@ import java.util.List;
  * @since RFC 0005 (sub-catalogue / leaf split: RFC 0005-ext2)
  */
 public sealed interface Catalogue<Self extends Catalogue<Self>>
+        extends StatelessFunctionalObject
         permits L0_Catalogue,
                 L1_Catalogue, L2_Catalogue, L3_Catalogue, L4_Catalogue,
                 L5_Catalogue, L6_Catalogue, L7_Catalogue, L8_Catalogue {

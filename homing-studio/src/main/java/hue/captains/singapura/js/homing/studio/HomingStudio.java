@@ -5,10 +5,12 @@ import hue.captains.singapura.js.homing.core.SvgRef;
 import hue.captains.singapura.js.homing.studio.base.Studio;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
 import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
+import hue.captains.singapura.js.homing.studio.docdsl.DocDslPlanData;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
 import hue.captains.singapura.js.homing.studio.es.StudioLogo;
 import hue.captains.singapura.js.homing.studio.instruments.InstrumentsPlanData;
+import hue.captains.singapura.js.homing.studio.studiograph.StudioGraphPlanData;
 import hue.captains.singapura.js.homing.studio.release.V1PlanData;
 import hue.captains.singapura.js.homing.studio.rename.RenamePlanData;
 import hue.captains.singapura.js.homing.studio.rfc0001.Rfc0001PlanData;
@@ -54,7 +56,9 @@ public record HomingStudio() implements Studio<StudioCatalogue> {
                 Rfc0005PlanData.INSTANCE,
                 Rfc0005Ext1PlanData.INSTANCE,
                 V1PlanData.INSTANCE,
-                InstrumentsPlanData.INSTANCE
+                InstrumentsPlanData.INSTANCE,
+                DocDslPlanData.INSTANCE,
+                StudioGraphPlanData.INSTANCE
         );
     }
 

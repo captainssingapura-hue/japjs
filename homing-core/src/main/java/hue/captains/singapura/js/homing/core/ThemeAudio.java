@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +19,7 @@ import java.util.Map;
  *
  * @param <TH> the theme this audio binding belongs to
  */
-public interface ThemeAudio<TH extends Theme> {
+public interface ThemeAudio<TH extends Theme> extends StatelessFunctionalObject {
 
     /** Identity: which theme this audio binding is bound to. */
     TH theme();

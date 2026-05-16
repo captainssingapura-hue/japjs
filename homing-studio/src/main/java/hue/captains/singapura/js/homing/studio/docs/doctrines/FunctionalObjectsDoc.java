@@ -2,7 +2,9 @@ package hue.captains.singapura.js.homing.studio.docs.doctrines;
 
 import hue.captains.singapura.js.homing.studio.base.ClasspathMarkdownDoc;
 import hue.captains.singapura.js.homing.studio.base.DocReference;
+import hue.captains.singapura.js.homing.studio.base.ExternalReference;
 import hue.captains.singapura.js.homing.studio.base.Reference;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0013Doc;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,7 +36,12 @@ public record FunctionalObjectsDoc() implements ClasspathMarkdownDoc {
     @Override public List<Reference> references() {
         return List.of(
                 new DocReference("doc-cc", CatalogueContainerDoc.INSTANCE),
-                new DocReference("wc",     WeighedComplexityDoc.INSTANCE)
+                new DocReference("wc",     WeighedComplexityDoc.INSTANCE),
+                new DocReference("rfc-13", Rfc0013Doc.INSTANCE),
+                new ExternalReference("jontology",
+                        "https://github.com/captainssingapura-hue/jOntology",
+                        "jOntology",
+                        "Sibling marker-interface library for object classification (Mutable, Immutable, Stateless, ValueObject, FunctionalObject, StatelessFunctionalObject) with a runtime enforcer. Same author group; integrated as the mechanical realisation of this doctrine via RFC 0013.")
         );
     }
 }
