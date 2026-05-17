@@ -188,11 +188,19 @@ public class CatalogueGetAction
             firstEntry = false;
             switch (e) {
                 case Entry.OfDoc<?, ?>(Doc d) -> {
-                    sb.append("{\"kind\":\"doc\",")
-                      .append("\"title\":")   .append(jstr(d.title())).append(',')
+                    // RFC 0015 Phase 3b — dispatch via Doc's typed kind() + url().
+                    // Field-key asymmetry preserved: frontend renderer uses entry.title
+                    // for kind="doc"; entry.name for everything else (plan / app /
+                    // studio / catalogue). Phase 6 will unify the schema once the
+                    // frontend dispatch is updated.
+                    String kind = d.kind();
+                    String titleKey = "doc".equals(kind) ? "\"title\"" : "\"name\"";
+                    sb.append('{')
+                      .append("\"kind\":")    .append(jstr(kind)).append(',')
+                      .append(titleKey)       .append(':').append(jstr(d.title())).append(',')
                       .append("\"summary\":") .append(jstr(d.summary())).append(',')
                       .append("\"category\":").append(jstr(d.category())).append(',')
-                      .append("\"url\":")     .append(jstr(docReaderUrl(d.uuid().toString())))
+                      .append("\"url\":")     .append(jstr(d.url()))
                       .append('}');
                 }
                 case Entry.OfApp<?, ?, ?>(Navigable<?, ?> nav) -> {

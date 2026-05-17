@@ -53,7 +53,7 @@ public final class DocRegistry {
                         "Doc " + d.getClass().getName() + " has null uuid()");
             }
             Doc prev = byUuid.put(id, d);
-            if (prev != null && prev != d) {
+            if (prev != null && !prev.equals(d)) {
                 throw new IllegalStateException(
                         "Doc UUID collision: " + id + " is used by both "
                       + prev.getClass().getName() + " and " + d.getClass().getName());
@@ -64,11 +64,16 @@ public final class DocRegistry {
                         "Doc " + d.getClass().getName() + " has null id() — Phase 2 invariant");
             }
             Doc prevById = byId.put(docId, d);
-            if (prevById != null && prevById != d) {
+            if (prevById != null && !prevById.equals(d)) {
                 throw new IllegalStateException(
                         "Doc DocId collision: " + docId + " is used by both "
                       + prevById.getClass().getName() + " and " + d.getClass().getName());
             }
+            // RFC 0015 Phase 3b — collision check uses .equals() (record value
+            // equality) instead of reference equality so the same value-Doc
+            // (e.g. PlanDoc(MyPlan.INSTANCE)) may appear multiple times in
+            // the input — harvested from multiple catalogue leaves at boot —
+            // without spurious collisions.
         }
         this.byUuid = Map.copyOf(byUuid);
         this.byId   = Map.copyOf(byId);
@@ -86,6 +91,40 @@ public final class DocRegistry {
             }
         }
         return new DocRegistry(all);
+    }
+
+    /**
+     * RFC 0015 Phase 3b — harvest synthetic Docs (PlanDoc, AppDoc, future
+     * ProxyDoc, etc.) from catalogue leaves. Returns a fresh list ready to
+     * merge with the DocProvider-contributed prose Docs before constructing
+     * a {@link DocRegistry}.
+     *
+     * <p>After the Entry factory rewire, {@code Entry.of(host, plan)} and
+     * {@code Entry.of(host, nav)} create {@code OfDoc} wrapping a synthetic
+     * Doc subtype. These synthetic Docs are constructed at the catalogue
+     * leaf — they don't flow through any {@link DocProvider}. Without this
+     * harvest, {@link hue.captains.singapura.js.homing.studio.base.app.CatalogueRegistry}'s
+     * leaf-validation step would reject the catalogue because the synthetic
+     * Doc isn't registered.</p>
+     *
+     * <p>Identification of "synthetic" is by type — PlanDoc, AppDoc (and
+     * future synthetic Doc kinds added here). Prose Docs (ClasspathMarkdownDoc,
+     * InlineDoc, etc.) are skipped because they come from DocProviders.</p>
+     */
+    public static List<Doc> harvestSyntheticFromLeaves(
+            java.util.Collection<? extends hue.captains.singapura.js.homing.studio.base.app.Catalogue<?>> catalogues) {
+        var out = new ArrayList<Doc>();
+        for (var c : catalogues) {
+            for (var e : c.leaves()) {
+                if (e instanceof hue.captains.singapura.js.homing.studio.base.app.Entry.OfDoc<?, ?>(Doc d)) {
+                    if (d instanceof hue.captains.singapura.js.homing.studio.base.tracker.PlanDoc
+                            || d instanceof hue.captains.singapura.js.homing.studio.base.app.AppDoc<?, ?>) {
+                        out.add(d);
+                    }
+                }
+            }
+        }
+        return out;
     }
 
     /** Resolve a Doc by UUID, or null if no Doc with that UUID is registered. */

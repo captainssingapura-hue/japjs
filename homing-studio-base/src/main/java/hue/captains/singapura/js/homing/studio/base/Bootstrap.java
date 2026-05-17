@@ -174,6 +174,15 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         }
         var allDocs = new ArrayList<Doc>();
         for (var p : docProviders) allDocs.addAll(p.docs());
+
+        // RFC 0015 Phase 3b — harvest synthetic Docs (PlanDoc, AppDoc, future
+        // ProxyDoc) from catalogue leaves. After the Entry factory rewire,
+        // Entry.of(host, plan) creates OfDoc(PlanDoc(plan)); these synthetic
+        // Docs don't flow through any DocProvider, so the harvest is the only
+        // path into DocRegistry. Record value-equality lets duplicate
+        // appearances across catalogues collapse safely.
+        allDocs.addAll(DocRegistry.harvestSyntheticFromLeaves(catalogues));
+
         var docRegistry = new DocRegistry(allDocs);
 
         // --- Standard studio actions.

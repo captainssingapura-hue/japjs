@@ -63,16 +63,29 @@ public sealed interface Entry<C extends Catalogue<C>> extends Immutable {
         return new OfDoc<>(doc);
     }
 
+    /**
+     * RFC 0015 Phase 3b — rewired to produce an {@link OfDoc} wrapping an
+     * {@link AppDoc}. The Navigable is no longer carried as its own Entry
+     * variant; it lives inside the unified Doc family per the Doc ontology.
+     * {@link OfApp} stays as a sealed-sum member for the existing serializer
+     * dispatch (dead code path after this rewire; removed in Phase 6).
+     */
     static <C extends Catalogue<C>,
             P extends AppModule._Param,
             M extends AppModule<P, M>>
            Entry<C> of(C host, Navigable<P, M> nav) {
-        return new OfApp<>(nav);
+        return new OfDoc<>(new AppDoc<>(nav));
     }
 
+    /**
+     * RFC 0015 Phase 3b — rewired to produce an {@link OfDoc} wrapping a
+     * {@link hue.captains.singapura.js.homing.studio.base.tracker.PlanDoc}.
+     * Plans live inside the unified Doc family per the Doc ontology; the
+     * existing {@code /plan?id=…} viewer continues to render them.
+     */
     static <C extends Catalogue<C>, P extends Plan>
            Entry<C> of(C host, P plan) {
-        return new OfPlan<>(plan);
+        return new OfDoc<>(new hue.captains.singapura.js.homing.studio.base.tracker.PlanDoc(plan));
     }
 
     static <C extends Catalogue<C>, S extends L0_Catalogue<S>>

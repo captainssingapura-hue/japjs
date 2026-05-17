@@ -51,17 +51,6 @@ class StudioCatalogueConstructsTest {
         // at the same moment a real boot would fail.
         var brand = new StudioBrand("Homing · studio", StudioCatalogue.class);
 
-        // Build the doc registry the same way StudioBootstrap does — from the studio's
-        // doc providers (the catalogue side + DocBrowser).
-        var docRegistry = new DocRegistry(java.util.stream.Stream.of(
-                        DocBrowser.INSTANCE.docs(),
-                        ArchitectureCaseStudiesCatalogue.INSTANCE.docs(),
-                        PrivacySecurityCaseStudiesCatalogue.INSTANCE.docs(),
-                        BuildingBlocksCatalogue.INSTANCE.docs(),
-                        ReleasesCatalogue.INSTANCE.docs())
-                .flatMap(List::stream)
-                .toList());
-
         var catalogues = List.of(
                 StudioCatalogue.INSTANCE,
                 MetaCatalogue.INSTANCE,
@@ -85,6 +74,21 @@ class StudioCatalogueConstructsTest {
                 BuildingBlocksCatalogue.INSTANCE,
                 ReleasesCatalogue.INSTANCE
         );
+
+        // Build the doc registry the same way StudioBootstrap does — from the studio's
+        // doc providers (the catalogue side + DocBrowser) plus the RFC 0015 Phase 3b
+        // harvest of synthetic Docs (PlanDoc, AppDoc, …) from catalogue leaves.
+        var providerDocs = java.util.stream.Stream.of(
+                        DocBrowser.INSTANCE.docs(),
+                        ArchitectureCaseStudiesCatalogue.INSTANCE.docs(),
+                        PrivacySecurityCaseStudiesCatalogue.INSTANCE.docs(),
+                        BuildingBlocksCatalogue.INSTANCE.docs(),
+                        ReleasesCatalogue.INSTANCE.docs())
+                .flatMap(List::stream)
+                .toList();
+        var allDocs = new java.util.ArrayList<hue.captains.singapura.js.homing.studio.base.Doc>(providerDocs);
+        allDocs.addAll(DocRegistry.harvestSyntheticFromLeaves(catalogues));
+        var docRegistry = new DocRegistry(allDocs);
 
         assertDoesNotThrow(() -> new CatalogueRegistry(brand, docRegistry, catalogues));
     }
