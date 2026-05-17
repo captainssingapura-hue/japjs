@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
-import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.L3_Catalogue;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.ManagedDomOpsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.OwnedReferencesDoc;
@@ -17,7 +17,7 @@ import java.util.List;
  * disciplined.
  */
 public record ViewDoctrinesCatalogue()
-        implements L2_Catalogue<DoctrineCatalogue, ViewDoctrinesCatalogue> {
+        implements L3_Catalogue<DoctrineCatalogue, ViewDoctrinesCatalogue> {
 
     public static final ViewDoctrinesCatalogue INSTANCE = new ViewDoctrinesCatalogue();
 

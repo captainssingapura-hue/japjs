@@ -40,6 +40,11 @@ import hue.captains.singapura.js.homing.studio.docs.gotchas.Gotcha0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FirstUserDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PureComponentViewsDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.LiveTrackerPatternDoc;
+import hue.captains.singapura.js.homing.studio.docs.meta.OntologyFirstDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.DocOntologyDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.DocTreeOntologyDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.StudioOntologyDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.ViewerOntologyDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.ReleaseChecklistDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.UserGuideDoc;
 import hue.captains.singapura.js.homing.studio.docs.releases.Release0_0_100Doc;
@@ -63,6 +68,8 @@ import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0011Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0012Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0013Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0014Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0015Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0016Doc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingShellFlexibilityWhitepaperDoc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingWhitepaperDoc;
 
@@ -115,6 +122,14 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(Rfc0012Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0013Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0014Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0015Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0016Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+
+            entry(OntologyFirstDoc.INSTANCE,   "Meta", StudioStyles.st_badge_reference.class),
+            entry(DocOntologyDoc.INSTANCE,     "Ontology", StudioStyles.st_badge_reference.class),
+            entry(DocTreeOntologyDoc.INSTANCE, "Ontology", StudioStyles.st_badge_reference.class),
+            entry(ViewerOntologyDoc.INSTANCE,  "Ontology", StudioStyles.st_badge_reference.class),
+            entry(StudioOntologyDoc.INSTANCE,  "Ontology", StudioStyles.st_badge_reference.class),
 
             entry(BrandReadmeDoc.INSTANCE,     "Brand", StudioStyles.st_badge_brand.class),
             entry(RenameToHomingDoc.INSTANCE,  "Brand", StudioStyles.st_badge_brand.class),

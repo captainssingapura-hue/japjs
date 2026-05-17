@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
-import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.L3_Catalogue;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.CatalogueContainerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PlanContainerDoc;
 
@@ -14,7 +14,7 @@ import java.util.List;
  * with intrinsic identity, structure-only data, renderer-owned presentation.
  */
 public record ContainerDoctrinesCatalogue()
-        implements L2_Catalogue<DoctrineCatalogue, ContainerDoctrinesCatalogue> {
+        implements L3_Catalogue<DoctrineCatalogue, ContainerDoctrinesCatalogue> {
 
     public static final ContainerDoctrinesCatalogue INSTANCE = new ContainerDoctrinesCatalogue();
 

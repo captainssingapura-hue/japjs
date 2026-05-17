@@ -17,6 +17,8 @@ import hue.captains.singapura.js.homing.studio.es.ViewDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ArchitectureRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ContentRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.MetaCatalogue;
+import hue.captains.singapura.js.homing.studio.es.OntologyCatalogue;
 import hue.captains.singapura.js.homing.studio.es.OperationsJourneysCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ReleasesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.RfcJourneysCatalogue;
@@ -62,6 +64,8 @@ class StudioCatalogueConstructsTest {
 
         var catalogues = List.of(
                 StudioCatalogue.INSTANCE,
+                MetaCatalogue.INSTANCE,
+                OntologyCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
                 AudienceDoctrinesCatalogue.INSTANCE,
                 ViewDoctrinesCatalogue.INSTANCE,

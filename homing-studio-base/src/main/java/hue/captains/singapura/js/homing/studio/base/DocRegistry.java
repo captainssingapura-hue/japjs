@@ -29,14 +29,23 @@ import java.util.UUID;
 public final class DocRegistry {
 
     private final Map<UUID, Doc> byUuid;
+    /**
+     * RFC 0015 Phase 2 — typed-identity index. Parallel to {@link #byUuid}; for
+     * the current Phase 2 deployment every Doc has a {@link DocId.ByUuid} so
+     * the two maps carry the same entries. When Phase 3 introduces non-UUID
+     * Doc kinds (PlanDoc, AppDoc) they will register only in this map.
+     */
+    private final Map<DocId, Doc> byId;
 
     /**
-     * Build a registry from an explicit collection of docs. Validates uniqueness of UUIDs.
+     * Build a registry from an explicit collection of docs. Validates uniqueness of UUIDs
+     * and of typed {@link DocId}s.
      *
-     * @throws IllegalStateException on UUID collision or null/blank UUID
+     * @throws IllegalStateException on UUID collision, DocId collision, or null UUID
      */
     public DocRegistry(Collection<? extends Doc> docs) {
         var byUuid = new LinkedHashMap<UUID, Doc>();
+        var byId   = new LinkedHashMap<DocId, Doc>();
         for (Doc d : docs) {
             UUID id = d.uuid();
             if (id == null) {
@@ -49,8 +58,20 @@ public final class DocRegistry {
                         "Doc UUID collision: " + id + " is used by both "
                       + prev.getClass().getName() + " and " + d.getClass().getName());
             }
+            DocId docId = d.id();
+            if (docId == null) {
+                throw new IllegalStateException(
+                        "Doc " + d.getClass().getName() + " has null id() — Phase 2 invariant");
+            }
+            Doc prevById = byId.put(docId, d);
+            if (prevById != null && prevById != d) {
+                throw new IllegalStateException(
+                        "Doc DocId collision: " + docId + " is used by both "
+                      + prevById.getClass().getName() + " and " + d.getClass().getName());
+            }
         }
         this.byUuid = Map.copyOf(byUuid);
+        this.byId   = Map.copyOf(byId);
     }
 
     /**
@@ -70,6 +91,17 @@ public final class DocRegistry {
     /** Resolve a Doc by UUID, or null if no Doc with that UUID is registered. */
     public Doc resolve(UUID id) {
         return byUuid.get(id);
+    }
+
+    /**
+     * RFC 0015 Phase 2 — resolve a Doc by typed {@link DocId}, or null if no
+     * Doc with that id is registered. Dispatches uniformly across the
+     * {@code ByUuid}, {@code ByClass}, and {@code ByClassAndParams} variants;
+     * during Phase 2, only {@code ByUuid} resolves to a registered Doc (the
+     * Class variants land with their realising subtypes in Phase 3).
+     */
+    public Doc resolve(DocId id) {
+        return byId.get(id);
     }
 
     /** All Docs in registration order. */

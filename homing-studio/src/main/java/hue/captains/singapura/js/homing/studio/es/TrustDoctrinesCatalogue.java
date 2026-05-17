@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
-import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.L3_Catalogue;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.NoStealthDataDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.QualityWithoutSurveillanceDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.StatelessServerDoc;
@@ -16,7 +16,7 @@ import java.util.List;
  * browser's own tools.
  */
 public record TrustDoctrinesCatalogue()
-        implements L2_Catalogue<DoctrineCatalogue, TrustDoctrinesCatalogue> {
+        implements L3_Catalogue<DoctrineCatalogue, TrustDoctrinesCatalogue> {
 
     public static final TrustDoctrinesCatalogue INSTANCE = new TrustDoctrinesCatalogue();
 

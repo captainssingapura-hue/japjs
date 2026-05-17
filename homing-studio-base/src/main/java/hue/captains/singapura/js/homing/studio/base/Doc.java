@@ -1,6 +1,6 @@
 package hue.captains.singapura.js.homing.studio.base;
 
-import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+import hue.captains.singapura.js.homing.studio.base.app.CatalogueLeaf;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,13 +37,32 @@ import java.util.UUID;
  *
  * @since RFC 0004
  */
-public interface Doc extends StatelessFunctionalObject {
+public interface Doc extends CatalogueLeaf {
 
     /**
      * Stable surrogate identity for this Doc on the wire. Unique within a {@link DocRegistry}.
      * Generated once and frozen — must not change across Java renames or file moves.
+     *
+     * <p>Prose Docs use UUID identity; this method is the source of truth for them.
+     * Future non-prose Doc kinds (PlanDoc, AppDoc per RFC 0015 Phase 3) may carry
+     * non-UUID identity via {@link #id()} and may leave this method unimplemented
+     * once that migration completes. Until then, every Doc supplies a UUID.</p>
      */
     UUID uuid();
+
+    /**
+     * RFC 0015 Phase 2 — typed identity for this Doc. Default wraps {@link #uuid()}
+     * as a {@link DocId.ByUuid}. Phase 3 introduces non-UUID variants (PlanDoc,
+     * AppDoc); Doc subtypes that don't rest on UUID identity will override this
+     * default to return their own DocId variant.
+     *
+     * <p>Realises Doc ontology axiom A2 (universality of the identifier) — every
+     * Doc surfaces its identity through this single accessor regardless of which
+     * underlying id shape it uses.</p>
+     */
+    default DocId id() {
+        return new DocId.ByUuid(uuid());
+    }
 
     /** Display title shown in browsers and reader headers. */
     String title();

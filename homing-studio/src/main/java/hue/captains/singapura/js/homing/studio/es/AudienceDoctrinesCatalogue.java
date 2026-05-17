@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
-import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.L3_Catalogue;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.DualAudienceSkillsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FirstUserDoc;
 
@@ -14,7 +14,7 @@ import java.util.List;
  * for both the agent and the human (Dual-Audience Skills).
  */
 public record AudienceDoctrinesCatalogue()
-        implements L2_Catalogue<DoctrineCatalogue, AudienceDoctrinesCatalogue> {
+        implements L3_Catalogue<DoctrineCatalogue, AudienceDoctrinesCatalogue> {
 
     public static final AudienceDoctrinesCatalogue INSTANCE = new AudienceDoctrinesCatalogue();
 

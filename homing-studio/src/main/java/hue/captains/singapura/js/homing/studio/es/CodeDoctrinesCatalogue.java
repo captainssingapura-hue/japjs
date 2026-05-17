@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
-import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
+import hue.captains.singapura.js.homing.studio.base.app.L3_Catalogue;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.ExplicitOverImplicitDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FunctionalObjectsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.WeighedComplexityDoc;
@@ -16,7 +16,7 @@ import java.util.List;
  * framework's source <i>looks like</i>.
  */
 public record CodeDoctrinesCatalogue()
-        implements L2_Catalogue<DoctrineCatalogue, CodeDoctrinesCatalogue> {
+        implements L3_Catalogue<DoctrineCatalogue, CodeDoctrinesCatalogue> {
 
     public static final CodeDoctrinesCatalogue INSTANCE = new CodeDoctrinesCatalogue();
 
