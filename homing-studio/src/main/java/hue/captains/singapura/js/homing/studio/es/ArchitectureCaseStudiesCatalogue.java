@@ -6,6 +6,7 @@ import hue.captains.singapura.js.homing.studio.base.app.Entry;
 import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
 import hue.captains.singapura.js.homing.studio.docs.casestudies.CostOfIterationCaseStudy;
 import hue.captains.singapura.js.homing.studio.docs.casestudies.CrossStudioRefsCaseStudy;
+import hue.captains.singapura.js.homing.studio.docs.casestudies.WhyWeDitchedHtmlCaseStudy;
 
 import java.util.List;
 
@@ -29,15 +30,29 @@ public record ArchitectureCaseStudiesCatalogue()
     @Override public List<Entry<ArchitectureCaseStudiesCatalogue>> leaves() {
         return List.of(
                 Entry.of(this, CrossStudioRefsCaseStudy.INSTANCE),
-                Entry.of(this, CostOfIterationCaseStudy.INSTANCE)
+                Entry.of(this, CostOfIterationCaseStudy.INSTANCE),
+                // RFC 0019 Phase 5 self-proof — written entirely in the
+                // typed-content vocabulary as a ComposedDoc.
+                Entry.of(this, WhyWeDitchedHtmlCaseStudy.INSTANCE)
         );
     }
 
-    /** RFC 0004: the case-study docs contributed to the studio's DocRegistry. */
+    /**
+     * RFC 0004: the case-study docs contributed to the studio's DocRegistry.
+     *
+     * <p>For the {@link WhyWeDitchedHtmlCaseStudy}, the ComposedDoc itself
+     * lands in the registry via {@code DocRegistry.harvestSyntheticFromLeaves}
+     * (it appears in {@link #leaves()}); the SvgDoc and TableDoc its
+     * segments proxy at must be explicitly registered here because they're
+     * not catalogue leaves themselves (only referenced from inside the
+     * ComposedDoc's segments).</p>
+     */
     @Override public List<Doc> docs() {
         return List.of(
                 CrossStudioRefsCaseStudy.INSTANCE,
-                CostOfIterationCaseStudy.INSTANCE
+                CostOfIterationCaseStudy.INSTANCE,
+                WhyWeDitchedHtmlCaseStudy.DIAGRAM_DOC,
+                WhyWeDitchedHtmlCaseStudy.COMPARISON_DOC
         );
     }
 }

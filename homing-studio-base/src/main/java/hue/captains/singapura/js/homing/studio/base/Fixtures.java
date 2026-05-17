@@ -8,6 +8,11 @@ import hue.captains.singapura.js.homing.studio.base.app.ContentViewer;
 import hue.captains.singapura.js.homing.studio.base.app.PlanContentViewer;
 import hue.captains.singapura.js.homing.studio.base.app.ProseContentViewer;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
+import hue.captains.singapura.js.homing.studio.base.app.SvgContentViewer;
+import hue.captains.singapura.js.homing.studio.base.app.tree.ContentTree;
+import hue.captains.singapura.js.homing.studio.base.composed.ComposedContentViewer;
+import hue.captains.singapura.js.homing.studio.base.image.ImageContentViewer;
+import hue.captains.singapura.js.homing.studio.base.table.TableContentViewer;
 import hue.captains.singapura.js.homing.studio.base.theme.HomingDefault;
 import hue.captains.singapura.js.homing.studio.base.theme.StudioThemeRegistry;
 import hue.captains.singapura.tao.http.action.GetAction;
@@ -72,9 +77,25 @@ public interface Fixtures<S extends Studio<?>> extends Immutable {
         return java.util.List.of(
                 ProseContentViewer.INSTANCE,
                 PlanContentViewer.INSTANCE,
-                AppContentViewer.INSTANCE
+                AppContentViewer.INSTANCE,
+                SvgContentViewer.INSTANCE,
+                ComposedContentViewer.INSTANCE,
+                TableContentViewer.INSTANCE,
+                ImageContentViewer.INSTANCE
         );
     }
+
+    /**
+     * RFC 0016 — registered {@link ContentTree}s. Empty by default; downstream
+     * studios override to register data-authored hierarchical content
+     * (search results, tag pages, manifest-driven indexes, SVG categorizations,
+     * etc.). Each tree gets a {@code /app?app=tree&id=<id>} URL automatically.
+     *
+     * <p>When this list is non-empty, {@code Bootstrap.compose()} wires up
+     * the {@code TreeRegistry}, {@code TreeGetAction}, and {@code TreeAppHost}
+     * automatically; when empty, none of the tree machinery is registered.</p>
+     */
+    default java.util.List<ContentTree> trees() { return java.util.List.of(); }
 
     /** ThemeRegistry the harness installs. Default: {@link StudioThemeRegistry#INSTANCE}. */
     default ThemeRegistry themeRegistry() { return StudioThemeRegistry.INSTANCE; }

@@ -5,6 +5,7 @@ import hue.captains.singapura.js.homing.core.SvgRef;
 import hue.captains.singapura.js.homing.studio.base.Studio;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
 import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
+import hue.captains.singapura.js.homing.studio.content.TypedContentVocabularyPlanData;
 import hue.captains.singapura.js.homing.studio.docdsl.DocDslPlanData;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.StudioCatalogue;
@@ -58,7 +59,8 @@ public record HomingStudio() implements Studio<StudioCatalogue> {
                 V1PlanData.INSTANCE,
                 InstrumentsPlanData.INSTANCE,
                 DocDslPlanData.INSTANCE,
-                StudioGraphPlanData.INSTANCE
+                StudioGraphPlanData.INSTANCE,
+                TypedContentVocabularyPlanData.INSTANCE
         );
     }
 

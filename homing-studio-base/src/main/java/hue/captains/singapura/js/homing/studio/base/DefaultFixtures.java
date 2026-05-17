@@ -3,6 +3,10 @@ package hue.captains.singapura.js.homing.studio.base;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
 import hue.captains.singapura.js.homing.studio.base.app.DocReader;
+import hue.captains.singapura.js.homing.studio.base.app.SvgViewer;
+import hue.captains.singapura.js.homing.studio.base.composed.ComposedViewer;
+import hue.captains.singapura.js.homing.studio.base.image.ImageViewer;
+import hue.captains.singapura.js.homing.studio.base.table.TableViewer;
 import hue.captains.singapura.js.homing.studio.base.theme.ThemesIntro;
 import hue.captains.singapura.js.homing.studio.base.tracker.PlanAppHost;
 import hue.captains.singapura.tao.ontology.ValueObject;
@@ -46,7 +50,11 @@ public record DefaultFixtures<S extends Studio<?>>(
                 CatalogueAppHost.INSTANCE,
                 PlanAppHost.INSTANCE,
                 DocReader.INSTANCE,
-                ThemesIntro.INSTANCE
+                ThemesIntro.INSTANCE,
+                SvgViewer.INSTANCE,
+                ComposedViewer.INSTANCE,
+                TableViewer.INSTANCE,
+                ImageViewer.INSTANCE
         );
     }
 

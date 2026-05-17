@@ -119,13 +119,45 @@ public final class DocRegistry {
                 if (e instanceof hue.captains.singapura.js.homing.studio.base.app.Entry.OfDoc<?, ?>(Doc d)) {
                     if (d instanceof hue.captains.singapura.js.homing.studio.base.tracker.PlanDoc
                             || d instanceof hue.captains.singapura.js.homing.studio.base.app.AppDoc<?, ?>
-                            || d instanceof ProxyDoc) {
+                            || d instanceof ProxyDoc
+                            || d instanceof hue.captains.singapura.js.homing.studio.base.composed.ComposedDoc
+                            || d instanceof hue.captains.singapura.js.homing.studio.base.table.TableDoc
+                            || d instanceof hue.captains.singapura.js.homing.studio.base.image.ImageDoc) {
                         out.add(d);
                     }
                 }
             }
         }
         return out;
+    }
+
+    /**
+     * RFC 0016 — harvest the Docs wrapped by tree leaves. Walks every
+     * registered {@link hue.captains.singapura.js.homing.studio.base.app.tree.ContentTree ContentTree}
+     * recursively; for each {@link hue.captains.singapura.js.homing.studio.base.app.tree.TreeLeaf TreeLeaf}
+     * encountered, contributes the wrapped Doc. Collisions across catalogues
+     * and trees collapse via record value-equality (DocRegistry's collision
+     * check uses {@code .equals()} per Phase 3b).
+     */
+    public static List<Doc> harvestFromTrees(
+            java.util.Collection<? extends hue.captains.singapura.js.homing.studio.base.app.tree.ContentTree> trees) {
+        var out = new ArrayList<Doc>();
+        for (var tree : trees) {
+            walkBranch(tree.root(), out);
+        }
+        return out;
+    }
+
+    private static void walkBranch(
+            hue.captains.singapura.js.homing.studio.base.app.tree.TreeBranch branch,
+            List<Doc> out) {
+        for (var child : branch.children()) {
+            if (child instanceof hue.captains.singapura.js.homing.studio.base.app.tree.TreeBranch sub) {
+                walkBranch(sub, out);
+            } else if (child instanceof hue.captains.singapura.js.homing.studio.base.app.tree.TreeLeaf leaf) {
+                out.add(leaf.doc());
+            }
+        }
     }
 
     /** Resolve a Doc by UUID, or null if no Doc with that UUID is registered. */

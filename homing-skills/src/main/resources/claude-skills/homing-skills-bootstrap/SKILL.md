@@ -48,8 +48,10 @@ Where `homing-skills` is the local Maven module name (or the artifact's `<artifa
 | "Set up a new studio on homing-studio-base" | `create-homing-studio` |
 | "Add a new theme to my studio" | `create-homing-theme` |
 | "Add a custom card / status widget / list-row variant" | `create-homing-component` (MPA, compose-first) |
+| "Add a tree of tagged / categorised content (DocTree)" | `create-homing-content-tree` (RFC 0016 — data-authored sibling of Catalogue) |
 | "How do I install / use this skills bundle" | `use-homing-skills` |
 | "Upgrade my studio from 0.0.11" | `migrate-from-0-0-11` (breaking-change recipe) |
+| "Upgrade my studio from 0.0.100" | `migrate-from-0-0-100` |
 | "I see homing in a project, what now" | this doc + `homing-skills-index` |
 
 ## Self-learning loop

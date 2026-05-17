@@ -31,6 +31,20 @@ A Viewer is a stateless, read-only, registered binding between a content kind an
 
 - **V10 — Stateless functional object.** A Viewer's record carries no mutable state and no per-instance configuration; the type is the behaviour. New rendering variants are new Viewer subtypes, not parameterised instances of existing Viewers.
 
+- **V11 — Chrome composition is mandated by the type system.** Every Viewer composes the framework's standard page chrome around its kind-specific content. The chrome is framework-owned and homogeneous across all viewers: a brand-aware Header (label, logo, breadcrumb chain, theme picker) at the top; the standard {@code st-root} / {@code st-main} layout primitives; the framework's audio runtime (RFC 0007) reachable on every page. A Viewer that omits any part of the chrome is structurally impossible — not a discipline violation, a *compile* failure.
+
+  **Two-layer structure**:
+  - **Bare-viewer layer** (subclass-supplied) — what's heterogeneous: the kind-specific body that populates the main slot, the typed Params and appMain record, the simpleName / paramsType / title. Each viewer is free to render the body however its kind requires.
+  - **Common-infra layer** (framework-owned, *physically one type*) — the standard chrome construction. Lives in {@code app.DocViewer<P,M>} as {@code final} methods ({@code selfContent}, {@code imports}, {@code exports}). The chrome is encoded once; every concrete viewer inherits the exact same construction. No subclass can override it because the methods are {@code final}.
+
+  The Viewer's *only* decision is **how to render its content** in the main slot. The shell around the content is non-negotiable and physically reused — not duplicated across viewers, not pluggable, not parameterisable beyond the body itself.
+
+  This is the symmetric principle to "Chrome is framework-owned" for catalogue Cards (every tile goes through the framework's `Card`): every viewer composes the framework's page chrome (every page goes through the framework's `DocViewer` base).
+
+  **Why a concrete final-methods abstract class** rather than a default-method interface: Java permits any record / class to override an interface's default method. Convention-based chrome composition (a `DocViewerChrome.compose(...)` helper that every viewer is expected to call) is fragile — the bug that introduced this axiom (`SvgViewer` skipped the helper and quietly lost the page header + audio cues) was exactly that failure mode. The abstract class with `final` methods removes the possibility entirely: subclasses *cannot* skip chrome because there's no method to override that controls it.
+
+  **Concrete subclasses are classes, not records.** Java disallows record-extends-class; the trade-off is small (singleton {@code INSTANCE} + {@code final class} recover most record discipline) and the type-safety gain is large.
+
 ## Relationships
 
 - **Viewer ↔ ContentKind.** Bijection within a deployment: one kind, one Viewer (V3). A kind without a Viewer is not a valid content kind.
@@ -44,8 +58,13 @@ The Viewer realisations in the current framework:
 
 - **DocReader** — renders `ProseDoc` content via the bundled `marked.js` markdown pipeline. Kind: prose markdown.
 - **PlanAppHost** — renders `PlanDoc` content (structured trackers — objectives, decisions, phases, acceptance). Kind: plan.
+- **SvgViewer** — renders `SvgDoc` content (inline SVG markup) centered on a standard page. Kind: svg. (RFC 0016.) First viewer realised through the typed `DocViewer<P,M>` base — chrome composition is structurally guaranteed.
 - **StudioGraphInspector** — renders the live `StudioGraph` projection (RFC 0014). Kind: studio-graph (in TREE and TYPES view modes).
 - **(Future) DiagramViewer, CodeViewer, ForceLayout3DViewer** — each registers its own kind; framework routing extends without code change.
+
+All realisations compose the standard chrome per V11 — same Header, same breadcrumb chain (server-resolved from `/doc-refs`), same theme picker, same audio runtime. The kind-specific rendering happens only inside the main slot.
+
+**Migration status (Phase 1):** `SvgViewer` is the first realisation to extend the typed `DocViewer<P,M>` base. The pre-existing viewers (`DocReader`, `PlanAppHost`, `CatalogueAppHost`, `StudioGraphInspector`) currently encode their own chrome in their `selfContent` — chrome conformance is via convention, not type. Migration to the typed base is a queued cleanup phase; until then, a conformance test asserting every Doc viewer extends `DocViewer` will catch regressions.
 
 Downstream studios add Viewer realisations by implementing the framework's Viewer interface (when it lands) and registering via `Fixtures.contentViewers()`.
 
@@ -53,7 +72,9 @@ Downstream studios add Viewer realisations by implementing the framework's Viewe
 
 This entry defines what a Viewer *is*. It does not contain operational guidance.
 
-- **How to design a good viewer UX** — typography, navigation affordances, keyboard shortcuts, scroll behaviour. Operational; lives in Doctrines or per-viewer design notes.
+- **The shape of the standard chrome** (Header layout, breadcrumb visual style, theme-picker placement, audio runtime wiring) — *framework-owned, not operational*. Per V11, chrome is mandated, but its specific visual treatment is a framework concern, not a Viewer concern. Viewers compose chrome; they don't define what chrome looks like.
+
+- **How to design a good viewer UX inside the main slot** — typography, navigation affordances within the body, keyboard shortcuts, scroll behaviour. Operational; lives in Doctrines or per-viewer design notes.
 - **When to introduce a new viewer kind** vs reuse an existing one with parameters. Authoring guidance; lives in Doctrines.
 - **What library to use** for rendering a given content shape — marked.js for markdown, three.js for 3D, cytoscape for graphs. Implementation choice; not ontological.
 - **How to migrate content from one Viewer to another** when a kind is renamed or split. Operational; lives in migration plans.

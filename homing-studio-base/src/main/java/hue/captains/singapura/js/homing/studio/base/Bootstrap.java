@@ -124,6 +124,11 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         // diagnostics is enabled) the StudioGraphInspector. Dedup by class.
         var harnessApps = new ArrayList<>(fixtures.harnessApps());
         if (params.diagnosticsEnabled()) harnessApps.add(StudioGraphInspector.INSTANCE);
+        // RFC 0016: when downstream has registered ContentTrees, the TreeAppHost
+        // joins the app set so /app?app=tree&id=… resolves.
+        if (!fixtures.trees().isEmpty()) {
+            harnessApps.add(hue.captains.singapura.js.homing.studio.base.app.tree.TreeAppHost.INSTANCE);
+        }
         var apps = unionAppsByClass(studios, harnessApps);
         if (apps.isEmpty()) {
             throw new IllegalArgumentException("Bootstrap.compose: at least one AppModule required");
@@ -183,6 +188,12 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         // appearances across catalogues collapse safely.
         allDocs.addAll(DocRegistry.harvestSyntheticFromLeaves(catalogues));
 
+        // RFC 0016 — harvest Docs wrapped by tree leaves. Trees register
+        // their content as Docs (typically SvgDocs in the demo, but any
+        // Doc subtype works). Without this, CatalogueRegistry-style
+        // validation would reject the tree-wrapped Docs as "not in registry."
+        allDocs.addAll(DocRegistry.harvestFromTrees(fixtures.trees()));
+
         var docRegistry = new DocRegistry(allDocs);
 
         // --- Standard studio actions.
@@ -234,6 +245,15 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
         final StudioGraphMarkdownAction graphMarkdownAction =
                 params.diagnosticsEnabled() ? new StudioGraphMarkdownAction(this) : null;
 
+        // --- RFC 0016 ContentTrees — only when downstream has registered any.
+        final hue.captains.singapura.js.homing.studio.base.app.tree.TreeGetAction treeAction;
+        if (!fixtures.trees().isEmpty()) {
+            var treeRegistry = new hue.captains.singapura.js.homing.studio.base.app.tree.TreeRegistry(fixtures.trees());
+            treeAction = new hue.captains.singapura.js.homing.studio.base.app.tree.TreeGetAction(treeRegistry, brand);
+        } else {
+            treeAction = null;
+        }
+
         // --- Compose final ActionRegistry.
         final var harnessGetActions  = fixtures.harnessGetActions();
         final var harnessPostActions = fixtures.harnessPostActions();
@@ -250,6 +270,7 @@ public record Bootstrap<S extends Studio<?>, F extends Fixtures<S>>(
                 if (catalogueAction != null) all.put("/catalogue", catalogueAction);
                 if (planAction      != null) all.put("/plan",      planAction);
                 if (graphMarkdownAction != null) all.put("/graph-md", graphMarkdownAction);
+                if (treeAction != null)          all.put("/tree",     treeAction);
                 all.putAll(harnessGetActions);
                 return Map.copyOf(all);
             }

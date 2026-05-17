@@ -41,8 +41,15 @@ function renderCatalogueHost(props) {
         return root;
     }
 
-    var url = "/catalogue?id=" + encodeURIComponent(catalogueId);
-    if (context) url += "&context=" + encodeURIComponent(context);
+    // RFC 0016: allow callers (e.g. TreeAppHost) to supply their own endpoint URL.
+    // When apiUrl is set, the catalogue endpoint defaults are bypassed entirely
+    // and the renderer fetches whatever URL the caller built. The shape of the
+    // JSON response is expected to match the CatalogueGetAction contract
+    // (name, summary, brand, breadcrumbs, entries[]).
+    var url = props.apiUrl
+        ? props.apiUrl
+        : ("/catalogue?id=" + encodeURIComponent(catalogueId)
+           + (context ? "&context=" + encodeURIComponent(context) : ""));
     fetch(url)
         .then(function(r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -147,6 +154,55 @@ function _renderEntry(entry) {
             href:    entry.url,
             title:   entry.name,
             summary: entry.summary,
+            badge:   entry.category || null,
+            link:    "Open →"
+        });
+    }
+    if (entry.kind === "svg") {
+        // RFC 0015 Phase 5: SVG is a typed Doc kind. Routed through the
+        // standard Card with no custom rendering; the framework's chrome
+        // (border, hover, audio cues per RFC 0007) all bind via the st-card
+        // class. The Doc's URL points at the registered SvgViewer; clicking
+        // opens the full-page SVG view via the polymorphic doc viewer.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
+            badge:   entry.category || null,
+            link:    "View →"
+        });
+    }
+    if (entry.kind === "table") {
+        // RFC 0020: TableDoc — typed-table Doc. Routed through the standard
+        // Card; URL points at the registered TableViewer.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
+            badge:   entry.category || null,
+            link:    "View →"
+        });
+    }
+    if (entry.kind === "image") {
+        // RFC 0020: ImageDoc — Raw-tier raster asset. Routed through the
+        // standard Card; URL points at the registered ImageViewer.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
+            badge:   entry.category || null,
+            link:    "View →"
+        });
+    }
+    if (entry.kind === "composed") {
+        // RFC 0019: ComposedDoc — typed-segment doc (markdown + SVG + ...).
+        // Routed through the standard Card; the URL points at the registered
+        // ComposedViewer, which fetches the JSON payload and dispatches per
+        // segment kind on the client side.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
             badge:   entry.category || null,
             link:    "Open →"
         });

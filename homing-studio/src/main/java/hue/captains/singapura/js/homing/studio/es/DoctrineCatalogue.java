@@ -33,6 +33,7 @@ public record DoctrineCatalogue() implements L2_Catalogue<MetaCatalogue, Doctrin
                 ViewDoctrinesCatalogue.INSTANCE,
                 ContainerDoctrinesCatalogue.INSTANCE,
                 CodeDoctrinesCatalogue.INSTANCE,
+                ContentDoctrinesCatalogue.INSTANCE,
                 TrustDoctrinesCatalogue.INSTANCE
         );
     }

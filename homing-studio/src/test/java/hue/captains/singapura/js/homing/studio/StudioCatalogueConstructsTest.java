@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
 import hue.captains.singapura.js.homing.studio.es.CaseStudiesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.CodeDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ContainerDoctrinesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ContentDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
 import hue.captains.singapura.js.homing.studio.es.PrivacySecurityCaseStudiesCatalogue;
@@ -60,6 +61,7 @@ class StudioCatalogueConstructsTest {
                 ViewDoctrinesCatalogue.INSTANCE,
                 ContainerDoctrinesCatalogue.INSTANCE,
                 CodeDoctrinesCatalogue.INSTANCE,
+                ContentDoctrinesCatalogue.INSTANCE,
                 TrustDoctrinesCatalogue.INSTANCE,
                 RfcsCatalogue.INSTANCE,
                 ArchitectureRfcsCatalogue.INSTANCE,

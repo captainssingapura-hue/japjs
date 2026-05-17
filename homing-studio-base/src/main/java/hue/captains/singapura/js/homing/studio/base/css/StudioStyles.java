@@ -543,6 +543,132 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
             """;
         }
     }
+    // -----------------------------------------------------------------------
+    // RFC 0020 — TableDoc rendering.
+    // Slim table primitives: th/td borders + padding via RFC 0017 tokens.
+    // -----------------------------------------------------------------------
+    public record st_table() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+            color: var(--color-text-primary);
+            background: var(--color-surface-base);
+            """;
+        }
+    }
+    public record st_thead() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            background: var(--color-surface-recessed);
+            """;
+        }
+    }
+    public record st_th() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--color-border-emphasis);
+            font-weight: 600;
+            color: var(--color-text-primary);
+            """;
+        }
+    }
+    public record st_td() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--color-border);
+            vertical-align: top;
+            """;
+        }
+    }
+    public record st_td_align_left() implements CssClass<StudioStyles> {
+        @Override public String body() { return "text-align: left;"; }
+    }
+    public record st_td_align_center() implements CssClass<StudioStyles> {
+        @Override public String body() { return "text-align: center;"; }
+    }
+    public record st_td_align_right() implements CssClass<StudioStyles> {
+        @Override public String body() { return "text-align: right;"; }
+    }
+    public record st_td_badge_success() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: rgba(34, 139, 34, 0.12);
+            color: #1B5E20;
+            border: 1px solid rgba(34, 139, 34, 0.35);
+            """;
+        }
+    }
+    public record st_td_badge_warning() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: rgba(202, 138, 4, 0.12);
+            color: #713F12;
+            border: 1px solid rgba(202, 138, 4, 0.35);
+            """;
+        }
+    }
+    public record st_td_badge_error() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: rgba(220, 38, 38, 0.10);
+            color: #7F1D1D;
+            border: 1px solid rgba(220, 38, 38, 0.35);
+            """;
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // RFC 0020 — ImageDoc rendering (Raw tier; no theming on the raster
+    // itself — chrome around it is themed).
+    // -----------------------------------------------------------------------
+    public record st_image_figure() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            margin: 24px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            """;
+        }
+    }
+    public record st_image_img() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px color-mix(in srgb, var(--color-text-link) 8%, transparent);
+            """;
+        }
+    }
+    public record st_image_caption() implements CssClass<StudioStyles> {
+        @Override public String body() { return """
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--color-text-muted);
+            text-align: center;
+            """;
+        }
+    }
+
     public record st_footer() implements CssClass<StudioStyles> {
         @Override public String body() { return """
             margin-top: 64px;
@@ -915,7 +1041,12 @@ public record StudioStyles() implements CssGroup<StudioStyles> {
                 new st_status_not_started(), new st_status_in_progress(), new st_status_blocked(), new st_status_done(),
                 new st_panel(), new st_panel_title(),
                 new st_task_list(), new st_task_item(), new st_task_done(), new st_task_box(),
-                new st_dep(), new st_acceptance(), new st_effort()
+                new st_dep(), new st_acceptance(), new st_effort(),
+                // RFC 0020 — TableDoc + ImageDoc
+                new st_table(), new st_thead(), new st_th(), new st_td(),
+                new st_td_align_left(), new st_td_align_center(), new st_td_align_right(),
+                new st_td_badge_success(), new st_td_badge_warning(), new st_td_badge_error(),
+                new st_image_figure(), new st_image_img(), new st_image_caption()
         );
     }
 }
