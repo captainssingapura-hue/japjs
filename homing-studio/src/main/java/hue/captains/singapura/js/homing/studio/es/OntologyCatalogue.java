@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.studio.es;
 
+import hue.captains.singapura.js.homing.studio.base.app.CatalogueIllustration;
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
 import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
 import hue.captains.singapura.js.homing.studio.docs.ontology.DocOntologyDoc;
@@ -43,6 +44,12 @@ public record OntologyCatalogue() implements L2_Catalogue<MetaCatalogue, Ontolog
 
     @Override public List<Entry<OntologyCatalogue>> leaves() {
         return List.of(
+                Entry.of(this, new CatalogueIllustration(
+                        "**Ontology answers one question: what kinds of things exist?**  \n"
+                      + "Each entry below names one type — its identity, its axioms, its "
+                      + "relationships, its realisations. Definition-only; operational "
+                      + "guidance lives in *Doctrines*. Read them in any order; they're short."
+                )),
                 Entry.of(this, DocOntologyDoc.INSTANCE),
                 Entry.of(this, DocTreeOntologyDoc.INSTANCE),
                 Entry.of(this, ViewerOntologyDoc.INSTANCE),

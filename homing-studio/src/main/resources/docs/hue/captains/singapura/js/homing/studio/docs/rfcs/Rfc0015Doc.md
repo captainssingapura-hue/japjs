@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | Accepted — In Progress |
+| **Status** | Accepted — Done (all six phases landed) |
 | **Author** | Howard, with Homing |
 | **Filed** | 2026-05-16 |
 | **Last updated** | 2026-05-17 — aligned with the now-landed Ontology layer; renamed `DocTree` → `DocTree` throughout |

@@ -151,6 +151,26 @@ function _renderEntry(entry) {
             link:    "Open →"
         });
     }
+    if (entry.kind === "illustration") {
+        // Specialized in-place decoration — markdown rendered inline,
+        // visually distinct from the tile grid. Not clickable.
+        var ill = document.createElement("section");
+        ill.style.cssText =
+            "padding:20px 24px;margin:8px 0 24px;border-left:4px solid var(--st-accent,#cfa64a);"
+          + "background:rgba(207,166,74,0.07);border-radius:6px;line-height:1.55;font-size:15px;";
+        try {
+            if (typeof marked !== "undefined" && marked && marked.parse) {
+                var range = document.createRange();
+                range.selectNodeContents(ill);
+                ill.appendChild(range.createContextualFragment(marked.parse(entry.body || "")));
+            } else {
+                ill.textContent = entry.body || "";
+            }
+        } catch (e) {
+            ill.textContent = entry.body || "";
+        }
+        return ill;
+    }
     if (entry.kind === "studio") {
         // RFC 0011: a typed re-attachment of a source L0 catalogue. The
         // server already emitted the proxy's icon prefixed into entry.name,

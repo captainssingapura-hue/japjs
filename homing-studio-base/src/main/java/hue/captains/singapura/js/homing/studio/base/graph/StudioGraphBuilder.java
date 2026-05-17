@@ -133,24 +133,33 @@ public record StudioGraphBuilder() implements StatelessFunctionalObject {
     private void visitEntry(StudioGraph.Mutable g, Entry<?> entry) {
         switch (entry) {
             case Entry.OfDoc<?, ?> ofDoc -> {
-                g.contains(entry, ofDoc.doc());
-                visitDoc(g, ofDoc.doc());
-            }
-            case Entry.OfApp<?, ?, ?> ofApp -> {
-                // The Navigable wraps an AppModule; the app itself is the structural target.
-                g.contains(entry, ofApp.nav());
-                g.contains(ofApp.nav(), ofApp.nav().app());
-                // AppModules are leaves in Phase 1.
-            }
-            case Entry.OfPlan<?, ?> ofPlan -> {
-                g.contains(entry, ofPlan.plan());
-                visitPlan(g, ofPlan.plan());
+                Doc doc = ofDoc.doc();
+                g.contains(entry, doc);
+                // RFC 0015 Phase 6: when the doc is a synthetic Doc subtype
+                // (PlanDoc, AppDoc), walk into the wrapped Plan / Navigable to
+                // preserve the structural edges the old OfApp / OfPlan switch
+                // produced. Prose Docs and ProxyDocs fall through to visitDoc.
+                if (doc instanceof hue.captains.singapura.js.homing.studio.base.tracker.PlanDoc pd) {
+                    g.contains(doc, pd.plan());
+                    visitPlan(g, pd.plan());
+                } else if (doc instanceof hue.captains.singapura.js.homing.studio.base.app.AppDoc<?, ?> ad) {
+                    g.contains(doc, ad.nav());
+                    g.contains(ad.nav(), ad.nav().app());
+                } else {
+                    visitDoc(g, doc);
+                }
             }
             case Entry.OfStudio<?, ?> ofStudio -> {
                 // StudioProxy points cross-tree at the source studio's L0.
                 // For Phase 1, treat the proxy itself as the target of CONTAINS;
                 // cross-tree REFERENCES walk is deferred to Phase 2.
                 g.contains(entry, ofStudio.proxy());
+            }
+            case Entry.OfIllustration<?> ofIllustration -> {
+                // Illustration is a decoration leaf; not addressable, not citable.
+                // Surface it in the graph as a CONTAINS edge so the typed graph
+                // is complete, but no further walk — it carries no references.
+                g.contains(entry, ofIllustration.illustration());
             }
         }
     }

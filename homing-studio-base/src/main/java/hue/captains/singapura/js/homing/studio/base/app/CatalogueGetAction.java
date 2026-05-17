@@ -203,22 +203,17 @@ public class CatalogueGetAction
                       .append("\"url\":")     .append(jstr(d.url()))
                       .append('}');
                 }
-                case Entry.OfApp<?, ?, ?>(Navigable<?, ?> nav) -> {
-                    sb.append("{\"kind\":\"app\",")
-                      .append("\"name\":")    .append(jstr(nav.name())).append(',')
-                      .append("\"summary\":") .append(jstr(nav.summary())).append(',')
-                      .append("\"category\":").append(jstr("APP")).append(',')
-                      .append("\"url\":")     .append(jstr(nav.url()))
-                      .append('}');
-                }
-                case Entry.OfPlan<?, ?>(hue.captains.singapura.js.homing.studio.base.tracker.Plan plan) -> {
-                    String badge = (plan.kicker() == null || plan.kicker().isBlank())
-                            ? "PLAN" : plan.kicker();
-                    sb.append("{\"kind\":\"plan\",")
-                      .append("\"name\":")    .append(jstr(plan.name())).append(',')
-                      .append("\"summary\":") .append(jstr(plan.summary())).append(',')
-                      .append("\"category\":").append(jstr(badge)).append(',')
-                      .append("\"url\":")     .append(jstr(planUrl(plan.getClass().getName())))
+                // RFC 0015 Phase 6: OfApp / OfPlan branches removed. Plans
+                // and Navigables now flow through OfDoc(PlanDoc/AppDoc) above,
+                // where doc.kind() emits "plan" / "app" and doc.url() emits
+                // the right URL. The two cases collapse into one.
+                case Entry.OfIllustration<?>(CatalogueIllustration illustration) -> {
+                    // Specialized in-place decoration — markdown rendered as a
+                    // hero block by the frontend. No URL, no addressing, no
+                    // catalogue-tile shape; the renderer treats kind="illustration"
+                    // as a special entry that doesn't go through the Card path.
+                    sb.append("{\"kind\":\"illustration\",")
+                      .append("\"body\":").append(jstr(illustration.body()))
                       .append('}');
                 }
                 case Entry.OfStudio<?, ?>(StudioProxy<?> proxy) -> {
@@ -269,17 +264,9 @@ public class CatalogueGetAction
         return (icon == null || icon.isEmpty()) ? c.name() : icon + " " + c.name();
     }
 
-    private static String docReaderUrl(String uuid) {
-        return "/app?app=doc-reader&doc=" + uuid;
-    }
-
-    private static String appUrl(String simpleName) {
-        return "/app?app=" + simpleName;
-    }
-
-    private static String planUrl(String fqn) {
-        return "/app?app=plan&id=" + fqn;
-    }
+    // RFC 0015 Phase 6: docReaderUrl / appUrl / planUrl helpers are removed —
+    // URLs now come from doc.url() polymorphism on each Doc subtype, and the
+    // serializer no longer constructs per-kind URLs locally.
 
     private static String jstr(String v) {
         if (v == null) return "null";

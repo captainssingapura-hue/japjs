@@ -118,7 +118,8 @@ public final class DocRegistry {
             for (var e : c.leaves()) {
                 if (e instanceof hue.captains.singapura.js.homing.studio.base.app.Entry.OfDoc<?, ?>(Doc d)) {
                     if (d instanceof hue.captains.singapura.js.homing.studio.base.tracker.PlanDoc
-                            || d instanceof hue.captains.singapura.js.homing.studio.base.app.AppDoc<?, ?>) {
+                            || d instanceof hue.captains.singapura.js.homing.studio.base.app.AppDoc<?, ?>
+                            || d instanceof ProxyDoc) {
                         out.add(d);
                     }
                 }
