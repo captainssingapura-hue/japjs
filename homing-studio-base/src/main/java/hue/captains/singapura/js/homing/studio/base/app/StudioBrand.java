@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base.app;
 
 import hue.captains.singapura.js.homing.core.SvgRef;
+import hue.captains.singapura.tao.ontology.ValueObject;
 
 import java.util.Objects;
 
@@ -25,7 +26,8 @@ import java.util.Objects;
  *
  * @since RFC 0005
  */
-public record StudioBrand(String label, Class<? extends Catalogue<?>> homeApp, SvgRef<?> logo) {
+public record StudioBrand(String label, Class<? extends Catalogue<?>> homeApp, SvgRef<?> logo)
+        implements ValueObject {
 
     public StudioBrand {
         Objects.requireNonNull(label,   "label");

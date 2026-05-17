@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base.tracker;
 
+import hue.captains.singapura.tao.ontology.ValueObject;
+
 /**
  * One acceptance criterion for a {@link Plan} — the "outcome" pillar of the
  * Plans-as-Living-Containers doctrine (RFC 0005-ext1). A plan-level statement
@@ -18,4 +20,4 @@ package hue.captains.singapura.js.homing.studio.base.tracker;
  *
  * @since RFC 0005-ext1
  */
-public record Acceptance(String label, String description, boolean met) {}
+public record Acceptance(String label, String description, boolean met) implements ValueObject {}

@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 /**
  * An EsModule that serves as the entry point of a single-page application.
  * <p>By convention, an AppModule exports a function named {@code appMain}
@@ -13,7 +15,8 @@ package hue.captains.singapura.js.homing.core;
  *
  * @param <M> self-type
  */
-public non-sealed interface AppModule<P extends AppModule._Param, M extends AppModule<P, M>> extends DomModule<M>, Linkable {
+public non-sealed interface AppModule<P extends AppModule._Param, M extends AppModule<P, M>>
+        extends DomModule<M>, Linkable, StatelessFunctionalObject {
 
     /**
      * Marker for the {@code Params} record an AppModule accepts via its URL

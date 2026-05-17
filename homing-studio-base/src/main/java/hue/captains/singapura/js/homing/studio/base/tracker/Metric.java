@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base.tracker;
 
+import hue.captains.singapura.tao.ontology.ValueObject;
+
 /**
  * Before/after measurement captured at phase completion. Surfaced as one row
  * of a metrics table on the step-detail page — the quantitative proof that a
@@ -15,4 +17,4 @@ package hue.captains.singapura.js.homing.studio.base.tracker;
  * <p>Designed for cleanup / refactor / migration / hardening plans where the
  * payoff is hard to argue without numbers.</p>
  */
-public record Metric(String label, String before, String after, String delta) {}
+public record Metric(String label, String before, String after, String delta) implements ValueObject {}

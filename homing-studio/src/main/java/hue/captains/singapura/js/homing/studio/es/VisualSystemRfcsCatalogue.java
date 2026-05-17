@@ -8,6 +8,7 @@ import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0003Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0006Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0007Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0008Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0017Doc;
 
 import java.util.List;
 
@@ -32,7 +33,8 @@ public record VisualSystemRfcsCatalogue()
                 Entry.of(this, Rfc0003Doc.INSTANCE),
                 Entry.of(this, Rfc0006Doc.INSTANCE),
                 Entry.of(this, Rfc0007Doc.INSTANCE),
-                Entry.of(this, Rfc0008Doc.INSTANCE)
+                Entry.of(this, Rfc0008Doc.INSTANCE),
+                Entry.of(this, Rfc0017Doc.INSTANCE)
         );
     }
 }

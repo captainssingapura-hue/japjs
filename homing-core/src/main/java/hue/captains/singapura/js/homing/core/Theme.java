@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 /**
  * A typed theme — server-side identity token used as a lookup key when
  * resolving the {@link CssGroupImpl} for a {@link CssGroup}.
@@ -20,7 +22,7 @@ package hue.captains.singapura.js.homing.core;
  * @see CssGroupImpl
  * @see <a href="../../../../../../../../docs/rfcs/0002-typed-themes-for-cssgroups.md">RFC 0002 — Typed Themes for CssGroups</a>
  */
-public interface Theme {
+public interface Theme extends StatelessFunctionalObject {
 
     /**
      * URL/filename slug. Stable, kebab-case. Used as the {@code theme=…}

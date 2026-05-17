@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.studio.rfc0004.Rfc0004PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0004ext1.Rfc0004Ext1PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0005.Rfc0005PlanData;
 import hue.captains.singapura.js.homing.studio.rfc0005ext1.Rfc0005Ext1PlanData;
+import hue.captains.singapura.js.homing.studio.content.TypedContentVocabularyPlanData;
 
 import java.util.List;
 
@@ -37,7 +38,8 @@ public record RfcJourneysCatalogue()
                 Entry.of(this, Rfc0004PlanData.INSTANCE),
                 Entry.of(this, Rfc0004Ext1PlanData.INSTANCE),
                 Entry.of(this, Rfc0005PlanData.INSTANCE),
-                Entry.of(this, Rfc0005Ext1PlanData.INSTANCE)
+                Entry.of(this, Rfc0005Ext1PlanData.INSTANCE),
+                Entry.of(this, TypedContentVocabularyPlanData.INSTANCE)
         );
     }
 }

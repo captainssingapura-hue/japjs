@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 /**
  * A typed declaration for an external destination — a URL the kernel does
  * not serve, but which other modules can construct typed links to.
@@ -27,7 +29,8 @@ package hue.captains.singapura.js.homing.core;
  * @param <P> the params record type ({@link AppModule._None} for static URLs)
  * @param <M> self-type
  */
-public non-sealed interface ProxyApp<P extends AppModule._Param, M extends ProxyApp<P, M>> extends Linkable {
+public non-sealed interface ProxyApp<P extends AppModule._Param, M extends ProxyApp<P, M>>
+        extends Linkable, StatelessFunctionalObject {
 
     /**
      * URL template with {@code {name}} interpolation slots. Parsed at first

@@ -2,9 +2,11 @@ package hue.captains.singapura.js.homing.studio.es;
 
 import hue.captains.singapura.js.homing.studio.base.app.Entry;
 import hue.captains.singapura.js.homing.studio.base.app.L2_Catalogue;
+import hue.captains.singapura.js.homing.studio.docdsl.DocDslPlanData;
 import hue.captains.singapura.js.homing.studio.instruments.InstrumentsPlanData;
 import hue.captains.singapura.js.homing.studio.release.V1PlanData;
 import hue.captains.singapura.js.homing.studio.rename.RenamePlanData;
+import hue.captains.singapura.js.homing.studio.studiograph.StudioGraphPlanData;
 
 import java.util.List;
 
@@ -26,7 +28,9 @@ public record OperationsJourneysCatalogue()
         return List.of(
                 Entry.of(this, RenamePlanData.INSTANCE),
                 Entry.of(this, V1PlanData.INSTANCE),
-                Entry.of(this, InstrumentsPlanData.INSTANCE)
+                Entry.of(this, InstrumentsPlanData.INSTANCE),
+                Entry.of(this, DocDslPlanData.INSTANCE),
+                Entry.of(this, StudioGraphPlanData.INSTANCE)
         );
     }
 }

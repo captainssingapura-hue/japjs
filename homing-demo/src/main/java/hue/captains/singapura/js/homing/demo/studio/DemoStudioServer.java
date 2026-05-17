@@ -37,6 +37,6 @@ public final class DemoStudioServer {
                         new Umbrella.Solo<>(HomingStudio.INSTANCE)
                 ));
 
-        new Bootstrap<>(new DefaultFixtures<>(umbrella), new DefaultRuntimeParams(8082)).start();
+        new Bootstrap<>(new DemoFixtures<>(umbrella), new DefaultRuntimeParams(8082)).start();
     }
 }

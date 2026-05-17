@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base;
 
 import hue.captains.singapura.js.homing.core.util.ResourceReader;
+import hue.captains.singapura.tao.ontology.Immutable;
 
 /**
  * RFC 0012 — deployment knobs. Port + environment-derived defaults.
@@ -16,7 +17,7 @@ import hue.captains.singapura.js.homing.core.util.ResourceReader;
  * RuntimeParams params = new DefaultRuntimeParams(8080);
  * }</pre>
  */
-public interface RuntimeParams {
+public interface RuntimeParams extends Immutable {
 
     /** Port to bind. */
     int port();
@@ -24,5 +25,24 @@ public interface RuntimeParams {
     /** Resource reader for classpath / disk lookups. Default: {@link ResourceReader#fromSystemProperty()}. */
     default ResourceReader resourceReader() {
         return ResourceReader.fromSystemProperty();
+    }
+
+    /**
+     * RFC 0014 Phase 1 — opt-in diagnostic surfaces.
+     *
+     * <p>When {@code true}, {@code Bootstrap.compose()} registers the
+     * {@code StudioGraphInspector} app and its backing {@code /graph-dump}
+     * action, making the live object graph visible in the UI. When
+     * {@code false} (default), neither the app nor the endpoint is
+     * registered — diagnostic surfaces are absent from the running server.</p>
+     *
+     * <p>Default reads the {@code homing.diagnostics} system property —
+     * launching with {@code -Dhoming.diagnostics=true} enables. Downstream
+     * studios can override to enable diagnostics by other means (CLI flag,
+     * env var, config file) by implementing their own {@code RuntimeParams}
+     * subtype.</p>
+     */
+    default boolean diagnosticsEnabled() {
+        return Boolean.getBoolean("homing.diagnostics");
     }
 }

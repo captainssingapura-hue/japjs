@@ -156,21 +156,25 @@ public final class CatalogueRegistry {
                                   + " (uuid=" + id + ") which is not in the DocRegistry");
                         }
                         docHomeMap.putIfAbsent(id, parent);
-                    }
-                    case Entry.OfApp<?, ?, ?>(Navigable<?, ?> nav) -> {
-                        if (nav == null) {
-                            throw new IllegalStateException(
-                                    "Catalogue " + parent.getClass().getName()
-                                  + " has Entry.OfApp with null Navigable");
+                        // RFC 0015 Phase 6: when the doc is a PlanDoc, register the
+                        // wrapped Plan's class in planHomeMap so the existing
+                        // breadcrumbsForPlan(class) API continues to work for
+                        // Plans surfaced via the unified Doc family.
+                        if (d instanceof hue.captains.singapura.js.homing.studio.base.tracker.PlanDoc pd) {
+                            planHomeMap.putIfAbsent(pd.plan().getClass(), parent);
                         }
                     }
-                    case Entry.OfPlan<?, ?>(Plan plan) -> {
-                        if (plan == null) {
-                            throw new IllegalStateException(
-                                    "Catalogue " + parent.getClass().getName()
-                                  + " has Entry.OfPlan with null plan");
-                        }
-                        planHomeMap.putIfAbsent(plan.getClass(), parent);
+                    // RFC 0015 Phase 6: OfApp / OfPlan cases removed. Plans
+                    // and Navigables now flow through OfDoc(PlanDoc/AppDoc);
+                    // their validation falls through the OfDoc branch above.
+                    // planHomeMap registration moved into the OfDoc branch
+                    // (when doc is a PlanDoc, register the wrapped Plan's
+                    // class as having this catalogue as home).
+                    case Entry.OfIllustration<?>(CatalogueIllustration illustration) -> {
+                        // No registry-side validation — illustrations are
+                        // decoration, not addressable content. Boot accepts
+                        // any non-null illustration body (validated in the
+                        // record's compact constructor).
                     }
                     case Entry.OfStudio<?, ?>(StudioProxy<?> proxy) -> {
                         if (proxy == null) {

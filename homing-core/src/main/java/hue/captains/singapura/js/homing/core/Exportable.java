@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 /**
  * An export from a particular Module or other Linkable.
  *
@@ -11,7 +13,7 @@ package hue.captains.singapura.js.homing.core;
  * @param <M> the source — an EsModule, a Linkable, or any future
  *            export-source type
  */
-public interface Exportable<M> {
+public interface Exportable<M> extends StatelessFunctionalObject {
 
     interface _Class<M extends EsModule> extends Exportable<M> {}
 

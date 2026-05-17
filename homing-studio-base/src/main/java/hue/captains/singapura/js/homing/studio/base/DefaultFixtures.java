@@ -3,8 +3,13 @@ package hue.captains.singapura.js.homing.studio.base;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueAppHost;
 import hue.captains.singapura.js.homing.studio.base.app.DocReader;
+import hue.captains.singapura.js.homing.studio.base.app.SvgViewer;
+import hue.captains.singapura.js.homing.studio.base.composed.ComposedViewer;
+import hue.captains.singapura.js.homing.studio.base.image.ImageViewer;
+import hue.captains.singapura.js.homing.studio.base.table.TableViewer;
 import hue.captains.singapura.js.homing.studio.base.theme.ThemesIntro;
 import hue.captains.singapura.js.homing.studio.base.tracker.PlanAppHost;
+import hue.captains.singapura.tao.ontology.ValueObject;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,7 +38,7 @@ import java.util.Objects;
  * @param <S> the studio type at the umbrella's leaves; usually {@code Studio<?>}
  */
 public record DefaultFixtures<S extends Studio<?>>(
-        Umbrella<S> umbrella) implements Fixtures<S> {
+        Umbrella<S> umbrella) implements Fixtures<S>, ValueObject {
 
     public DefaultFixtures {
         Objects.requireNonNull(umbrella);
@@ -45,7 +50,11 @@ public record DefaultFixtures<S extends Studio<?>>(
                 CatalogueAppHost.INSTANCE,
                 PlanAppHost.INSTANCE,
                 DocReader.INSTANCE,
-                ThemesIntro.INSTANCE
+                ThemesIntro.INSTANCE,
+                SvgViewer.INSTANCE,
+                ComposedViewer.INSTANCE,
+                TableViewer.INSTANCE,
+                ImageViewer.INSTANCE
         );
     }
 

@@ -3,12 +3,23 @@ package hue.captains.singapura.js.homing.studio;
 import hue.captains.singapura.js.homing.studio.base.DocRegistry;
 import hue.captains.singapura.js.homing.studio.base.app.CatalogueRegistry;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
+import hue.captains.singapura.js.homing.studio.es.ArchitectureCaseStudiesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.AudienceDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.BuildingBlocksCatalogue;
+import hue.captains.singapura.js.homing.studio.es.CaseStudiesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.CodeDoctrinesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ContainerDoctrinesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ContentDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.DocBrowser;
 import hue.captains.singapura.js.homing.studio.es.DoctrineCatalogue;
+import hue.captains.singapura.js.homing.studio.es.PrivacySecurityCaseStudiesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.TrustDoctrinesCatalogue;
+import hue.captains.singapura.js.homing.studio.es.ViewDoctrinesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ArchitectureRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ContentRfcsCatalogue;
 import hue.captains.singapura.js.homing.studio.es.JourneysCatalogue;
+import hue.captains.singapura.js.homing.studio.es.MetaCatalogue;
+import hue.captains.singapura.js.homing.studio.es.OntologyCatalogue;
 import hue.captains.singapura.js.homing.studio.es.OperationsJourneysCatalogue;
 import hue.captains.singapura.js.homing.studio.es.ReleasesCatalogue;
 import hue.captains.singapura.js.homing.studio.es.RfcJourneysCatalogue;
@@ -41,18 +52,17 @@ class StudioCatalogueConstructsTest {
         // at the same moment a real boot would fail.
         var brand = new StudioBrand("Homing · studio", StudioCatalogue.class);
 
-        // Build the doc registry the same way StudioBootstrap does — from the studio's
-        // doc providers (the catalogue side + DocBrowser).
-        var docRegistry = new DocRegistry(java.util.stream.Stream.of(
-                        DocBrowser.INSTANCE.docs(),
-                        BuildingBlocksCatalogue.INSTANCE.docs(),
-                        ReleasesCatalogue.INSTANCE.docs())
-                .flatMap(List::stream)
-                .toList());
-
         var catalogues = List.of(
                 StudioCatalogue.INSTANCE,
+                MetaCatalogue.INSTANCE,
+                OntologyCatalogue.INSTANCE,
                 DoctrineCatalogue.INSTANCE,
+                AudienceDoctrinesCatalogue.INSTANCE,
+                ViewDoctrinesCatalogue.INSTANCE,
+                ContainerDoctrinesCatalogue.INSTANCE,
+                CodeDoctrinesCatalogue.INSTANCE,
+                ContentDoctrinesCatalogue.INSTANCE,
+                TrustDoctrinesCatalogue.INSTANCE,
                 RfcsCatalogue.INSTANCE,
                 ArchitectureRfcsCatalogue.INSTANCE,
                 ContentRfcsCatalogue.INSTANCE,
@@ -60,9 +70,27 @@ class StudioCatalogueConstructsTest {
                 JourneysCatalogue.INSTANCE,
                 RfcJourneysCatalogue.INSTANCE,
                 OperationsJourneysCatalogue.INSTANCE,
+                CaseStudiesCatalogue.INSTANCE,
+                ArchitectureCaseStudiesCatalogue.INSTANCE,
+                PrivacySecurityCaseStudiesCatalogue.INSTANCE,
                 BuildingBlocksCatalogue.INSTANCE,
                 ReleasesCatalogue.INSTANCE
         );
+
+        // Build the doc registry the same way StudioBootstrap does — from the studio's
+        // doc providers (the catalogue side + DocBrowser) plus the RFC 0015 Phase 3b
+        // harvest of synthetic Docs (PlanDoc, AppDoc, …) from catalogue leaves.
+        var providerDocs = java.util.stream.Stream.of(
+                        DocBrowser.INSTANCE.docs(),
+                        ArchitectureCaseStudiesCatalogue.INSTANCE.docs(),
+                        PrivacySecurityCaseStudiesCatalogue.INSTANCE.docs(),
+                        BuildingBlocksCatalogue.INSTANCE.docs(),
+                        ReleasesCatalogue.INSTANCE.docs())
+                .flatMap(List::stream)
+                .toList();
+        var allDocs = new java.util.ArrayList<hue.captains.singapura.js.homing.studio.base.Doc>(providerDocs);
+        allDocs.addAll(DocRegistry.harvestSyntheticFromLeaves(catalogues));
+        var docRegistry = new DocRegistry(allDocs);
 
         assertDoesNotThrow(() -> new CatalogueRegistry(brand, docRegistry, catalogues));
     }

@@ -21,9 +21,10 @@ public record StudioCatalogue() implements L0_Catalogue<StudioCatalogue> {
 
     @Override public List<? extends L1_Catalogue<StudioCatalogue, ?>> subCatalogues() {
         return List.of(
-                DoctrineCatalogue.INSTANCE,
+                MetaCatalogue.INSTANCE,
                 RfcsCatalogue.INSTANCE,
                 JourneysCatalogue.INSTANCE,
+                CaseStudiesCatalogue.INSTANCE,
                 BuildingBlocksCatalogue.INSTANCE,
                 ReleasesCatalogue.INSTANCE
         );

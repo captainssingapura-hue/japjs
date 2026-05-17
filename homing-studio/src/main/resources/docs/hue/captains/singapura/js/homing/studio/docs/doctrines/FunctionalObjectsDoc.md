@@ -155,7 +155,26 @@ Both shapes are correct. Records win for value-equality semantics; classes win w
 
 ---
 
+## Mechanical realisation — jOntology integration
+
+Per [RFC 0013](#ref:rfc-13), the framework adopts the [jOntology](#ref:jontology) marker-interface library as the mechanical realisation of this doctrine. Every framework spine interface declares its classification:
+
+- `Doc`, `Catalogue<Self>`, `Plan`, `Studio<L0>`, `AppModule<P, M>` all extend `StatelessFunctionalObject` — every implementing record inherits the marker by Java's interface-inheritance rules
+- Field-bearing types (`Bootstrap`, `DefaultFixtures`, `StudioBrand`, `DefaultRuntimeParams`, `CatalogueClosure`) declare their own classification (`ValueObject` / `StatelessFunctionalObject`) directly
+- Sealed interfaces (`Umbrella`, `Entry`) extend `Immutable` — their record permits inherit it
+- Internal infrastructure (`HomingActionRegistry`, `VertxActionHost`) is explicitly `Mutable`
+
+A new `OntologyConformanceTest` runs the jOntology enforcer over a curated list of marked types at build time. Contract violations — non-final fields, missing `equals/hashCode` on `ValueObject`, instance fields on `Stateless`, banned static methods — fail the build.
+
+The doctrine's principles are unchanged. What changes is the enforcement mechanism: from author discipline alone, to author discipline + cryptographic-style verification by a published library every framework class can be checked against.
+
+**Notable tension worth naming**: jOntology's `Immutable` contract is stricter than this doctrine in two specific ways — *all* static methods are forbidden (this doctrine permits `private static` helpers as internal organisation), and `java.util.List/Map/Set` aren't in jOntology's known-immutable set (so any record with a `List<...>` field fails the transitive immutable check, even when the constructor does `List.copyOf`). These are real frictions resolved as classification debt; the conformance test starts with a conservative curated list and grows as types are made enforcer-clean.
+
+---
+
 ## See also
 
 - [Catalogue-as-Container](#ref:doc-cc) — the same "open set, closed shape" principle applied to data-shape. Functional Objects applies it to behaviour-shape.
 - [Weighed Complexity](#ref:wc) — the doctrine that justifies *why* a slight ergonomic cost (typing `.INSTANCE`) is worth the structural benefit. Lines aren't equal; the cost of a static-method habit compounds; the cost of an `INSTANCE` field is one-time.
+- [RFC 0013 — jOntology Integration](#ref:rfc-13) — the mechanical realisation of this doctrine via marker interfaces and a build-time enforcer.
+- [jOntology](#ref:jontology) — the sibling library providing the marker interfaces and runtime contract checks.

@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.studio.docs.blocks.BlocksIndexDoc;
 import hue.captains.singapura.js.homing.studio.docs.blocks.BootstrapAndConformanceDoc;
 import hue.captains.singapura.js.homing.studio.docs.blocks.CatalogueKitDoc;
 import hue.captains.singapura.js.homing.studio.docs.blocks.DocKitsDoc;
+import hue.captains.singapura.js.homing.studio.docs.blocks.MdadKitDoc;
 import hue.captains.singapura.js.homing.studio.docs.blocks.PlanKitDoc;
 import hue.captains.singapura.js.homing.studio.docs.blocks.TrackerKitDoc;
 
@@ -38,11 +39,21 @@ public record BuildingBlocksCatalogue()
                 Entry.of(this, PlanKitDoc.INSTANCE),
                 Entry.of(this, DocKitsDoc.INSTANCE),
                 Entry.of(this, TrackerKitDoc.INSTANCE),
-                Entry.of(this, BootstrapAndConformanceDoc.INSTANCE)
+                Entry.of(this, BootstrapAndConformanceDoc.INSTANCE),
+                // Phase 4 / RFC 0018 — the .mdad+ kit, authored entirely in
+                // the typed content vocabulary (ComposedDoc with TextSegment +
+                // SvgSegment + TableSegment).
+                Entry.of(this, MdadKitDoc.INSTANCE)
         );
     }
 
-    /** RFC 0004: the blocks doc set + the index, contributed to the studio's DocRegistry. */
+    /**
+     * RFC 0004: the blocks doc set + the index, contributed to the studio's
+     * DocRegistry. For {@link MdadKitDoc}, the ComposedDoc itself lands via
+     * {@code DocRegistry.harvestSyntheticFromLeaves}; the four supporting
+     * SvgDocs and TableDoc its segments proxy at must be explicitly
+     * registered here because they're not catalogue leaves themselves.
+     */
     @Override public List<Doc> docs() {
         return List.of(
                 BlocksIndexDoc.INSTANCE,
@@ -51,7 +62,11 @@ public record BuildingBlocksCatalogue()
                 PlanKitDoc.INSTANCE,
                 DocKitsDoc.INSTANCE,
                 TrackerKitDoc.INSTANCE,
-                BootstrapAndConformanceDoc.INSTANCE
+                BootstrapAndConformanceDoc.INSTANCE,
+                MdadKitDoc.AST_DOC,
+                MdadKitDoc.PARSE_PIPELINE_DOC,
+                MdadKitDoc.RENDER_FLOW_DOC,
+                MdadKitDoc.GRAMMAR_DOC
         );
     }
 }

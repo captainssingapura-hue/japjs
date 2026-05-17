@@ -6,6 +6,7 @@ import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.L0_Catalogue;
 import hue.captains.singapura.js.homing.studio.base.app.StudioBrand;
 import hue.captains.singapura.js.homing.studio.base.tracker.Plan;
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ import java.util.List;
  *
  * @param <L0> the studio's root L0 catalogue type
  */
-public interface Studio<L0 extends L0_Catalogue<L0>> {
+public interface Studio<L0 extends L0_Catalogue<L0>> extends StatelessFunctionalObject {
 
     /** The studio's root L0 catalogue. The only required field. */
     L0 home();

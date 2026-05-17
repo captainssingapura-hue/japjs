@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 /**
  * CSS cascade layer — a typed "tier" carried as a marker interface on
  * {@link CssClass} (via {@link InLayer}) and on {@link ThemeGlobals} chunks.
@@ -16,4 +18,5 @@ package hue.captains.singapura.js.homing.core;
  * constraint to keep the cascade reasoning bounded.</p>
  */
 public sealed interface Layer
+        extends StatelessFunctionalObject
         permits Reset, Layout, Component, Prose, State, MediaGated, ThemeOverlay {}

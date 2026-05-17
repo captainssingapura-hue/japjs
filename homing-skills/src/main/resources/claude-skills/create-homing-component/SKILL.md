@@ -14,7 +14,17 @@ This is the **MPA model**. Components don't manage mount/unmount lifecycles. The
 Most "new components" don't need new code. Walk the tree:
 
 ```
-Does an existing builder produce close-enough markup?
+Step 0: Is the "component" actually a typed content kind I should be authoring,
+        not a UI widget?
+│
+├─ YES — it's a table / image / SVG / structured prose block
+│   → STOP. Use the typed Doc kinds + Segment ADT (see "Step 0 — typed
+│     content vocabulary" below). A TableSegment is not a component;
+│     it's a typed content kind that ships its own viewer.
+│
+└─ NO — it's a real UI widget (chrome / interaction primitive / tile variant)
+
+Step 1: Does an existing builder produce close-enough markup?
 │
 ├─ YES, same markup + slightly different look
 │   → PATH 2 (Extend): add a typed CssClass with InLayer<Component>
@@ -29,7 +39,24 @@ Does an existing builder produce close-enough markup?
                           conformance baseline. Strict recipe below.
 ```
 
-Default to **Path 1 or 2**. Reach for **Path 3** only when the existing builders' DOM shape is structurally wrong for your need — a custom kind of card you can re-skin via CSS is still Path 2.
+Default to **Step 0** if there's any chance the request is content-shaped, then **Path 1 or 2**. Reach for **Path 3** only when the existing builders' DOM shape is structurally wrong for your need — a custom kind of card you can re-skin via CSS is still Path 2.
+
+## Step 0 — typed content vocabulary (RFCs 0018 / 0019 / 0020)
+
+Before writing component code, check whether the user actually wants typed content authored *as data*, not a UI widget. The framework's typed content vocabulary covers a lot of what authors instinctively reach for a "component" for:
+
+| User says… | What they probably want |
+|---|---|
+| "A status table" / "render this data as a grid" | `TableDoc` + `TableSegment` (RFC 0020) — typed cells, badges, alignment, themed CSS |
+| "A diagram" / "render this SVG inline" | `SvgDoc` + `SvgSegment` (RFC 0015 Phase 3 / RFC 0019) — themable via `var(--color-*)` |
+| "A screenshot" / "show this image with a caption" | `ImageDoc` + `ImageSegment` (RFC 0020) |
+| "A nicely-formatted prose section" | `TextSegment` (Phase 4) inside a `ComposedDoc` (RFC 0019) — strict `.mdad+` grammar, parser is the conformance gate |
+| "A page that mixes prose + diagrams + tables" | `ComposedDoc` (RFC 0019) wrapping all of the above as ordered segments |
+| "A tree of tagged / categorised tiles" | `ContentTree` (RFC 0016) — see the `create-homing-content-tree` skill |
+
+If any of these fit, the work is *data authoring* — write the typed Doc record, drop the resource on the classpath, register it. **No component code, no AppModule, no JS renderer.** Read the relevant skill / doc and stop.
+
+The component path below is for *real UI widgets* — chrome (Header, Footer), tile variants, interaction primitives (theme picker, search box), list-item shapes. Things that are structurally part of the framework's chrome layer, not the studio's content.
 
 ## Inventory of shipped builders
 

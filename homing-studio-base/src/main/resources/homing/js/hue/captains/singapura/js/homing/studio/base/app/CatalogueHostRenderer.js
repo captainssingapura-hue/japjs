@@ -17,6 +17,7 @@ var href = HrefManagerInstance;
 
 function renderCatalogueHost(props) {
     var catalogueId   = props.catalogueId;
+    var context       = props.context || "";
     var brandFallback = props.brandFallback || { label: "studio", homeUrl: "/" };
 
     var root = document.createElement("div");
@@ -40,7 +41,16 @@ function renderCatalogueHost(props) {
         return root;
     }
 
-    fetch("/catalogue?id=" + encodeURIComponent(catalogueId))
+    // RFC 0016: allow callers (e.g. TreeAppHost) to supply their own endpoint URL.
+    // When apiUrl is set, the catalogue endpoint defaults are bypassed entirely
+    // and the renderer fetches whatever URL the caller built. The shape of the
+    // JSON response is expected to match the CatalogueGetAction contract
+    // (name, summary, brand, breadcrumbs, entries[]).
+    var url = props.apiUrl
+        ? props.apiUrl
+        : ("/catalogue?id=" + encodeURIComponent(catalogueId)
+           + (context ? "&context=" + encodeURIComponent(context) : ""));
+    fetch(url)
         .then(function(r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
@@ -147,6 +157,75 @@ function _renderEntry(entry) {
             badge:   entry.category || null,
             link:    "Open →"
         });
+    }
+    if (entry.kind === "svg") {
+        // RFC 0015 Phase 5: SVG is a typed Doc kind. Routed through the
+        // standard Card with no custom rendering; the framework's chrome
+        // (border, hover, audio cues per RFC 0007) all bind via the st-card
+        // class. The Doc's URL points at the registered SvgViewer; clicking
+        // opens the full-page SVG view via the polymorphic doc viewer.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
+            badge:   entry.category || null,
+            link:    "View →"
+        });
+    }
+    if (entry.kind === "table") {
+        // RFC 0020: TableDoc — typed-table Doc. Routed through the standard
+        // Card; URL points at the registered TableViewer.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
+            badge:   entry.category || null,
+            link:    "View →"
+        });
+    }
+    if (entry.kind === "image") {
+        // RFC 0020: ImageDoc — Raw-tier raster asset. Routed through the
+        // standard Card; URL points at the registered ImageViewer.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
+            badge:   entry.category || null,
+            link:    "View →"
+        });
+    }
+    if (entry.kind === "composed") {
+        // RFC 0019: ComposedDoc — typed-segment doc (markdown + SVG + ...).
+        // Routed through the standard Card; the URL points at the registered
+        // ComposedViewer, which fetches the JSON payload and dispatches per
+        // segment kind on the client side.
+        return Card({
+            href:    entry.url,
+            title:   entry.name,
+            summary: entry.summary || "",
+            badge:   entry.category || null,
+            link:    "Open →"
+        });
+    }
+    if (entry.kind === "illustration") {
+        // Specialized in-place decoration — markdown rendered inline,
+        // visually distinct from the tile grid. Not clickable.
+        var ill = document.createElement("section");
+        ill.style.cssText =
+            "padding:20px 24px;margin:8px 0 24px;border-left:4px solid var(--st-accent,#cfa64a);"
+          + "background:rgba(207,166,74,0.07);border-radius:6px;line-height:1.55;font-size:15px;";
+        try {
+            if (typeof marked !== "undefined" && marked && marked.parse) {
+                var range = document.createRange();
+                range.selectNodeContents(ill);
+                ill.appendChild(range.createContextualFragment(marked.parse(entry.body || "")));
+            } else {
+                ill.textContent = entry.body || "";
+            }
+        } catch (e) {
+            ill.textContent = entry.body || "";
+        }
+        return ill;
     }
     if (entry.kind === "studio") {
         // RFC 0011: a typed re-attachment of a source L0 catalogue. The

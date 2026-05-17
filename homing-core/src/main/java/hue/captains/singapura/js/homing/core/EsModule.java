@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.core;
 
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
 /**
  * A "Declaration" only of an ES/JS module.
  *
@@ -8,7 +10,7 @@ package hue.captains.singapura.js.homing.core;
  * the same import-graph machinery between EsModule sources and
  * {@link Linkable} sources (specifically {@link ProxyApp}).</p>
  */
-public non-sealed interface EsModule<M extends EsModule<M>> extends Importable {
+public non-sealed interface EsModule<M extends EsModule<M>> extends Importable, StatelessFunctionalObject {
     ImportsFor<M> imports();
     ExportsOf<M> exports();
 }

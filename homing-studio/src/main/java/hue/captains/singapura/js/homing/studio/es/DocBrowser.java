@@ -22,12 +22,18 @@ import hue.captains.singapura.js.homing.studio.docs.defects.Defect0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.defects.Defect0002Doc;
 import hue.captains.singapura.js.homing.studio.docs.defects.Defect0003Doc;
 import hue.captains.singapura.js.homing.studio.docs.defects.Defect0004Doc;
+import hue.captains.singapura.js.homing.studio.docs.defects.Defect0005Doc;
+import hue.captains.singapura.js.homing.studio.docs.defects.Defect0006Doc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.CatalogueContainerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.ManagedDomOpsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.MethodsOverPropsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.OwnedReferencesDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PlanContainerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FunctionalObjectsDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.ExplicitOverImplicitDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.NoStealthDataDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.QualityWithoutSurveillanceDoc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.StatelessServerDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.WeighedComplexityDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.DualAudienceSkillsDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.EncapsulatedComponentsDoc;
@@ -36,6 +42,11 @@ import hue.captains.singapura.js.homing.studio.docs.gotchas.Gotcha0001Doc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.FirstUserDoc;
 import hue.captains.singapura.js.homing.studio.docs.doctrines.PureComponentViewsDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.LiveTrackerPatternDoc;
+import hue.captains.singapura.js.homing.studio.docs.meta.OntologyFirstDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.DocOntologyDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.DocTreeOntologyDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.StudioOntologyDoc;
+import hue.captains.singapura.js.homing.studio.docs.ontology.ViewerOntologyDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.ReleaseChecklistDoc;
 import hue.captains.singapura.js.homing.studio.docs.guides.UserGuideDoc;
 import hue.captains.singapura.js.homing.studio.docs.releases.Release0_0_100Doc;
@@ -57,6 +68,15 @@ import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0009Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0010Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0011Doc;
 import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0012Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0013Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0014Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0015Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0016Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0017Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0018Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0019Doc;
+import hue.captains.singapura.js.homing.studio.docs.rfcs.Rfc0020Doc;
+import hue.captains.singapura.js.homing.studio.docs.doctrines.TypedContentVocabularyDoc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingShellFlexibilityWhitepaperDoc;
 import hue.captains.singapura.js.homing.studio.docs.whitepaper.HomingWhitepaperDoc;
 
@@ -107,6 +127,22 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(Rfc0010Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0011Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
             entry(Rfc0012Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0013Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0014Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0015Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0016Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0017Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0018Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0019Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+            entry(Rfc0020Doc.INSTANCE,         "RFCs", StudioStyles.st_badge_rfc.class),
+
+            entry(TypedContentVocabularyDoc.INSTANCE, "Doctrines", StudioStyles.st_badge_reference.class),
+
+            entry(OntologyFirstDoc.INSTANCE,   "Meta", StudioStyles.st_badge_reference.class),
+            entry(DocOntologyDoc.INSTANCE,     "Ontology", StudioStyles.st_badge_reference.class),
+            entry(DocTreeOntologyDoc.INSTANCE, "Ontology", StudioStyles.st_badge_reference.class),
+            entry(ViewerOntologyDoc.INSTANCE,  "Ontology", StudioStyles.st_badge_reference.class),
+            entry(StudioOntologyDoc.INSTANCE,  "Ontology", StudioStyles.st_badge_reference.class),
 
             entry(BrandReadmeDoc.INSTANCE,     "Brand", StudioStyles.st_badge_brand.class),
             entry(RenameToHomingDoc.INSTANCE,  "Brand", StudioStyles.st_badge_brand.class),
@@ -123,6 +159,8 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(Defect0002Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
             entry(Defect0003Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
             entry(Defect0004Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
+            entry(Defect0005Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
+            entry(Defect0006Doc.INSTANCE,      "Defects", StudioStyles.st_badge_reference.class),
 
             entry(Gotcha0001Doc.INSTANCE,      "Gotchas", StudioStyles.st_badge_reference.class),
 
@@ -138,6 +176,10 @@ public record DocBrowser() implements DocBrowserAppModule<DocBrowser>, DocProvid
             entry(PlanContainerDoc.INSTANCE,      "Doctrines", StudioStyles.st_badge_reference.class),
             entry(WeighedComplexityDoc.INSTANCE,  "Doctrines", StudioStyles.st_badge_reference.class),
             entry(FunctionalObjectsDoc.INSTANCE,  "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(NoStealthDataDoc.INSTANCE,      "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(StatelessServerDoc.INSTANCE,    "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(QualityWithoutSurveillanceDoc.INSTANCE, "Doctrines", StudioStyles.st_badge_reference.class),
+            entry(ExplicitOverImplicitDoc.INSTANCE,       "Doctrines", StudioStyles.st_badge_reference.class),
 
             entry(HomingVsReactVueDoc.INSTANCE, "Reference", StudioStyles.st_badge_reference.class),
             entry(UserGuideDoc.INSTANCE,        "Reference", StudioStyles.st_badge_reference.class)

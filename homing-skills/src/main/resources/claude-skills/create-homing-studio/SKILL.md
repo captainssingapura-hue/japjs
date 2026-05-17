@@ -163,6 +163,26 @@ Body content. Standard markdown. Headings become a TOC sidebar automatically.
 
 The classpath path mirrors the Java package exactly: `docs/<package>/<DocClassName>.md`. If this is wrong, the framework returns 404 for the doc body.
 
+### 4a. Doc kinds available
+
+`ClasspathMarkdownDoc` is the default and the lowest-friction choice for prose pages — but it's one of several typed Doc kinds the framework ships. Picking the right kind is more important than feature-stuffing markdown bodies. Quick map:
+
+| Kind | Body | Use when | Renderer |
+|---|---|---|---|
+| `ClasspathMarkdownDoc` | classpath `.md`, full CommonMark + HTML escape hatch | Legacy / lazy / one-off prose where the typed-content discipline isn't required | `DocReader` |
+| `ComposedDoc` (RFC 0019) | ordered `List<Segment>` — see below | Modern prose pages — interleave text, SVG, tables, images via typed segments | `ComposedViewer` |
+| `TextSegment` (inside ComposedDoc, Phase 4) | strict `.mdad+` body — paragraphs + emphasis + lists + blockquote + typed refs only | Disciplined prose segments inside a `ComposedDoc`; eager-parsed at construction so bad bodies never load | walked as part of `ComposedViewer` |
+| `SvgDoc` (RFC 0015 Phase 3) | classpath `.svg` via typed `SvgRef` | Diagrams + illustrations; themable via `var(--color-*)` tokens | `SvgViewer` |
+| `TableDoc` (RFC 0020) | typed `TableData` — headers + rows + cells with optional colspan/badge/align | Structured tabular data; ships JSON envelope; themed cell CSS | `TableViewer` |
+| `ImageDoc` (RFC 0020) | classpath raster (`.png` / `.jpg` / `.webp`); alt required | Screenshots, photos, brand artwork; Raw tier per RFC 0017 | `ImageViewer` |
+| `PlanDoc` | wraps a `Plan` instance | Plan trackers — see step 6 + the `PlanKitDoc` block | `PlanAppHost` |
+| `AppDoc` | wraps a typed `Navigable<P, M>` | Per-tile dispatch to a custom AppModule | the wrapped AppModule |
+| `ProxyDoc` | wraps a target Doc + per-appearance metadata | Same Doc, different framing on a different page | the target Doc's viewer |
+
+**Strong recommendation for new prose pages:** start with `ComposedDoc` + `TextSegment` rather than `ClasspathMarkdownDoc`. The typed-segment discipline gets you typed visuals (SVG / table / image segments) without an HTML escape hatch, and the parser is the conformance gate (no second scanner needed). The case study **Why We Ditched HTML** (in `homing-studio`'s Architecture Case Studies catalogue) walks the rationale; the **`.mdad+` Kit** (in Building Blocks) documents the grammar.
+
+`ClasspathMarkdownDoc` is still appropriate for *legacy* prose where the typed-content discipline hasn't been adopted; it's also the simplest possible Doc record for one-off pages. No retrofit required — see [Defect 0006](#defect-0006) for the policy on on-touch migration.
+
 ### 5. (Optional) Brand logo
 
 If you want a custom logo instead of the default coloured square, create an `SvgGroup`:
@@ -321,6 +341,8 @@ Subclass these in `src/test/java` to lock the framework's guarantees in CI. **Ev
 | `DocConformanceTest`                  | Every `#ref:<name>` anchor in markdown maps to a declared `Reference` |
 | `CssGroupImplConsistencyTest`         | Every `CssGroup` has matching `CssGroupImpl` per theme |
 | `ManagerInjectionConformanceTest`     | No `var/let/const <name>` redeclaration of framework-auto-injected `href`/`css`/etc |
+| `ContentViewerConformanceTest`        | Every `ContentViewer.app()` is present in `Fixtures.harnessApps()` or `Studio.apps()` (catches the "viewer registered but app forgotten" 404) |
+| `PlanRegistrationConformanceTest`     | Every Plan wrapped as a catalogue-leaf `PlanDoc` is also in some `Studio.plans()` (catches the "tile appears but `/plan?id=…` 404s" bug; see Defect 0005) |
 | `StudioCatalogueConstructsTest` (pattern) | Your `CatalogueRegistry` constructs cleanly |
 | `StudioPlanConstructsTest` (pattern)      | Your `PlanRegistry` constructs cleanly |
 
@@ -344,8 +366,9 @@ class MyManagerInjectionConformanceTest extends ManagerInjectionConformanceTest 
 
 - **More docs**: each new typed `Doc` record + matching `.md` file. Add to `MyHomeCatalogue.docs()` so the registry can validate references.
 - **Sub-catalogues**: add another catalogue record one level deeper (e.g. `MyDoctrineCatalogue implements L1_Catalogue<MyHomeCatalogue>`), and add it to the parent's `subCatalogues()` method. Per RFC 0012, your `MyStudio.catalogues()` default walks the closure automatically — you don't list catalogues anywhere else. Children type-checked: an L2 catalogue can't be listed as a parent's L1 child.
-- **Plan trackers**: see `PlanKitDoc` (Building Blocks catalogue) — two files (`Steps.java` + `PlanData.java`), append to `MyStudio.plans()`.
+- **Plan trackers**: see `PlanKitDoc` (Building Blocks catalogue) — two files (`Steps.java` + `PlanData.java`). **Dual-registration warning (Defect 0005):** a Plan needs to be in BOTH places: appended to `MyStudio.plans()` (drives `PlanRegistry` → `/plan?id=…`) AND wrapped as a catalogue leaf via `Entry.of(catalogue, MyPlanData.INSTANCE)` (drives the tile). Forgetting `Studio.plans()` produces a tile that 404s on click. `PlanRegistrationConformanceTest` catches it at build time.
 - **Custom themes**: see the `create-homing-theme` skill. Returned from `MyStudio.themes()`.
+- **Categorised content tree**: see the `create-homing-content-tree` skill. Data-authored sibling of Catalogue (RFC 0016) — right when the structure is data, not types (e.g. tagged SVG assets, search results, per-category landing pages). Registered via `Fixtures.trees()`, not `Studio.plans()`.
 
 ## What to never do
 

@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.studio.base;
 
+import hue.captains.singapura.tao.ontology.Immutable;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +34,7 @@ import java.util.Objects;
  * @param <S> the studio type captured at the leaves; usually {@code Studio<?>}
  */
 public sealed interface Umbrella<S extends Studio<?>>
+        extends Immutable
         permits Umbrella.Group, Umbrella.Solo {
 
     /** A grouping category — pure organisational node. Carries content (name +

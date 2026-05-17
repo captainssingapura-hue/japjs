@@ -36,7 +36,7 @@ public record StudioProxy<S extends L0_Catalogue<S>>(
         String name,
         String summary,
         String badge,
-        String icon) {
+        String icon) implements CatalogueLeaf {
 
     public StudioProxy {
         if (source == null)         throw new IllegalArgumentException("StudioProxy.source must not be null");

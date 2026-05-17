@@ -33,10 +33,15 @@ public record CatalogueAppHost() implements AppModule<CatalogueAppHost.Params, C
     public record link() implements AppLink<CatalogueAppHost> {}
 
     /**
-     * Query parameter — class FQN of the {@link Catalogue} to render. Server
-     * resolves via {@link CatalogueRegistry}.
+     * @param id      class FQN of the {@link Catalogue} to render (server
+     *                resolves via {@link CatalogueRegistry})
+     * @param context optional framework-managed scoping tag — forwarded to
+     *                {@link CatalogueGetAction} so the same catalogue class
+     *                can render context-scoped variants (RFC 0014 per-studio
+     *                diagnostics). {@code null} / missing = the catalogue's
+     *                unscoped page.
      */
-    public record Params(String id) implements AppModule._Param {}
+    public record Params(String id, String context) implements AppModule._Param {}
 
     public static final CatalogueAppHost INSTANCE = new CatalogueAppHost();
 
@@ -75,7 +80,8 @@ public record CatalogueAppHost() implements AppModule<CatalogueAppHost.Params, C
         return List.of(
                 "function appMain(rootElement) {",
                 "    rootElement.replaceChildren(renderCatalogueHost({",
-                "        catalogueId: params.id",
+                "        catalogueId: params.id,",
+                "        context:     params.context",
                 "    }));",
                 "}"
         );
